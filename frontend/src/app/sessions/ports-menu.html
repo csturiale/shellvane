@@ -1,0 +1,36 @@
+<ng-container *transloco="let t">
+  <button type="button" class="icon" [attr.aria-label]="t('ports.title')" [title]="t('ports.title')" [attr.aria-expanded]="open()" (click)="toggle($event)">
+    <svg lucideEthernetPort [size]="12" aria-hidden="true"></svg>
+  </button>
+  @if (open()) {
+    <div class="menu" role="dialog" [attr.aria-label]="t('ports.title')" [style.top.px]="pos().top" [style.left.px]="pos().left">
+      <div class="head">
+        <strong>{{ t('ports.title') }}</strong>
+        <button type="button" class="btn small" (click)="refresh()">{{ t('ports.refresh') }}</button>
+      </div>
+      @if (loading()) {
+        <p class="hint">{{ t('ports.loading') }}</p>
+      } @else if (error(); as e) {
+        <p class="error" role="alert">{{ e }}</p>
+      } @else {
+        <ul>
+          @for (p of ports(); track p.port) {
+            <li>
+              <span class="port">{{ p.port }}</span>
+              <span class="addr">{{ p.addr }}</span>
+              <span class="proc">{{ p.process }}</span>
+              @if (local(p.port); as addr) {
+                <button type="button" class="btn small" [title]="t('ports.openHint', { addr: addr })" (click)="browse(addr)">{{ addr }}</button>
+              } @else {
+                <button type="button" class="btn small primary" [attr.aria-label]="t('ports.forwardNamed', { port: p.port })" (click)="forward(p)">{{ t('ports.forward') }}</button>
+              }
+            </li>
+          } @empty {
+            <li class="hint">{{ t('ports.none') }}</li>
+          }
+        </ul>
+        <p class="hint">{{ t('ports.hint') }}</p>
+      }
+    </div>
+  }
+</ng-container>

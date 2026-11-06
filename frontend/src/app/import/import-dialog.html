@@ -1,0 +1,133 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('import.title')" [wide]="step() === 'preview'" (closed)="closed.emit()">
+    @switch (step()) {
+      @case ('source') {
+        <form id="import-source" class="form" (ngSubmit)="read()">
+          <div class="sources" role="radiogroup" [attr.aria-label]="t('import.source')">
+            @for (s of sources(); track $index; let i = $index) {
+              <button type="button" role="radio" class="source" [class.selected]="selected() === i" [attr.aria-checked]="selected() === i" (click)="select(i)">
+                <strong>{{ t('import.tools.' + s.id) }}</strong>
+                <small>{{ t('import.kinds.' + s.kind) }}@if (s.found) { · {{ t('import.found') }} }</small>
+              </button>
+            }
+          </div>
+          @if (source(); as s) {
+            @if (s.kind !== 'registry') {
+              <label class="field">
+                <span>{{ t(s.kind === 'file' ? 'import.file' : 'import.folder') }}</span>
+                <input name="path" spellcheck="false" class="mono" [(ngModel)]="path" [placeholder]="t('import.pathPlaceholder.' + s.id)" />
+              </label>
+            }
+            <p class="hint">{{ t('import.hints.' + s.id) }}</p>
+          }
+        </form>
+      }
+      @case ('preview') {
+        @if (preview(); as p) {
+          <div class="form">
+            <div class="toolbar">
+              <span>{{ t('import.selected', { count: chosenCount(), total: p.hosts?.length ?? 0 }) }}</span>
+              <span class="spacer"></span>
+              <button type="button" class="btn small" (click)="toggleAll(true)">{{ t('import.all') }}</button>
+              <button type="button" class="btn small" (click)="toggleAll(false)">{{ t('import.none') }}</button>
+            </div>
+            <div class="table" role="tree" [attr.aria-label]="t('import.preview')">
+              @for (row of rows(); track row.kind === 'group' ? 'g' + row.key : 'h' + row.index) {
+                @if (row.kind === 'group') {
+                  @let state = groupState(row.hosts);
+                  <div class="item group-row" role="treeitem" [attr.aria-expanded]="!collapsed().has(row.key)" [style.padding-inline-start.px]="8 + row.depth * 18">
+                    <button type="button" class="fold" [attr.aria-label]="t(collapsed().has(row.key) ? 'import.expand' : 'import.collapse', { name: row.name })" (click)="fold(row.key)">
+                      {{ collapsed().has(row.key) ? '▸' : '▾' }}
+                    </button>
+                    <input
+                      type="checkbox"
+                      [checked]="state === 'all'"
+                      [indeterminate]="state === 'some'"
+                      [attr.aria-label]="t('import.chooseGroup', { name: row.name })"
+                      (change)="toggleGroup(row.hosts)"
+                    />
+                    <span class="name">📁 {{ row.name }}</span>
+                    <span class="count">{{ row.hosts.length }}</span>
+                  </div>
+                } @else {
+                  @let h = p.hosts![row.index];
+                  <label class="item" role="treeitem" [style.padding-inline-start.px]="8 + row.depth * 18 + 22">
+                    <input type="checkbox" [checked]="chosen()[row.index]" (change)="toggle(row.index)" />
+                    <span class="name">{{ h.name }}</span>
+                    <code [class.defaulted]="!h.user && defaultUser.trim()">{{ address(h) }}</code>
+                    @if (h.tunnels?.length) {
+                      <span class="badge">{{ t('import.tunnelCount', { count: h.tunnels!.length }) }}</span>
+                    }
+                  </label>
+                }
+              } @empty {
+                <p class="hint">{{ t('import.empty') }}</p>
+              }
+            </div>
+            @if (p.warnings?.length) {
+              <details>
+                <summary>{{ t('import.warningCount', { count: p.warnings!.length }) }}</summary>
+                <ul class="warnings">
+                  @for (w of p.warnings; track $index) {
+                    <li>{{ t('import.warnings.' + w.code, w.params ?? {}) }}</li>
+                  }
+                </ul>
+              </details>
+            }
+            <label class="field">
+              <span>{{ t('import.defaultUser') }}</span>
+              <input name="defaultUser" spellcheck="false" autocomplete="off" [(ngModel)]="defaultUser" [placeholder]="t('import.defaultUserPlaceholder')" />
+              <small class="hint">{{ t('import.defaultUserHint', { count: withoutUser() }) }}</small>
+            </label>
+            <label class="check">
+              <input name="useGroup" type="checkbox" [(ngModel)]="useGroup" />
+              {{ t('import.useGroup') }}
+            </label>
+            @if (useGroup) {
+              <label class="field">
+                <span>{{ t('import.intoGroup') }}</span>
+                <input name="group" [(ngModel)]="group" required />
+              </label>
+            } @else {
+              <p class="hint">{{ t('import.topLevelHint') }}</p>
+            }
+            <p class="hint">{{ t('import.backupHint') }}</p>
+          </div>
+        }
+      }
+      @case ('done') {
+        @if (summary(); as s) {
+          <div class="form">
+            <p class="done">{{ t('import.summary', { hosts: s.hosts, groups: s.groups, tunnels: s.tunnels }) }}</p>
+            @if (s.skipped > 0) {
+              <p class="hint">{{ t('import.skipped', { count: s.skipped }) }}</p>
+            }
+            <p class="hint">{{ t('import.backupDone') }} <code>{{ s.backup }}</code></p>
+          </div>
+        }
+      }
+    }
+
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+    }
+
+    <ng-container modal-actions>
+      @switch (step()) {
+        @case ('source') {
+          <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+          <button type="submit" form="import-source" class="btn primary" [disabled]="busy() || !source()">{{ t('import.read') }}</button>
+        }
+        @case ('preview') {
+          <button type="button" class="btn" (click)="step.set('source')">{{ t('import.back') }}</button>
+          <button type="button" class="btn primary" [disabled]="busy() || chosenCount() === 0 || (useGroup && !group.trim())" (click)="import()">
+            {{ t('import.importCount', { count: chosenCount() }) }}
+          </button>
+        }
+        @case ('done') {
+          <button type="button" class="btn primary" (click)="closed.emit()">{{ t('import.close') }}</button>
+        }
+      }
+    </ng-container>
+  </app-modal>
+</ng-container>

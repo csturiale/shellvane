@@ -1,0 +1,281 @@
+<section *transloco="let t" class="panel">
+  <header>
+    <h2>{{ t('panels.hosts.title') }} <app-help-link topic="hosts" /></h2>
+    <div class="actions">
+      <button type="button" class="icon" [attr.aria-label]="t('import.title')" [title]="t('import.title')" (click)="importing.set(true)">
+        <svg lucideDownload [size]="16" aria-hidden="true"></svg>
+      </button>
+      <button type="button" class="icon" [attr.aria-label]="t('hosts.template.importTitle')" [title]="t('hosts.template.importTitle')" (click)="importingTemplate.set(true)">
+        <svg lucideClipboardPaste [size]="16" aria-hidden="true"></svg>
+      </button>
+      <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.newGroup')" [title]="t('hosts.actions.newGroup')" (click)="newGroup()">
+        <svg lucideFolderPlus [size]="16" aria-hidden="true"></svg>
+      </button>
+      <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.newHost')" [title]="t('hosts.actions.newHost')" (click)="newHost()">
+        <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+      </button>
+    </div>
+  </header>
+
+  @if (!isEmpty()) {
+    <label class="filter">
+      <svg lucideSearch [size]="14" aria-hidden="true"></svg>
+      <input type="search" [placeholder]="t('hosts.filter')" [attr.aria-label]="t('hosts.filter')" [value]="filter()" (input)="onFilter($event)" />
+    </label>
+    @if (filter() && filtered().length > 1) {
+      <button type="button" class="btn small connect-all" (click)="connectAll(filtered())">
+        {{ t('hosts.connectAllFiltered', { count: filtered().length }) }}
+      </button>
+    }
+  }
+
+  @if (!filter() && (favorites().length > 0 || recent().length > 0)) {
+    <div class="quick">
+      @if (favorites().length > 0) {
+        <h3>{{ t('hosts.favorites') }}</h3>
+        @for (h of favorites(); track h.id) {
+          <button type="button" class="quick-host" [title]="h.hostname" (dblclick)="connect(h)" (keydown.enter)="connect(h)" (contextmenu)="hostMenu($event, h)">
+            <svg lucideStar [size]="13" class="star on" aria-hidden="true"></svg>
+            {{ h.name }}
+          </button>
+        }
+      }
+      @if (recent().length > 0) {
+        <h3>{{ t('hosts.recent') }}</h3>
+        @for (h of recent(); track h.id) {
+          <button type="button" class="quick-host" [title]="h.hostname" (dblclick)="connect(h)" (keydown.enter)="connect(h)" (contextmenu)="hostMenu($event, h)">
+            <svg lucideHistory [size]="13" aria-hidden="true"></svg>
+            {{ h.name }}
+          </button>
+        }
+      }
+    </div>
+  }
+
+  @if (error(); as e) {
+    <p class="error" role="alert">{{ e }}</p>
+  }
+  @if (notice(); as n) {
+    <p class="notice" role="status">{{ n }}</p>
+  }
+
+  <div
+    class="tree"
+    role="tree"
+    [attr.aria-label]="t('panels.hosts.title')"
+    [class.drop]="dropTarget() === ''"
+    (dragover)="onDragOver($event, '')"
+    (dragleave)="dropTarget.set(null)"
+    (drop)="onDrop($event, '')"
+  >
+    @for (row of rows(); track row.kind === 'group' ? 'g' + row.group.id : 'h' + row.host.id) {
+      @if (row.kind === 'group') {
+        <div
+          class="row group"
+          role="treeitem"
+          tabindex="0"
+          draggable="true"
+          [attr.aria-expanded]="row.expanded"
+          [style.padding-inline-start.px]="8 + row.depth * 16"
+          [class.drop]="dropTarget() === row.group.id"
+          (contextmenu)="groupMenu($event, row.group)"
+          (click)="store.toggle(row.group.id)"
+          (keydown.enter)="store.toggle(row.group.id)"
+          (dragstart)="onDragStart($event, { kind: 'group', id: row.group.id })"
+          (dragend)="onDragEnd()"
+          (dragover)="onDragOver($event, row.group.id)"
+          (drop)="onDrop($event, row.group.id)"
+        >
+          <span class="chevron" [class.open]="row.expanded" [class.hidden]="!row.hasChildren">
+            <svg lucideChevronRight [size]="14" aria-hidden="true"></svg>
+          </span>
+          @if (row.expanded) {
+            <svg lucideFolderOpen [size]="16" [style.color]="colorVar(row.group.color)" aria-hidden="true"></svg>
+          } @else {
+            <svg lucideFolder [size]="16" [style.color]="colorVar(row.group.color)" aria-hidden="true"></svg>
+          }
+          <span class="name">{{ row.group.name }}</span>
+          @if (sharing.groupBadge; as badge) {
+            <ng-container *ngComponentOutlet="badge; inputs: { groupId: row.group.id }" />
+          }
+          <span class="count">{{ row.hostCount }}</span>
+          <span class="row-actions" (click)="$event.target !== $event.currentTarget && $event.stopPropagation()">
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.connectAllIn', { name: row.group.name })" [title]="t('hosts.connectAll')" (click)="connectGroup(row.group)">
+              <svg lucideLayoutGrid [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.newHostIn', { name: row.group.name })" [title]="t('hosts.actions.newHost')" (click)="newHost(row.group.id)">
+              <svg lucidePlus [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.newSubgroupIn', { name: row.group.name })" [title]="t('hosts.actions.newSubgroup')" (click)="newGroup(row.group.id)">
+              <svg lucideFolderPlus [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.template.copyItem', { name: row.group.name })" [title]="t('hosts.template.copy')" (click)="exporting.set(row.group)">
+              <svg lucideClipboardCopy [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.editItem', { name: row.group.name })" [title]="t('hosts.actions.edit')" (click)="editGroup(row.group)">
+              <svg lucidePencil [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: row.group.name })" [title]="t('hosts.actions.delete')" (click)="askDeleteGroup(row.group)">
+              <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+            </button>
+          </span>
+        </div>
+      } @else {
+        <div
+          class="row host"
+          role="treeitem"
+          tabindex="0"
+          draggable="true"
+          [style.padding-inline-start.px]="8 + row.depth * 16 + 18"
+          (dblclick)="connect(row.host)"
+          (keydown.enter)="connect(row.host)"
+          (contextmenu)="hostMenu($event, row.host)"
+          (dragstart)="onDragStart($event, { kind: 'host', id: row.host.id })"
+          (dragend)="onDragEnd()"
+        >
+          <span class="server-icon">
+            <svg lucideServer [size]="16" aria-hidden="true"></svg>
+            @if (store.status()[row.host.id]; as st) {
+              <span class="status-dot" [class]="st.state" role="img" [attr.aria-label]="statusTitle(row.host.id)" [title]="statusTitle(row.host.id)"></span>
+            }
+          </span>
+          <span class="name host-name">
+            <span class="line">
+              {{ row.host.name }}
+              @if (row.host.name !== row.host.hostname) {
+                <small>{{ row.host.hostname }}</small>
+              }
+            </span>
+            @if (row.host.tags?.length) {
+              <span class="tags">
+                @for (tag of row.host.tags; track tag) {
+                  <button type="button" class="tag" [title]="t('hosts.filterTag', { tag: tag })" (click)="filterTag(tag)">#{{ tag }}</button>
+                }
+              </span>
+            }
+          </span>
+          @if (row.host.favorite) {
+            <svg lucideStar [size]="12" class="star on fav" aria-hidden="true"></svg>
+          }
+          <span class="row-actions">
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.connectTo', { name: row.host.name })" [title]="t('hosts.actions.connect')" (click)="connect(row.host)">
+              <svg lucideSquareTerminal [size]="14" aria-hidden="true"></svg>
+            </button>
+            @if (store.clients().mosh) {
+              <button type="button" class="icon" [attr.aria-label]="t('hosts.moshNamed', { name: row.host.name })" [title]="t('hosts.mosh')" (click)="mosh(row.host)">
+                <svg lucideWifi [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
+            @if (row.host.settings.remoteDesktop) {
+              <button type="button" class="icon" [attr.aria-label]="t('hosts.desktopNamed', { name: row.host.name })" [title]="t('hosts.desktop')" (click)="remoteDesktop(row.host)">
+                <svg lucideMonitor [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
+            @if (row.host.settings.macAddress) {
+              <button type="button" class="icon" [attr.aria-label]="t('hosts.wakeNamed', { name: row.host.name })" [title]="t('hosts.wake')" (click)="wake(row.host)">
+                <svg lucidePower [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.filesOf', { name: row.host.name })" [title]="t('hosts.actions.files')" (click)="nav.openFiles(row.host.id)">
+              <svg lucideFolderSync [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button
+              type="button"
+              class="icon"
+              [class.on]="row.host.favorite"
+              [attr.aria-pressed]="row.host.favorite"
+              [attr.aria-label]="t('hosts.favoriteNamed', { name: row.host.name })"
+              [title]="t('hosts.favorite')"
+              (click)="toggleFavorite(row.host)"
+            >
+              <svg lucideStar [size]="14" aria-hidden="true"></svg>
+            </button>
+            @if (row.host.notes) {
+              <button type="button" class="icon" [attr.aria-label]="t('hosts.notesOf', { name: row.host.name })" [title]="t('hosts.host.notes')" (click)="showNotes(row.host)">
+                <svg lucideNotebookText [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.duplicateNamed', { name: row.host.name })" [title]="t('hosts.duplicate')" (click)="duplicate(row.host)">
+              <svg lucideCopy [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.editItem', { name: row.host.name })" [title]="t('hosts.actions.edit')" (click)="editHost(row.host)">
+              <svg lucidePencil [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: row.host.name })" [title]="t('hosts.actions.delete')" (click)="askDeleteHost(row.host)">
+              <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+            </button>
+          </span>
+        </div>
+      }
+    } @empty {
+      @if (isEmpty()) {
+        <div class="empty">
+          <svg lucideServer [size]="32" aria-hidden="true"></svg>
+          <p>{{ t('panels.hosts.empty') }}</p>
+          <div class="empty-actions">
+            <button type="button" class="btn primary" (click)="newHost()">{{ t('hosts.actions.newHost') }}</button>
+            <button type="button" class="btn" (click)="newGroup()">{{ t('hosts.actions.newGroup') }}</button>
+            <button type="button" class="btn" (click)="importing.set(true)">{{ t('import.title') }}</button>
+          </div>
+        </div>
+      } @else if (filter()) {
+        <p class="no-results">{{ t('hosts.noResults') }}</p>
+      }
+    }
+  </div>
+
+  @if (notesOf(); as h) {
+    <app-modal [heading]="t('hosts.notesOf', { name: h.name })" (closed)="notesOf.set(null)">
+      <article class="notes" [innerHTML]="notesHtml()"></article>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="editHost(h); notesOf.set(null)">{{ t('hosts.actions.edit') }}</button>
+        <button type="button" class="btn primary" (click)="notesOf.set(null)">{{ t('common.close') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+  @if (importing()) {
+    @defer (on immediate) {
+      <app-import-dialog (closed)="importing.set(false)" />
+    }
+  }
+
+  @if (exporting(); as g) {
+    <app-modal [heading]="t('hosts.template.exportTitle', { name: g.name })" (closed)="exporting.set(null)">
+      <p class="hint">{{ t('hosts.template.exportIntro') }} <app-help-link topic="hosts" anchor="templates" /></p>
+      <label class="check">
+        <input type="checkbox" [checked]="exportHosts" (change)="exportHosts = $any($event.target).checked" />
+        {{ t('hosts.template.withHosts') }}
+      </label>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="exporting.set(null)">{{ t('common.cancel') }}</button>
+        <button type="button" class="btn primary" (click)="copyTemplate()">{{ t('hosts.template.copyNow') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+  @if (importingTemplate()) {
+    @defer (on immediate) {
+      <app-template-dialog (closed)="templateClosed($event)" />
+    }
+  }
+  <!-- The dialogs load when first opened. -->
+  @if (groupDialog(); as target) {
+    @defer (on immediate) {
+      <app-group-dialog [target]="target" (closed)="groupDialog.set(null)" />
+    }
+  }
+  @if (hostDialog(); as target) {
+    @defer (on immediate) {
+      <app-host-dialog [target]="target" (closed)="hostDialog.set(null)" />
+    }
+  }
+  @if (pendingDelete(); as p) {
+    <app-confirm-dialog
+      [heading]="t(p.kind === 'group' ? 'hosts.delete.groupTitle' : 'hosts.delete.hostTitle')"
+      [message]="p.message"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="pendingDelete.set(null)"
+    />
+  }
+</section>

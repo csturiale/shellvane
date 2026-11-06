@@ -1,0 +1,47 @@
+<ng-container *transloco="let t">
+  <button
+    type="button"
+    class="icon"
+    [class.labelled]="labelled()"
+    aria-haspopup="true"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="t('workspaces.title')"
+    [title]="t('workspaces.title')"
+    (click)="toggle()"
+  >
+    <svg lucideLayoutDashboard [size]="16" aria-hidden="true"></svg>
+    @if (labelled()) {
+      <span>{{ t('workspaces.title') }}</span>
+    }
+  </button>
+  @if (open()) {
+    <div class="menu" role="dialog" [attr.aria-label]="t('workspaces.title')">
+      <h3>{{ t('workspaces.title') }} <app-help-link topic="continuity" anchor="workspaces" /></h3>
+      @if (sessions.tabs().length > 0) {
+        <form class="save" (ngSubmit)="save()">
+          <input name="name" autofocus [(ngModel)]="name" [placeholder]="t('workspaces.namePlaceholder')" [attr.aria-label]="t('workspaces.name')" />
+          <button type="submit" class="btn primary" [disabled]="!name.trim()">{{ t('workspaces.save') }}</button>
+        </form>
+        <p class="hint">{{ t('workspaces.saveHint') }}</p>
+      }
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ e }}</p>
+      }
+      <ul>
+        @for (w of store.list(); track w.id) {
+          <li>
+            <button type="button" class="open" (click)="openWorkspace(w)">{{ w.name }}</button>
+            @if (sharing.button; as c) {
+              <ng-container *ngComponentOutlet="c; inputs: { kind: 'workspace', localId: w.id, name: w.name }" />
+            }
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: w.name })" [title]="t('hosts.actions.delete')" (click)="remove(w)">
+              <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+            </button>
+          </li>
+        } @empty {
+          <li class="empty">{{ t('workspaces.empty') }}</li>
+        }
+      </ul>
+    </div>
+  }
+</ng-container>

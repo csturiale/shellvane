@@ -1,0 +1,17 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Networking", "name": "Addresses and routes", "body": "ip -br addr && ip route", "run": true},
+    {"folder": "Networking", "name": "Listening ports", "body": "sudo ss -tulpn", "run": true},
+    {"folder": "Networking", "name": "Established connections", "body": "ss -tnp state established", "run": true},
+    {"folder": "Networking", "name": "DNS lookup", "body": "dig +short {{name}}", "run": true},
+    {"folder": "Networking", "name": "DNS lookup, full", "body": "dig {{name}} {{type:A|AAAA|MX|TXT|CNAME|NS}}", "run": true},
+    {"folder": "Networking", "name": "HTTP headers and timing", "body": "curl -sS -o /dev/null -D - -w 'time: %{time_total}s\\n' {{url}}", "run": true},
+    {"folder": "Networking", "name": "Is a port open?", "body": "nc -zv -w 3 {{host}} {{port}}", "run": true},
+    {"folder": "Networking", "name": "Route to a host", "body": "tracepath {{host}}", "run": true},
+    {"folder": "Networking", "name": "Public IP address", "body": "curl -s https://ifconfig.me; echo", "run": true},
+    {"folder": "Networking", "name": "Capture traffic on a port", "body": "sudo tcpdump -ni any port {{port}} -c 100", "run": true},
+    {"folder": "Networking", "name": "Firewall rules", "body": "sudo nft list ruleset 2>/dev/null || sudo iptables -L -n -v", "run": true}
+  ]
+}

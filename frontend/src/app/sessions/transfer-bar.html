@@ -1,0 +1,27 @@
+<ng-container *transloco="let t">
+@if (state(); as tr) {
+  <div class="transfer" role="status">
+    <span class="name">{{ t(tr.direction === 'download' ? 'transfer.receiving' : 'transfer.sending', { name: tr.name, n: tr.files }) }}</span>
+    <progress [value]="tr.total ? tr.done : null" [max]="tr.total || 1"></progress>
+    <span class="amount">{{ tr.total ? percent(tr) + '%' : t('transfer.bytes', { kb: (tr.done / 1024).toFixed(0) }) }}</span>
+    <button type="button" class="btn small" (click)="cancel.emit()">{{ t('common.cancel') }}</button>
+  </div>
+}
+@if (result(); as r) {
+  <div class="transfer done" role="status">
+    @if (r.error) {
+      <span class="error">{{ t('transfer.failed', { error: r.error }) }}</span>
+    } @else if (r.cancelled) {
+      <span>{{ t('transfer.cancelled') }}</span>
+    } @else if (r.direction === 'download') {
+      <span>{{ t('transfer.saved', { count: r.saved.length }) }}</span>
+      @for (path of r.saved; track path) {
+        <button type="button" class="link mono" [title]="t('transfer.reveal')" (click)="reveal.emit(path)">{{ path }}</button>
+      }
+    } @else {
+      <span>{{ t('transfer.sent', { count: r.sent }) }}</span>
+    }
+    <button type="button" class="btn small" [attr.aria-label]="t('common.close')" (click)="dismiss.emit()">✕</button>
+  </div>
+}
+</ng-container>

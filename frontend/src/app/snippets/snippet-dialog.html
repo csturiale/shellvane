@@ -1,0 +1,50 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t(snippet() ? 'snippets.editTitle' : 'snippets.createTitle')" (closed)="closed.emit()">
+    <form id="snippet-form" class="form" (ngSubmit)="save()">
+      @if (sharing.note; as c) {
+        <ng-container *ngComponentOutlet="c; inputs: { kind: 'snippet', localId: snippet()?.id }" />
+      }
+      <div class="row">
+        <label class="field">
+          <span>{{ t('snippets.name') }}</span>
+          <input name="name" autofocus [(ngModel)]="name" />
+        </label>
+        <label class="field">
+          <span>{{ t('snippets.folder') }}</span>
+          <input name="folder" list="snippet-folders" [(ngModel)]="folder" />
+          <datalist id="snippet-folders">
+            @for (f of store.folders(); track f) {
+              <option [value]="f"></option>
+            }
+          </datalist>
+        </label>
+      </div>
+      <label class="field">
+        <span>{{ t('snippets.body') }}</span>
+        <textarea name="body" rows="6" spellcheck="false" [ngModel]="body()" (ngModelChange)="body.set($event)"></textarea>
+      </label>
+      <div class="hint">
+        {{ t('snippets.variables.title') }}:
+        <ul>
+          <li><code [textContent]="examples.ask"></code> {{ t('snippets.variables.ask') }}</li>
+          <li><code [textContent]="examples.choose"></code> {{ t('snippets.variables.choose') }}</li>
+          <li><code [textContent]="examples.system"></code> {{ t('snippets.variables.system') }}</li>
+        </ul>
+      </div>
+      @if (variables().length > 0) {
+        <p class="hint">{{ t('snippets.detected', { names: variables().join(', ') }) }}</p>
+      }
+      <label class="check">
+        <input name="run" type="checkbox" [(ngModel)]="run" />
+        {{ t('snippets.runOnSend') }}
+      </label>
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="snippet-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

@@ -1,0 +1,203 @@
+<div *transloco="let t" class="runbooks">
+  <div class="toolbar">
+    <p class="hint">{{ t('runbooks.hint') }}</p>
+    <span class="buttons">
+      <button type="button" class="btn" (click)="importing.set(true)">
+        <svg lucideUpload [size]="14" aria-hidden="true"></svg>
+        {{ t('runbooks.import') }}
+      </button>
+      <button type="button" class="btn primary" (click)="editing.set('new')">
+        <svg lucidePlus [size]="14" aria-hidden="true"></svg>
+        {{ t('runbooks.new') }}
+      </button>
+    </span>
+  </div>
+  @if (message(); as m) {
+    <p class="message" role="status">{{ m }}</p>
+  }
+
+  <ul class="list">
+    @for (rb of store.list(); track rb.id) {
+      <li>
+        <button type="button" class="icon play" [attr.aria-label]="t('runbooks.runNamed', { name: rb.name })" [title]="t('runbooks.run')" (click)="askStart(rb)">
+          <svg lucidePlay [size]="14" aria-hidden="true"></svg>
+        </button>
+        <span class="text">
+          <span class="name">{{ rb.name }}</span>
+          <span class="detail">{{ t('runbooks.stepsCount', { count: rb.steps.length }) }} · {{ t(rb.parallel ? 'runbooks.inParallel' : 'runbooks.inSequence') }}</span>
+        </span>
+        <button type="button" class="icon" [attr.aria-label]="t('runbooks.copyNamed', { name: rb.name })" [title]="t('runbooks.copy')" (click)="copyYAML(rb)">
+          <svg lucideCopy [size]="13" aria-hidden="true"></svg>
+        </button>
+        <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.editItem', { name: rb.name })" [title]="t('hosts.actions.edit')" (click)="editing.set(rb)">
+          <svg lucidePencil [size]="13" aria-hidden="true"></svg>
+        </button>
+        <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: rb.name })" [title]="t('hosts.actions.delete')" (click)="deleting.set(rb)">
+          <svg lucideTrash2 [size]="13" aria-hidden="true"></svg>
+        </button>
+      </li>
+    } @empty {
+      <li class="empty">{{ t('runbooks.empty') }}</li>
+    }
+  </ul>
+
+  @if (store.runs().length > 0) {
+    @let r = run()!;
+    <section class="run">
+      <header>
+        <select [attr.aria-label]="t('runbooks.runs')" (change)="selectedRun.set($any($event.target).value)">
+          @for (x of store.runs(); track x.id) {
+            <option [value]="x.id" [selected]="x.id === r.id">{{ x.runbook.name || t('runbooks.adHoc') }} — {{ x.startedAt.slice(11, 19) }}</option>
+          }
+        </select>
+        @let s = summary(r);
+        <span class="counts">
+          @for (k of ['done', 'failed', 'running', 'waiting', 'skipped', 'cancelled']; track k) {
+            @if (s[k]) {
+              <span class="count" [class]="k">{{ t('runbooks.states.' + k) }} {{ s[k] }}</span>
+            }
+          }
+        </span>
+        <span class="spacer"></span>
+        @if (!r.done) {
+          <button type="button" class="btn" (click)="store.cancel(r.id)">
+            <svg lucideSquare [size]="12" aria-hidden="true"></svg>
+            {{ t('runbooks.cancel') }}
+          </button>
+        } @else {
+          <button type="button" class="btn" (click)="store.forget(r.id)">{{ t('common.close') }}</button>
+        }
+        <button type="button" class="btn" (click)="exportResults(r, 'csv')">
+          <svg lucideDownload [size]="12" aria-hidden="true"></svg>
+          CSV
+        </button>
+        <button type="button" class="btn" (click)="exportResults(r, 'json')">
+          <svg lucideDownload [size]="12" aria-hidden="true"></svg>
+          JSON
+        </button>
+      </header>
+      <div class="grid-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{{ t('runbooks.host') }}</th>
+              @for (st of r.runbook.steps; track $index; let i = $index) {
+                <th scope="col">
+                  {{ stepName(r.runbook, i) }}
+                  @if (waitingAt(r, i)) {
+                    <button type="button" class="mini ok" (click)="confirm(r, '', i, true)">{{ t('runbooks.continueAll') }}</button>
+                  }
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (h of r.hosts; track h.id) {
+              <tr>
+                <th scope="row">{{ h.name }}</th>
+                @for (c of r.cells[h.id] ?? []; track $index; let i = $index) {
+                  <td [class]="c.state">
+                    @if (c.state === 'waiting') {
+                      <button type="button" class="mini ok" (click)="confirm(r, h.id, i, true)">{{ t('runbooks.continue') }}</button>
+                      <button type="button" class="mini" (click)="confirm(r, h.id, i, false)">{{ t('runbooks.stop') }}</button>
+                    } @else if (c.result) {
+                      <button type="button" class="cell" [title]="c.command" (click)="output.set({ host: h.name, step: stepName(r.runbook, i), cell: c })">
+                        @if (c.result.error) {
+                          {{ errorText(c.result.error) }}
+                        } @else {
+                          exit {{ c.result.exitCode }}
+                        }
+                        <small>{{ c.result.duration.toFixed(1) }} s</small>
+                      </button>
+                    } @else {
+                      {{ t('runbooks.states.' + c.state) }}
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (editing(); as e) {
+    <app-runbook-dialog [runbook]="e === 'new' ? null : e" (closed)="editing.set(null)" />
+  }
+
+  @if (starting(); as rb) {
+    <app-modal [heading]="t('runbooks.startTitle', { name: rb.name || t('runbooks.adHoc') })" (closed)="starting.set(null)">
+      <form id="start-form" class="form" (ngSubmit)="start()">
+        @for (v of rb.variables ?? []; track v.name) {
+          <label class="field">
+            <span>{{ v.name }}</span>
+            @if (v.choices?.length) {
+              <select [name]="v.name" [(ngModel)]="values[v.name]">
+                @for (c of v.choices; track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            } @else {
+              <input [name]="v.name" spellcheck="false" [(ngModel)]="values[v.name]" />
+            }
+          </label>
+        }
+        <button type="button" class="btn" (click)="showPreview()">{{ t('runbooks.dryRun') }}</button>
+        @if (preview(); as p) {
+          <div class="preview">
+            <p class="hint">{{ t('runbooks.previewHosts', { count: p.hosts?.length ?? 0 }) }}</p>
+            @for (h of p.hosts ?? []; track h.id) {
+              <strong>{{ h.name }}</strong>
+              <ol>
+                @for (c of p.commands?.[h.id] ?? []; track $index) {
+                  <li><code>{{ c }}</code></li>
+                }
+              </ol>
+            }
+          </div>
+        }
+      </form>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="starting.set(null)">{{ t('common.cancel') }}</button>
+        <button type="submit" form="start-form" class="btn primary">{{ t('runbooks.run') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+
+  @if (output(); as o) {
+    <app-modal [heading]="o.host + ' · ' + o.step" (closed)="output.set(null)">
+      <p class="hint"><code>{{ o.cell.command }}</code></p>
+      <pre class="output">{{ o.cell.result?.output }}</pre>
+      <ng-container modal-actions>
+        <button type="button" class="btn primary" (click)="output.set(null)">{{ t('common.close') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+
+  @if (importing()) {
+    <app-modal [heading]="t('runbooks.import')" (closed)="importing.set(false)">
+      <form id="import-rb-form" class="form" (ngSubmit)="doImport()">
+        <label class="field">
+          <span>{{ t('runbooks.importLabel') }}</span>
+          <textarea name="yaml" rows="12" class="mono" spellcheck="false" [(ngModel)]="importText"></textarea>
+        </label>
+      </form>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="importing.set(false)">{{ t('common.cancel') }}</button>
+        <button type="submit" form="import-rb-form" class="btn primary">{{ t('environments.importSubmit') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+
+  @if (deleting(); as rb) {
+    <app-confirm-dialog
+      [heading]="t('runbooks.deleteTitle')"
+      [message]="t('runbooks.deleteMessage', { name: rb.name })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</div>

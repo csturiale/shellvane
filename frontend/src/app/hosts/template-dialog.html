@@ -1,0 +1,31 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('hosts.template.importTitle')" (closed)="closed.emit(null)">
+    <form id="template-form" (ngSubmit)="submit()">
+      <p class="hint">{{ t('hosts.template.intro') }} <app-help-link topic="hosts" anchor="templates" /></p>
+      <div class="field">
+        <div class="labelled">
+          <label for="template-text">{{ t('hosts.template.text') }}</label>
+          <button type="button" class="btn small" (click)="paste()">{{ t('hosts.template.paste') }}</button>
+        </div>
+        <textarea id="template-text" name="text" rows="10" spellcheck="false" class="mono" required [(ngModel)]="text"></textarea>
+      </div>
+      <label class="field">
+        <span>{{ t('hosts.template.parent') }}</span>
+        <select name="parent" [(ngModel)]="parentId">
+          <option value="">{{ t('hosts.template.topLevel') }}</option>
+          @for (g of groups(); track g.id) {
+            <option [value]="g.id">{{ g.path }}</option>
+          }
+        </select>
+      </label>
+      <p class="hint">{{ t('hosts.template.mergeHint') }}</p>
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit(null)">{{ t('common.cancel') }}</button>
+      <button type="submit" form="template-form" class="btn primary" [disabled]="busy() || !text.trim()">{{ t('hosts.template.import') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

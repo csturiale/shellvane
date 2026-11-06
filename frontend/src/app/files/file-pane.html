@@ -1,0 +1,170 @@
+<section
+  *transloco="let t"
+  class="pane"
+  [class.dropping]="dropping()"
+  [attr.id]="dropTarget() || null"
+  [attr.data-file-drop-target]="dropTarget() ? '' : null"
+  (dragover)="dragOver($event)"
+  (dragleave)="dropping.set(false)"
+  (drop)="drop($event)"
+>
+  <header>
+    <strong>{{ title() }}</strong>
+    @if (shell()) {
+      <span class="badge" [title]="t('files.shellHint')">{{ t('files.shellMode') }}</span>
+    }
+    <span class="spacer"></span>
+    @if (bookmarks().length > 0) {
+      <select class="bookmarks" [attr.aria-label]="t('files.bookmarks')" (change)="goBookmark($event)">
+        <option value="">{{ t('files.bookmarks') }}</option>
+        @for (b of bookmarks(); track b) {
+          <option [value]="b">{{ b }}</option>
+        }
+      </select>
+    }
+    <button
+      type="button"
+      class="icon"
+      [class.on]="bookmarks().includes(dir())"
+      [attr.aria-pressed]="bookmarks().includes(dir())"
+      [attr.aria-label]="t('files.bookmark')"
+      [title]="t('files.bookmark')"
+      (click)="toggleBookmark()"
+    >
+      <svg lucideStar [size]="14" aria-hidden="true"></svg>
+    </button>
+    <button type="button" class="icon" [attr.aria-label]="t('files.newLink')" [title]="t('files.newLink')" (click)="linking.set(!linking())">
+      <svg lucideLink [size]="14" aria-hidden="true"></svg>
+    </button>
+    <button type="button" class="icon" [attr.aria-label]="t('files.up')" [title]="t('files.up')" (click)="up()">
+      <svg lucideArrowUp [size]="14" aria-hidden="true"></svg>
+    </button>
+    <button type="button" class="icon" [attr.aria-label]="t('files.refresh')" [title]="t('files.refresh')" (click)="load(dir())">
+      <svg lucideRefreshCw [size]="14" aria-hidden="true"></svg>
+    </button>
+  </header>
+  <form class="path" (ngSubmit)="load(pathInput)">
+    <input name="path" spellcheck="false" [attr.aria-label]="t('files.path')" [(ngModel)]="pathInput" />
+  </form>
+  <form class="new" (ngSubmit)="mkdir()">
+    <input name="newName" [placeholder]="t('files.newFolder')" [attr.aria-label]="t('files.newFolder')" [(ngModel)]="folderName" />
+    <button type="submit" class="icon" [attr.aria-label]="t('files.createFolder')" [title]="t('files.createFolder')">
+      <svg lucideFolderPlus [size]="14" aria-hidden="true"></svg>
+    </button>
+  </form>
+
+  @if (linking()) {
+    <form class="new" (ngSubmit)="createLink()">
+      <input name="linkTarget" spellcheck="false" [placeholder]="t('files.linkTarget')" [attr.aria-label]="t('files.linkTarget')" [(ngModel)]="linkTarget" />
+      <input name="linkName" spellcheck="false" [placeholder]="t('files.linkName')" [attr.aria-label]="t('files.linkName')" [(ngModel)]="linkName" />
+      <button type="submit" class="icon" [attr.aria-label]="t('files.createLink')" [title]="t('files.createLink')">
+        <svg lucideLink [size]="14" aria-hidden="true"></svg>
+      </button>
+    </form>
+  }
+
+  @if (error(); as e) {
+    <p class="error" role="alert">{{ e }}</p>
+  }
+
+  <div class="list" role="listbox" [attr.aria-label]="title()" [attr.aria-busy]="loading()">
+    @for (e of entries(); track e.path) {
+      <div
+        class="entry"
+        role="option"
+        tabindex="0"
+        draggable="true"
+        [attr.aria-selected]="selected() === e.path"
+        [class.selected]="selected() === e.path"
+        (click)="selected.set(e.path)"
+        (dblclick)="open(e)"
+        (keydown.enter)="open(e)"
+        (dragstart)="dragStart($event, e)"
+      >
+        @if (e.isDir) {
+          <svg lucideFolder [size]="15" class="folder" aria-hidden="true"></svg>
+        } @else {
+          <svg lucideFile [size]="15" aria-hidden="true"></svg>
+        }
+        @if (renaming() === e.path) {
+          <form class="rename" (ngSubmit)="rename(e)">
+            <input name="rename" autofocus [(ngModel)]="renameName" (blur)="rename(e)" (keydown.escape)="renaming.set(null)" />
+          </form>
+        } @else {
+          <span class="name" [title]="e.uid >= 0 ? t('files.owner', { uid: e.uid, gid: e.gid }) : ''">
+            {{ e.name }}
+            @if (e.isLink && e.target) {
+              <span class="target">→ {{ e.target }}</span>
+            }
+          </span>
+        }
+        <code class="mode" [title]="e.mode">{{ symbolic(e.perm) }}</code>
+        <span class="size">{{ size(e) }}</span>
+        <span class="date">{{ date(e) }}</span>
+        <span class="actions">
+          <button type="button" class="icon" [attr.aria-label]="t('files.copyOtherSide', { name: e.name })" [title]="t('files.copyOther')" (click)="send.emit({ fs: fs(), path: e.path })">
+            <svg lucideArrowLeftRight [size]="13" aria-hidden="true"></svg>
+          </button>
+          @if (!e.isDir) {
+            <button type="button" class="icon" [attr.aria-label]="t('files.previewNamed', { name: e.name })" [title]="t('files.preview')" (click)="showPreview(e)">
+              <svg lucideEye [size]="13" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('files.editNamed', { name: e.name })" [title]="t('files.edit')" (click)="editFile(e)">
+              <svg lucideFilePen [size]="13" aria-hidden="true"></svg>
+            </button>
+          }
+          <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.editItem', { name: e.name })" [title]="t('files.rename')" (click)="startRename(e)">
+            <svg lucidePencil [size]="13" aria-hidden="true"></svg>
+          </button>
+          <button type="button" class="icon" [attr.aria-label]="t('files.permissions.ofNamed', { name: e.name })" [title]="t('files.permissions.action')" (click)="chmodEntry.set(e)">
+            <svg lucideShieldCheck [size]="13" aria-hidden="true"></svg>
+          </button>
+          <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: e.name })" [title]="t('hosts.actions.delete')" (click)="deleting.set(e)">
+            <svg lucideTrash2 [size]="13" aria-hidden="true"></svg>
+          </button>
+        </span>
+      </div>
+    } @empty {
+      @if (!loading() && !error()) {
+        <p class="empty">{{ t('files.emptyFolder') }}</p>
+      }
+    }
+  </div>
+
+  @if (chmodEntry(); as c) {
+    <app-permissions-dialog [fs]="fs()" [entry]="c" (changed)="load(dir(), false)" (closed)="chmodEntry.set(null)" />
+  }
+  @if (deleting(); as d) {
+    <app-confirm-dialog
+      [heading]="t('files.deleteTitle')"
+      [message]="t(d.isDir ? 'files.deleteFolder' : 'files.deleteFile', { name: d.name })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</section>
+@if (preview(); as p) {
+  <ng-container *transloco="let t">
+    <app-modal [heading]="p.name" (closed)="preview.set(null)">
+      @switch (p.data.kind) {
+        @case ('image') {
+          <img class="preview-image" [src]="'data:' + p.data.mime + ';base64,' + p.data.data" [alt]="p.name" />
+        }
+        @case ('text') {
+          <pre class="preview-text">{{ p.data.text }}</pre>
+        }
+        @default {
+          <p class="hint">{{ t('files.binary', { mime: p.data.mime }) }}</p>
+        }
+      }
+      @if (p.data.truncated) {
+        <p class="hint">{{ t('files.truncated', { size: size({ size: p.data.size, isDir: false }) }) }}</p>
+      }
+      <ng-container modal-actions>
+        <button type="button" class="btn primary" (click)="preview.set(null)">{{ t('common.close') }}</button>
+      </ng-container>
+    </app-modal>
+  </ng-container>
+}

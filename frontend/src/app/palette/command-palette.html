@@ -1,0 +1,39 @@
+<div *transloco="let t" class="backdrop" (mousedown)="closed.emit()">
+  <div class="palette" role="dialog" aria-modal="true" [attr.aria-label]="t('palette.title')" (mousedown)="$event.stopPropagation()">
+    <input
+      #input
+      autofocus
+      type="text"
+      spellcheck="false"
+      autocomplete="off"
+      role="combobox"
+      aria-expanded="true"
+      aria-controls="palette-results"
+      [attr.aria-activedescendant]="results().length ? 'palette-item-' + index() : null"
+      [placeholder]="t('palette.placeholder')"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+    />
+    <ul id="palette-results" role="listbox">
+      @for (c of results(); track $index; let i = $index) {
+        <li
+          role="option"
+          [id]="'palette-item-' + i"
+          [class.active]="i === index()"
+          [attr.aria-selected]="i === index()"
+          (mousemove)="index.set(i)"
+          (click)="choose(c)"
+        >
+          <span class="group">{{ t('palette.groups.' + c.group) }}</span>
+          <span class="label">{{ c.label }}</span>
+          @if (c.detail) {
+            <span class="detail">{{ c.detail }}</span>
+          }
+        </li>
+      } @empty {
+        <li class="none">{{ t('palette.noResults') }}</li>
+      }
+    </ul>
+    <footer>{{ t('palette.hint') }}</footer>
+  </div>
+</div>

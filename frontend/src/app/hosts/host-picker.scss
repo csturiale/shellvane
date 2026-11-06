@@ -1,0 +1,101 @@
+:host {
+  position: relative;
+  display: inline-block;
+  min-width: 0;
+}
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    margin-inline-start: auto;
+    color: var(--text-muted);
+  }
+}
+.name,
+.detail,
+.group {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.name {
+  font-weight: 500;
+}
+.detail,
+.group {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.detail {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+.popover {
+  position: absolute;
+  /* Its own compositing layer: WebKit would otherwise paint the terminal's
+     WebGL canvas over it (it looked transparent and cut). */
+  isolation: isolate;
+  transform: translateZ(0);
+  z-index: 50;
+  inset-inline-start: 0;
+  top: calc(100% + 4px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: max(100%, 380px);
+  max-width: 90vw;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 30%);
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+.list {
+  max-height: min(50vh, 420px);
+  overflow: auto;
+}
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+
+  .group {
+    grid-column: 1 / -1;
+    font-size: 11px;
+  }
+  &.active {
+    background: var(--hover);
+  }
+  &.chosen .name {
+    color: var(--accent);
+  }
+}
+.empty {
+  margin: 6px 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}

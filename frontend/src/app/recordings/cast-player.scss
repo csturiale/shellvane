@@ -1,0 +1,59 @@
+:host {
+  display: block;
+  height: 100%;
+}
+.player {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.screen {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+  background: var(--terminal-bg);
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-block-start: 1px solid var(--border);
+
+  input[type='range'] {
+    flex: 1;
+  }
+  .time {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+  select {
+    padding: 2px 4px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    background: var(--surface);
+  }
+}
+button.icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text);
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+.error {
+  margin: 8px;
+  color: var(--danger);
+}

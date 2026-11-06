@@ -1,0 +1,14 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Performance", "name": "Top processes by CPU", "body": "ps aux --sort=-%cpu | head -15", "run": true},
+    {"folder": "Performance", "name": "Top processes by memory", "body": "ps aux --sort=-%mem | head -15", "run": true},
+    {"folder": "Performance", "name": "CPU, memory and I/O every second", "body": "vmstat 1 10", "run": true},
+    {"folder": "Performance", "name": "Disk I/O by device", "body": "iostat -xz 1 5", "run": true},
+    {"folder": "Performance", "name": "Pressure stall information", "body": "cat /proc/pressure/cpu /proc/pressure/memory /proc/pressure/io", "run": true},
+    {"folder": "Performance", "name": "Out-of-memory kills", "body": "journalctl -k --no-pager | grep -i 'out of memory' | tail -20", "run": true},
+    {"folder": "Performance", "name": "Open files of a process", "body": "sudo ls -l /proc/{{pid}}/fd | wc -l", "run": true},
+    {"folder": "Performance", "name": "Threads of a process", "body": "top -H -p {{pid}}", "run": true}
+  ]
+}

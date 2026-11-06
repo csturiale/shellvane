@@ -1,0 +1,112 @@
+<ng-container *transloco="let t">
+  <app-modal
+    [heading]="t(target().mode === 'create' ? 'hosts.host.createTitle' : 'hosts.host.editTitle')"
+    (closed)="closed.emit()"
+  >
+    <form id="host-form" class="form" (ngSubmit)="save()">
+      @if (sharing.note; as c) {
+        <ng-container *ngComponentOutlet="c; inputs: { kind: 'group', localId: noteGroup() }" />
+      }
+      <div class="row">
+        <label class="field">
+          <span>{{ t('hosts.fields.hostname') }}</span>
+          <input
+            name="hostname"
+            [(ngModel)]="hostname"
+            required
+            autofocus
+            spellcheck="false"
+            autocomplete="off"
+            [placeholder]="t('hosts.host.hostnamePlaceholder')"
+          />
+        </label>
+        <label class="field">
+          <span>{{ t('hosts.fields.port') }}</span>
+          <input name="port" type="number" min="1" max="65535" [(ngModel)]="port" [placeholder]="placeholder(t, 'port')" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>{{ t('hosts.fields.user') }}</span>
+        <input name="user" [(ngModel)]="user" autocomplete="off" spellcheck="false" [placeholder]="placeholder(t, 'user')" />
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.host.name') }}</span>
+        <input name="name" [(ngModel)]="name" [placeholder]="hostname || t('hosts.host.namePlaceholder')" />
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.host.group') }}</span>
+        <select name="group" [(ngModel)]="groupId" (ngModelChange)="loadInherited()">
+          <option value="">{{ t('hosts.rootGroup') }}</option>
+          @for (g of groups(); track g.id) {
+            <option [value]="g.id">{{ g.path }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.tags') }}</span>
+        <input name="tags" spellcheck="false" [(ngModel)]="tags" [placeholder]="t('hosts.tagsPlaceholder')" />
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.host.notes') }} <small class="hint-inline">{{ t('hosts.notesMarkdown') }}</small></span>
+        <textarea name="notes" rows="3" [(ngModel)]="notes"></textarea>
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.fields.key') }}</span>
+        <select name="identity" [(ngModel)]="identityId">
+          <option value="">{{ keyPlaceholder(t) }}</option>
+          @for (k of keys.keys(); track k.id) {
+            <option [value]="k.id">{{ k.name }} ({{ k.type }})</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ t('terminal.scheme') }}</span>
+        <select name="scheme" [(ngModel)]="terminalTheme">
+          <option value="">{{ t('hosts.schemeDefault') }}</option>
+          @for (sc of schemes(); track sc.id) {
+            <option [value]="sc.id">{{ sc.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.fields.startup') }} <app-help-link topic="automation" anchor="scripts" /></span>
+        <textarea name="startup" rows="3" spellcheck="false" class="mono" [(ngModel)]="startup" [placeholder]="startupPlaceholder(t)"></textarea>
+      </label>
+
+      <div class="field">
+        <span>{{ t('hosts.totp.label') }} <app-help-link topic="auth" anchor="totp" /></span>
+        @if (vault.state() !== 'unlocked') {
+          <p class="hint">{{ t('hosts.totp.needsVault') }}</p>
+        } @else if (hasTotp() && !replaceTotp) {
+          <div class="jump">
+            <span class="totp-set">{{ t('hosts.totp.configured') }}</span>
+            <button type="button" class="btn small" (click)="replaceTotp = true">{{ t('hosts.totp.replace') }}</button>
+            <button type="button" class="btn small" (click)="removeTotp = true; hasTotp.set(false)">{{ t('hosts.totp.remove') }}</button>
+          </div>
+        } @else {
+          <input name="totp" type="password" autocomplete="off" spellcheck="false" class="mono" [(ngModel)]="totpSeed" [placeholder]="t('hosts.totp.placeholder')" />
+        }
+        <p class="hint">{{ t('hosts.totp.hint') }}</p>
+      </div>
+
+      <app-connection-options [model]="conn" [selfId]="selfId()" />
+
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="host-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

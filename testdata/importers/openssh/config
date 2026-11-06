@@ -1,0 +1,32 @@
+# Anonymized sample of a real ~/.ssh/config
+Include conf.d/*.conf
+
+Host *
+    ServerAliveInterval 30
+
+Host bastion jump
+    HostName bastion.example.org
+    User deploy
+    Port 2200
+    IdentityFile ~/.ssh/id_bastion
+    DynamicForward 1080
+
+Host db-prod
+    HostName=10.0.2.15
+    User postgres
+    ProxyJump bastion
+    LocalForward 15432 localhost:5432
+    LocalForward 127.0.0.1:16379 [::1]:6379
+
+Host web-*
+    User www
+
+Match host *.internal
+    User admin
+
+Host "quoted name"
+    HostName quoted.example.org
+    SetEnv APP_ENV=prod "GREETING=hello world"
+    RemoteCommand tmux attach
+    PreferredAuthentications keyboard-interactive,bogus,publickey
+    IdentitiesOnly yes

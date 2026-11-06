@@ -1,0 +1,51 @@
+<ng-container *transloco="let t">
+  <button type="button" class="icon" [attr.aria-label]="t('monitor.title')" [title]="t('monitor.title')" [attr.aria-expanded]="open()" (click)="toggle($event)">
+    <svg lucideActivity [size]="12" aria-hidden="true"></svg>
+  </button>
+  @if (open()) {
+    <div class="menu" role="dialog" [attr.aria-label]="t('monitor.title')" [style.top.px]="pos().top" [style.left.px]="pos().left">
+      <strong>{{ t('monitor.title') }}</strong>
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ e }}</p>
+      } @else if (stats(); as s) {
+        <dl>
+          <dt>{{ t('monitor.cpu') }}</dt>
+          <dd>
+            @if (s.cpu >= 0) {
+              <span class="bar"><span [style.width.%]="s.cpu" [class.high]="s.cpu > 85"></span></span>
+              {{ s.cpu.toFixed(0) }}%
+            } @else {
+              …
+            }
+          </dd>
+          <dt>{{ t('monitor.load') }}</dt>
+          <dd>{{ s.load[0].toFixed(2) }} · {{ s.load[1].toFixed(2) }} · {{ s.load[2].toFixed(2) }} @if (s.cpus) {<small>({{ t('monitor.cpus', { count: s.cpus }) }})</small>}</dd>
+          @if (s.memTotal) {
+            <dt>{{ t('monitor.memory') }}</dt>
+            <dd>
+              <span class="bar"><span [style.width.%]="percent(s.memUsed, s.memTotal)" [class.high]="percent(s.memUsed, s.memTotal) > 90"></span></span>
+              {{ bytes(s.memUsed) }} / {{ bytes(s.memTotal) }}
+            </dd>
+          }
+          @if (s.swap) {
+            <dt>{{ t('monitor.swap') }}</dt>
+            <dd>{{ bytes(s.swapUsed) }} / {{ bytes(s.swap) }}</dd>
+          }
+          @if (s.disk) {
+            <dt>{{ t('monitor.disk') }}</dt>
+            <dd>
+              <span class="bar"><span [style.width.%]="percent(s.diskUsed, s.disk)" [class.high]="percent(s.diskUsed, s.disk) > 90"></span></span>
+              {{ bytes(s.diskUsed) }} / {{ bytes(s.disk) }}
+            </dd>
+          }
+          @if (s.uptime) {
+            <dt>{{ t('monitor.uptime') }}</dt>
+            <dd>{{ uptime(s.uptime) }}</dd>
+          }
+        </dl>
+      } @else {
+        <p class="hint">{{ t('common.loading') }}</p>
+      }
+    </div>
+  }
+</ng-container>

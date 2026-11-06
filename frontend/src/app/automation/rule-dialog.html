@@ -1,0 +1,139 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t(rule() ? 'automation.editTitle' : 'automation.newRule')" (closed)="closed.emit()">
+    <form id="rule-form" class="form" (ngSubmit)="save()">
+      @if (sharing.note; as c) {
+        <ng-container *ngComponentOutlet="c; inputs: { kind: 'rule', localId: rule()?.id }" />
+      }
+      <label class="field">
+        <span>{{ t('automation.name') }}</span>
+        <input name="name" autofocus [(ngModel)]="model.name" />
+      </label>
+
+      <label class="field">
+        <span>{{ t('automation.action') }} <app-help-link topic="automation" anchor="rules" /></span>
+        <select name="action" [(ngModel)]="model.action" (ngModelChange)="onAction()">
+          <option value="highlight">{{ t('automation.actionNames.highlight') }}</option>
+          <option value="notify">{{ t('automation.actionNames.notify') }}</option>
+          <option value="respond">{{ t('automation.actionNames.respond') }}</option>
+        </select>
+        <p class="hint">{{ t('automation.actionHints.' + model.action) }}</p>
+      </label>
+
+      <label class="field">
+        <span>{{ t('automation.pattern') }}</span>
+        <input name="pattern" class="mono" spellcheck="false" [(ngModel)]="model.pattern" placeholder="panic:|Out of memory" />
+      </label>
+      <label class="check">
+        <input name="ignoreCase" type="checkbox" [(ngModel)]="model.ignoreCase" />
+        {{ t('automation.ignoreCase') }}
+      </label>
+      <label class="field">
+        <span>{{ t('automation.test') }}</span>
+        <input name="sample" class="mono" spellcheck="false" [(ngModel)]="sample" [placeholder]="t('automation.testPlaceholder')" />
+        @switch (test()) {
+          @case ('match') {
+            <p class="hint ok">{{ t('automation.testMatch') }}</p>
+          }
+          @case ('noMatch') {
+            <p class="hint">{{ t('automation.testNoMatch') }}</p>
+          }
+          @case ('invalid') {
+            <p class="hint">{{ t('automation.testInvalid') }}</p>
+          }
+        }
+      </label>
+
+      @switch (model.action) {
+        @case ('highlight') {
+          <div class="field">
+            <span id="color-label">{{ t('automation.color') }}</span>
+            <div class="swatches" role="radiogroup" aria-labelledby="color-label">
+              @for (c of colorNames; track c) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="swatch"
+                  [attr.aria-checked]="model.color === c"
+                  [attr.aria-label]="t('hosts.colors.' + c)"
+                  [class.selected]="model.color === c"
+                  [style.background]="colors[c]"
+                  (click)="model.color = c"
+                ></button>
+              }
+            </div>
+          </div>
+        }
+        @case ('notify') {
+          <label class="check">
+            <input name="sound" type="checkbox" [(ngModel)]="model.sound" />
+            {{ t('automation.sound') }}
+          </label>
+        }
+        @case ('respond') {
+          <label class="field">
+            <span>{{ t('automation.response') }}</span>
+            <input name="response" class="mono" spellcheck="false" [disabled]="!!model.secretScope" [(ngModel)]="model.response" placeholder="yes" />
+          </label>
+          <label class="field">
+            <span>{{ t('automation.secret') }}</span>
+            <select name="secretScope" [(ngModel)]="model.secretScope">
+              <option value="">{{ t('automation.noSecret') }}</option>
+              @for (c of vault.credentials(); track c.scope) {
+                <option [value]="c.scope">{{ c.label || c.scope }}</option>
+              }
+              @if (model.secretScope && !vault.credentials().some((c) => c.scope === model.secretScope)) {
+                <option [value]="model.secretScope">{{ model.secretScope }}</option>
+              }
+            </select>
+            @if (vault.state() !== 'unlocked') {
+              <p class="hint">{{ t('automation.secretNeedsVault') }}</p>
+            }
+          </label>
+          <label class="check">
+            <input name="enter" type="checkbox" [(ngModel)]="model.enter" />
+            {{ t('automation.enter') }}
+          </label>
+          <p class="hint warning">{{ t('automation.respondWarning') }}</p>
+        }
+      }
+
+      <div class="field">
+        <span>{{ t('automation.scopeLabel') }}</span>
+        <div class="scope">
+          <select name="scopeKind" [(ngModel)]="model.scopeKind" (ngModelChange)="onScope()">
+            <option value="global" [disabled]="model.action === 'respond'">{{ t('automation.scope.global') }}</option>
+            <option value="group">{{ t('automation.scope.group') }}</option>
+            <option value="host">{{ t('automation.scope.host') }}</option>
+          </select>
+          @if (model.scopeKind === 'group') {
+            <select name="scopeGroup" [(ngModel)]="model.scopeId" [attr.aria-label]="t('automation.scope.group')">
+              @for (g of groups(); track g.id) {
+                <option [value]="g.id">{{ g.path }}</option>
+              }
+            </select>
+          } @else if (model.scopeKind === 'host') {
+            <select name="scopeHost" [(ngModel)]="model.scopeId" [attr.aria-label]="t('automation.scope.host')">
+              @for (h of hostList(); track h.id) {
+                <option [value]="h.id">{{ h.name }} ({{ h.hostname }})</option>
+              }
+            </select>
+          }
+        </div>
+        <p class="hint">{{ t('automation.scopeHint') }}</p>
+      </div>
+
+      <label class="check">
+        <input name="enabled" type="checkbox" [(ngModel)]="model.enabled" />
+        {{ t('automation.enabled') }}
+      </label>
+
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="rule-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

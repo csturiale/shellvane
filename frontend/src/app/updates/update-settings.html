@@ -1,0 +1,54 @@
+<section *transloco="let t">
+  <h2>{{ t('updates.title') }}</h2>
+  <div class="card">
+    <div class="row">
+      <span>{{ t('updates.current', { version: store.info()?.current ?? '…' }) }}</span>
+      <button type="button" class="btn small" [disabled]="store.checking()" (click)="store.check()">
+        {{ t(store.checking() ? 'updates.checking' : 'updates.check') }}
+      </button>
+    </div>
+    <div class="row">
+      <span>{{ t('updates.support') }}</span>
+      <button type="button" class="btn small" (click)="support()">{{ t('updates.supportAction') }}</button>
+    </div>
+    <div class="row">
+      <label for="auto-update">{{ t('updates.auto') }}</label>
+      <input id="auto-update" type="checkbox" [checked]="store.auto()" (change)="store.setAuto($any($event.target).checked)" />
+    </div>
+    @if (store.info(); as i) {
+      @if (!i.enabled) {
+        <p class="hint">{{ t('updates.disabled') }}</p>
+      } @else if (i.noRelease) {
+        <p class="hint">{{ t('updates.noRelease') }}</p>
+      } @else if (!i.available) {
+        <p class="hint">{{ t('updates.upToDate') }}</p>
+      } @else {
+        <div class="available">
+          <strong>{{ t('updates.available', { version: i.latest }) }}</strong>
+          @if (notes()) {
+            <p class="notes">{{ notes() }}</p>
+          }
+          <p class="hint">{{ t('updates.verified') }}</p>
+          @if (i.blocked) {
+            <p class="hint">{{ t('updates.blocked.' + i.blocked) }}</p>
+          }
+          <div class="buttons">
+            @if (store.installed()) {
+              <button type="button" class="btn primary" (click)="store.restart()">{{ t('updates.restart') }}</button>
+            } @else if (i.canInstall) {
+              <button type="button" class="btn primary" [disabled]="store.installing()" (click)="store.install()">
+                {{ t(store.installing() ? 'updates.installing' : 'updates.install') }}
+              </button>
+            }
+            @if (i.page) {
+              <button type="button" class="btn" (click)="openPage(i.page)">{{ t('updates.page') }}</button>
+            }
+          </div>
+        </div>
+      }
+    }
+    @if (store.error(); as e) {
+      <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+    }
+  </div>
+</section>

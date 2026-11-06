@@ -1,0 +1,13 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    { "folder": "Linux diagnostics", "name": "Load and memory", "body": "uptime && free -h", "run": true },
+    { "folder": "Linux diagnostics", "name": "Disk usage", "body": "df -hT -x tmpfs -x devtmpfs", "run": true },
+    { "folder": "Linux diagnostics", "name": "Largest folders here", "body": "du -xh --max-depth=1 . 2>/dev/null | sort -rh | head -20", "run": true },
+    { "folder": "Linux diagnostics", "name": "Listening ports", "body": "sudo ss -tulpn", "run": true },
+    { "folder": "Linux diagnostics", "name": "Failed services", "body": "systemctl --failed --no-pager", "run": true },
+    { "folder": "Linux diagnostics", "name": "Errors since boot", "body": "journalctl -b -p err --no-pager | tail -50", "run": true },
+    { "folder": "Linux diagnostics", "name": "Top processes by memory", "body": "ps aux --sort=-%mem | head -15", "run": true }
+  ]
+}

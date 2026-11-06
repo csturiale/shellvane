@@ -1,0 +1,169 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px 6px 12px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.actions-head {
+  display: flex;
+  gap: 2px;
+}
+
+.message {
+  margin: 0 8px 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--hover);
+}
+
+.list {
+  flex: 1;
+  overflow: auto;
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+
+  &:hover,
+  &:focus-within {
+    background: var(--hover);
+  }
+
+  > svg {
+    flex: none;
+    color: var(--text-muted);
+  }
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: none;
+  gap: 2px;
+}
+
+.key:hover .actions,
+.key:focus-within .actions {
+  display: flex;
+}
+
+button.icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+    background: var(--hover);
+  }
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 40px;
+  padding: 0 20px;
+  text-align: center;
+  color: var(--text-muted);
+
+  p {
+    margin: 0;
+  }
+}
+
+.cert {
+  font-size: 11px;
+  color: var(--group-green);
+
+  &.expired {
+    color: var(--danger);
+  }
+}
+
+.agent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 12px 8px;
+  font-size: 12px;
+
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .link {
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    font-family: var(--mono, monospace);
+    cursor: pointer;
+  }
+}
+
+.token {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+}

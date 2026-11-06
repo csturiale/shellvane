@@ -1,0 +1,14 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Packages and updates", "name": "Debian/Ubuntu: available updates", "body": "sudo apt update && apt list --upgradable", "run": true},
+    {"folder": "Packages and updates", "name": "Debian/Ubuntu: upgrade", "body": "sudo apt upgrade", "run": false},
+    {"folder": "Packages and updates", "name": "Debian/Ubuntu: which package owns a file", "body": "dpkg -S {{file}}", "run": true},
+    {"folder": "Packages and updates", "name": "RHEL/Fedora: available updates", "body": "sudo dnf check-update", "run": true},
+    {"folder": "Packages and updates", "name": "RHEL/Fedora: upgrade", "body": "sudo dnf upgrade", "run": false},
+    {"folder": "Packages and updates", "name": "RHEL/Fedora: which package owns a file", "body": "rpm -qf {{file}}", "run": true},
+    {"folder": "Packages and updates", "name": "Reboot needed?", "body": "[ -f /var/run/reboot-required ] && cat /var/run/reboot-required || (command -v needs-restarting >/dev/null && sudo needs-restarting -r) || echo 'no information'", "run": true},
+    {"folder": "Packages and updates", "name": "OS version", "body": "cat /etc/os-release", "run": true}
+  ]
+}

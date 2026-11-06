@@ -1,0 +1,81 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('files.permissions.title', { name: entry().name })" (closed)="closed.emit()">
+    <form id="perm-form" class="form" (ngSubmit)="save()">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            @for (w of what; track w) {
+              <th scope="col">{{ t('files.permissions.' + w) }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (who of who; track who) {
+            <tr>
+              <th scope="row">{{ t('files.permissions.' + who) }}</th>
+              @for (w of what; track w) {
+                <td>
+                  <input
+                    type="checkbox"
+                    [attr.aria-label]="t('files.permissions.' + who) + ' – ' + t('files.permissions.' + w)"
+                    [checked]="has(who, w)"
+                    (change)="toggle(bit(who, w))"
+                  />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <details>
+        <summary>{{ t('files.permissions.special') }}</summary>
+        <div class="special">
+          @for (s of special; track s) {
+            <label class="check">
+              <input type="checkbox" [checked]="hasSpecial(s)" (change)="toggle(specialBit(s))" />
+              {{ t('files.permissions.' + s) }}
+            </label>
+          }
+        </div>
+      </details>
+
+      <div class="row">
+        <label class="field">
+          <span>{{ t('files.permissions.octal') }}</span>
+          <input name="octal" class="mono" maxlength="4" inputmode="numeric" [value]="octal()" (input)="onOctal($event)" />
+        </label>
+        <div class="field">
+          <span>{{ t('files.permissions.symbolic') }}</span>
+          <code>{{ symbolic() }}</code>
+        </div>
+      </div>
+
+      <div class="owner">
+        <label class="field">
+          <span>{{ t('files.uid') }}</span>
+          <input name="uid" type="number" min="0" [(ngModel)]="uid" [placeholder]="entry().uid >= 0 ? '' + entry().uid : ''" />
+        </label>
+        <label class="field">
+          <span>{{ t('files.gid') }}</span>
+          <input name="gid" type="number" min="0" [(ngModel)]="gid" [placeholder]="entry().gid >= 0 ? '' + entry().gid : ''" />
+        </label>
+      </div>
+
+      @if (entry().isDir) {
+        <label class="check">
+          <input name="recursive" type="checkbox" [(ngModel)]="recursive" />
+          {{ t('files.permissions.recursive') }}
+        </label>
+      }
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="perm-form" class="btn primary" [disabled]="saving()">{{ t('files.permissions.apply') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

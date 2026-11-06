@@ -1,0 +1,44 @@
+<ng-container *transloco="let t">
+  <button type="button" class="plus" [attr.aria-label]="t('newTab.title')" [title]="t('newTab.title')" [attr.aria-expanded]="open()" (click)="toggle($event)">
+    <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+  </button>
+  @if (open()) {
+    <div class="menu" role="dialog" [attr.aria-label]="t('newTab.title')" [style.top.px]="pos().top" [style.left.px]="pos().left">
+      <input
+        #search
+        type="search"
+        spellcheck="false"
+        autocomplete="off"
+        [placeholder]="t('newTab.search')"
+        [attr.aria-label]="t('newTab.search')"
+        [ngModel]="query()"
+        (ngModelChange)="setQuery($event)"
+        (keydown)="onKeydown($event)"
+      />
+      <div class="list" role="listbox">
+        @for (e of entries(); track $index; let i = $index) {
+          @if (e.section) {
+            <p class="section">{{ t('newTab.sections.' + e.section) }}</p>
+          }
+          <button type="button" role="option" class="entry" [class.active]="i === active()" [attr.aria-selected]="i === active()" (mouseenter)="active.set(i)" (click)="choose(e)">
+            @switch (e.kind) {
+              @case ('local') {
+                <span class="label">{{ t('newTab.local') }}</span>
+              }
+              @case ('target') {
+                <span class="label">{{ t('newTab.connectTo', { target: e.label }) }}</span>
+              }
+              @default {
+                <span class="label">{{ e.label }}</span>
+                <span class="detail">{{ e.detail }}</span>
+              }
+            }
+          </button>
+        }
+        @if (query().trim() && entries().length <= 2) {
+          <p class="hint">{{ t('newTab.none') }}</p>
+        }
+      </div>
+    </div>
+  }
+</ng-container>

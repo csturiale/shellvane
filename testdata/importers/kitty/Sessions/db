@@ -1,0 +1,6 @@
+HostName\db.internal\
+UserName\postgres\
+PortNumber\22\
+Protocol\ssh\
+Folder\Production\Databases\
+Password\1A2B3C\

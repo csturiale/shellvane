@@ -1,0 +1,74 @@
+<section *transloco="let t">
+  <h2>{{ t('diagnostics.title') }} <app-help-link topic="security" anchor="diagnostics" /></h2>
+  <div class="card">
+    <div class="head">
+      <div>
+        <strong>{{ t('diagnostics.connections') }}</strong>
+        <small>{{ t('diagnostics.connectionsHint') }}</small>
+      </div>
+      <button type="button" class="icon" [attr.aria-label]="t('diagnostics.refresh')" [title]="t('diagnostics.refresh')" (click)="refresh()">
+        <svg lucideRefreshCw [size]="14" aria-hidden="true"></svg>
+      </button>
+    </div>
+    <ul class="attempts">
+      @for (h of handshakes(); track h.id) {
+        <li>
+          <button type="button" class="attempt" [attr.aria-expanded]="open() === h.id" (click)="open.set(open() === h.id ? null : h.id)">
+            <span class="dot" [class.ok]="h.ok" aria-hidden="true"></span>
+            <span class="name">{{ h.name }}</span>
+            <span class="addr">{{ h.user }}&#64;{{ h.address }}</span>
+            <span class="when">{{ time(h) }}</span>
+            <span class="outcome">{{ h.ok ? t('diagnostics.ok') : t('diagnostics.failed') }}</span>
+          </button>
+          @if (open() === h.id) {
+            <app-handshake-view [handshake]="h" />
+          }
+        </li>
+      } @empty {
+        <li class="empty">{{ t('diagnostics.noConnections') }}</li>
+      }
+    </ul>
+  </div>
+
+  <div class="card">
+    <div>
+      <strong>{{ t('diagnostics.bundle') }}</strong>
+      <p class="hint">{{ t('diagnostics.bundleHint') }}</p>
+    </div>
+    <div class="buttons">
+      <button type="button" class="btn" (click)="showPreview()">{{ t('diagnostics.preview') }}</button>
+    </div>
+    @if (saved(); as path) {
+      <p class="saved">
+        {{ t('diagnostics.saved', { path: path }) }}
+        <button type="button" class="btn small" (click)="reveal(path)">{{ t('diagnostics.reveal') }}</button>
+      </p>
+    }
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ e }}</p>
+    }
+  </div>
+
+  @if (preview(); as files) {
+    <app-modal [heading]="t('diagnostics.previewTitle')" (closed)="preview.set(null)">
+      <p class="hint">{{ t('diagnostics.previewHint') }}</p>
+      <div class="files" role="tablist">
+        @for (f of files; track f.name; let i = $index) {
+          <button type="button" role="tab" [attr.aria-selected]="file() === i" [class.selected]="file() === i" (click)="file.set(i)">{{ f.name }}</button>
+        }
+      </div>
+      <pre class="content">{{ files[file()]?.content }}</pre>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="preview.set(null)">{{ t('common.cancel') }}</button>
+        <button type="button" class="btn primary" (click)="save()">{{ t('diagnostics.save') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+  <div class="card bench">
+    <div>
+      <strong>{{ t('benchmark.title') }}</strong>
+      <small>{{ t('benchmark.hint') }}</small>
+    </div>
+    <button type="button" class="btn small" (click)="runBenchmark()">{{ t('benchmark.run') }}</button>
+  </div>
+</section>

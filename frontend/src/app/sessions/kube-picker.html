@@ -1,0 +1,53 @@
+<ng-container *transloco="let t">
+  @let k = current();
+  <button
+    type="button"
+    class="badge"
+    draggable="false"
+    [class.set]="!!k?.context"
+    [class.prod]="prod()"
+    [attr.aria-expanded]="open()"
+    [title]="k?.context ? t('kube.current', { context: k!.context, namespace: k!.namespace || t('kube.defaultNamespace') }) : t('kube.choose')"
+    (click)="toggle($event)"
+  >
+    <svg lucideShipWheel [size]="12" aria-hidden="true"></svg>
+    @if (k?.context) {
+      <span>{{ k!.context }}@if (k!.namespace) {<span class="ns">/{{ k!.namespace }}</span>}</span>
+    }
+  </button>
+  @if (open()) {
+    <form class="menu" role="dialog" [style.top.px]="pos().top" [style.left.px]="pos().left" [attr.aria-label]="t('kube.title')" (ngSubmit)="apply()">
+      <h3>{{ t('kube.title') }} <app-help-link topic="kubernetes" /></h3>
+      <p class="hint">{{ t(pane().local ? 'kube.whereLocal' : 'kube.whereRemote') }}</p>
+      <label class="field">
+        <span>{{ t('kube.context') }}</span>
+        <select name="context" [(ngModel)]="context" [disabled]="loading()">
+          <option value="">{{ t('kube.none') }}</option>
+          @for (c of contexts(); track c) {
+            <option [value]="c" [class.prod]="prefs.isProd(c)">{{ c }}</option>
+          }
+          @if (context && !contexts().includes(context)) {
+            <option [value]="context">{{ context }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>{{ t('kube.namespace') }}</span>
+        <input name="namespace" spellcheck="false" [disabled]="!context" [(ngModel)]="namespace" [placeholder]="t('kube.defaultNamespace')" />
+      </label>
+      @if (loading()) {
+        <p class="hint">{{ t('kube.loading') }}</p>
+      }
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ e }}</p>
+      }
+      @if (!k?.live) {
+        <p class="hint">{{ t('kube.reopens') }}</p>
+      }
+      <div class="actions">
+        <button type="button" class="btn" (click)="open.set(false)">{{ t('common.cancel') }}</button>
+        <button type="submit" class="btn primary">{{ t('kube.apply') }}</button>
+      </div>
+    </form>
+  }
+</ng-container>

@@ -1,0 +1,58 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('gallery.title')" (closed)="closed.emit()">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'snippets'" [class.active]="tab() === 'snippets'" (click)="tab.set('snippets')">{{ t('gallery.snippets') }}</button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'themes'" [class.active]="tab() === 'themes'" (click)="tab.set('themes')">{{ t('gallery.themes') }}</button>
+    </div>
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ e }}</p>
+    }
+    @if (message(); as m) {
+      <p class="ok" role="status">{{ m }}</p>
+    }
+    @if (index(); as idx) {
+      <ul class="items">
+        @if (tab() === 'snippets') {
+          @for (s of idx.snippets; track s.file) {
+            <li>
+              <div class="text">
+                <strong>{{ s.name }}</strong>
+                <span class="muted">{{ t('gallery.count', { count: s.count }) }} · {{ (s.names ?? []).slice(0, 5).join(', ') }}</span>
+              </div>
+              <button type="button" class="btn small" [disabled]="busy() === s.file || done().has(s.file)" (click)="install('snippets', s.file, s.name)">
+                {{ t(done().has(s.file) ? 'gallery.added' : 'gallery.add') }}
+              </button>
+            </li>
+          } @empty {
+            <li class="muted">{{ t('gallery.empty') }}</li>
+          }
+        } @else {
+          @for (th of idx.themes; track th.file) {
+            <li>
+              <div class="text">
+                <strong>{{ th.name }}</strong>
+                <span class="swatches" aria-hidden="true">
+                  @for (c of th.colors ?? []; track $index) {
+                    <span [style.background]="c"></span>
+                  }
+                </span>
+              </div>
+              <button type="button" class="btn small" [disabled]="busy() === th.file || done().has(th.file)" (click)="install('themes', th.file, th.name)">
+                {{ t(done().has(th.file) ? 'gallery.added' : 'gallery.add') }}
+              </button>
+            </li>
+          } @empty {
+            <li class="muted">{{ t('gallery.empty') }}</li>
+          }
+        }
+      </ul>
+    } @else if (!error()) {
+      <p class="muted">{{ t('gallery.loading') }}</p>
+    }
+    <p class="hint">{{ t('gallery.hint') }}</p>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="propose()">{{ t('gallery.propose') }}</button>
+      <button type="button" class="btn primary" (click)="closed.emit()">{{ t('common.close') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

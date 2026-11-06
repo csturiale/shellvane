@@ -1,0 +1,8 @@
+{
+  "name": "Shellvane Daylight",
+  "background": "#FAFAF7", "foreground": "#2B2E35", "cursorColor": "#2F6FDB", "selectionBackground": "#CFE0FB",
+  "black": "#2B2E35", "red": "#C2323C", "green": "#2E7D32", "yellow": "#9A6700",
+  "blue": "#2F6FDB", "purple": "#8A3FB8", "cyan": "#00798A", "white": "#DADCE0",
+  "brightBlack": "#6B7079", "brightRed": "#D9464F", "brightGreen": "#3C8F40", "brightYellow": "#B07A00",
+  "brightBlue": "#4A84E8", "brightPurple": "#9E55CC", "brightCyan": "#108A9B", "brightWhite": "#FFFFFF"
+}

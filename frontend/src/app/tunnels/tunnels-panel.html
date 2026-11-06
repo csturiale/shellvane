@@ -1,0 +1,91 @@
+<section *transloco="let t" class="panel">
+  <header>
+    <h2>{{ t('panels.tunnels.title') }} <app-help-link topic="tunnels" /></h2>
+    <button type="button" class="icon" [attr.aria-label]="t('panels.tunnels.add')" [title]="t('panels.tunnels.add')" (click)="newTunnel()">
+      <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+    </button>
+  </header>
+
+  @if (message(); as m) {
+    <p class="message" role="status">{{ m }}</p>
+  }
+
+  <div class="list">
+    @for (tn of store.tunnels(); track tn.profile.id) {
+      <div class="tunnel" [class]="tn.status.state">
+        <button
+          type="button"
+          class="icon toggle"
+          [attr.aria-label]="t(active(tn) ? 'tunnels.stopNamed' : 'tunnels.startNamed', { name: tn.profile.name })"
+          [title]="t(active(tn) ? 'tunnels.stop' : 'tunnels.start')"
+          (click)="toggle(tn)"
+        >
+          @if (active(tn)) {
+            <svg lucideSquare [size]="12" aria-hidden="true"></svg>
+          } @else {
+            <svg lucidePlay [size]="14" aria-hidden="true"></svg>
+          }
+        </button>
+        <div class="text">
+          <span class="name">
+            <span class="dot" [attr.aria-label]="t('tunnels.states.' + tn.status.state)"></span>
+            {{ tn.profile.name }}
+            @if (tn.temporary) {
+              <span class="temp" [title]="t('tunnels.temporaryHint')">{{ t('tunnels.temporary') }}</span>
+            }
+          </span>
+          <code>{{ describe(tn.profile, tn.status.state === 'running' ? tn.status.addr : '') }}</code>
+          <span class="via">{{ t('tunnels.via', { host: hostNames().get(tn.profile.hostId) ?? '?' }) }}</span>
+          @if (tn.status.state === 'running') {
+            <span class="stats">
+              {{ t('tunnels.stats', { active: tn.status.stats.active, total: tn.status.stats.total, in: bytes(tn.status.stats.bytesIn), out: bytes(tn.status.stats.bytesOut) }) }}
+            </span>
+          } @else if (tn.status.state === 'reconnecting') {
+            <span class="error">{{ t('tunnels.reconnecting', { attempt: tn.status.attempt }) }}</span>
+          } @else if (tn.status.state === 'failed' && tn.status.error) {
+            <span class="error">{{ t('errors.' + tn.status.error.code, tn.status.error.params ?? {}) }}</span>
+          }
+        </div>
+        <span class="actions">
+          @if (tn.status.state === 'running' && tn.profile.kind === 'local') {
+            <button type="button" class="icon" [attr.aria-label]="t('tunnels.openBrowserNamed', { name: tn.profile.name })" [title]="t('tunnels.openBrowser')" (click)="browse(tn)">
+              <svg lucideExternalLink [size]="14" aria-hidden="true"></svg>
+            </button>
+          }
+          @if (tn.temporary) {
+            <button type="button" class="icon" [attr.aria-label]="t('tunnels.keepNamed', { name: tn.profile.name })" [title]="t('tunnels.keep')" (click)="keep(tn)">
+              <svg lucideSave [size]="14" aria-hidden="true"></svg>
+            </button>
+          } @else {
+          <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.editItem', { name: tn.profile.name })" [title]="t('hosts.actions.edit')" (click)="editing.set({ tunnel: tn })">
+              <svg lucidePencil [size]="14" aria-hidden="true"></svg>
+            </button>
+          }
+          <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: tn.profile.name })" [title]="t('hosts.actions.delete')" (click)="deleting.set(tn)">
+            <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+          </button>
+        </span>
+      </div>
+    } @empty {
+      <div class="empty">
+        <svg lucideCable [size]="32" aria-hidden="true"></svg>
+        <p>{{ t('panels.tunnels.empty') }}</p>
+        <button type="button" class="btn primary" (click)="newTunnel()">{{ t('panels.tunnels.add') }}</button>
+      </div>
+    }
+  </div>
+
+  @if (editing(); as e) {
+    <app-tunnel-dialog [tunnel]="e.tunnel" (closed)="editing.set(null)" />
+  }
+  @if (deleting(); as d) {
+    <app-confirm-dialog
+      [heading]="t('tunnels.deleteTitle')"
+      [message]="t('tunnels.deleteMessage', { name: d.profile.name })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</section>

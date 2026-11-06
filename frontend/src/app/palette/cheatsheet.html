@@ -1,0 +1,18 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('palette.shortcuts')" (closed)="closed.emit()">
+    <table>
+      <tbody>
+        @for (r of rows; track r.action) {
+          <tr>
+            <td>{{ t('shortcuts.' + r.action) }}</td>
+            <td><kbd>{{ r.keys }}</kbd></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <p class="hint">{{ t(isMac ? 'shortcuts.noteMac' : 'shortcuts.note') }}</p>
+    <ng-container modal-actions>
+      <button type="button" class="btn primary" (click)="closed.emit()">{{ t('import.close') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

@@ -1,0 +1,8 @@
+{
+  "name": "Staging Amber",
+  "background": "#241A08", "foreground": "#F2E6CF", "cursorColor": "#FFB020", "selectionBackground": "#4D3A12",
+  "black": "#241A08", "red": "#F2665C", "green": "#A6CF6E", "yellow": "#FFB020",
+  "blue": "#7FA8E0", "purple": "#D493CF", "cyan": "#6CC2B8", "white": "#F2E6CF",
+  "brightBlack": "#A08A5E", "brightRed": "#FF8C84", "brightGreen": "#C2E596", "brightYellow": "#FFC966",
+  "brightBlue": "#A6C4ED", "brightPurple": "#E6B3E1", "brightCyan": "#96DBD2", "brightWhite": "#FFFFFF"
+}

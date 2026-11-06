@@ -1,0 +1,8 @@
+{
+  "name": "Shellvane Dusk",
+  "background": "#1B1D23", "foreground": "#D7DAE0", "cursorColor": "#7AA2F7", "selectionBackground": "#33384A",
+  "black": "#1B1D23", "red": "#E06C75", "green": "#98C379", "yellow": "#E5C07B",
+  "blue": "#7AA2F7", "purple": "#C678DD", "cyan": "#56B6C2", "white": "#D7DAE0",
+  "brightBlack": "#5C6370", "brightRed": "#F28B94", "brightGreen": "#B5E08F", "brightYellow": "#F0D398",
+  "brightBlue": "#9BBCFF", "brightPurple": "#DA9BEB", "brightCyan": "#7BD0DB", "brightWhite": "#FFFFFF"
+}

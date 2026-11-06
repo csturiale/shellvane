@@ -1,0 +1,142 @@
+<div *transloco="let t" class="page">
+  <header>
+    <h1>{{ t('automation.title') }} <app-help-link topic="automation" /></h1>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'rules'" [class.selected]="tab() === 'rules'" (click)="show('rules')">
+        {{ t('automation.rules') }}
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'runbooks'" [class.selected]="tab() === 'runbooks'" (click)="show('runbooks')">
+        {{ t('automation.runbooks') }}
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'audit'" [class.selected]="tab() === 'audit'" (click)="show('audit')">
+        {{ t('automation.audit') }}
+      </button>
+    </div>
+  </header>
+
+  @if (message(); as m) {
+    <p class="message" role="alert">{{ m }}</p>
+  }
+
+  @if (tab() === 'runbooks') {
+    <app-runbooks-view />
+  } @else if (tab() === 'rules') {
+    <div class="toolbar">
+      <p class="hint">{{ t('automation.rulesHint') }}</p>
+      <button type="button" class="btn primary" (click)="editing.set('new')">
+        <svg lucidePlus [size]="14" aria-hidden="true"></svg>
+        {{ t('automation.newRule') }}
+      </button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">{{ t('automation.enabled') }}</th>
+          <th scope="col">{{ t('automation.name') }}</th>
+          <th scope="col">{{ t('automation.action') }}</th>
+          <th scope="col">{{ t('automation.pattern') }}</th>
+          <th scope="col">{{ t('automation.scopeLabel') }}</th>
+          <th scope="col"><span class="sr-only">{{ t('automation.actions') }}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of store.rules(); track r.id) {
+          <tr [class.disabled]="!r.enabled">
+            <td>
+              <input type="checkbox" [checked]="r.enabled" [disabled]="sharing.needsReview('rule', r.id)" [attr.aria-label]="t('automation.enableNamed', { name: r.name })" (change)="toggle(r)" />
+            </td>
+            <td>{{ r.name }}</td>
+            <td>
+              <span class="badge" [class]="r.action">
+                @if (r.action === 'highlight') {
+                  <span class="swatch" [style.background]="colors[r.color] ?? colors['yellow']" aria-hidden="true"></span>
+                }
+                {{ t('automation.actionNames.' + r.action) }}
+              </span>
+            </td>
+            <td><code>{{ r.pattern }}</code></td>
+            <td>{{ scopeLabel(r) }}</td>
+            <td class="row-actions">
+              @if (sharing.button; as c) {
+                <ng-container *ngComponentOutlet="c; inputs: { kind: 'rule', localId: r.id, name: r.name }" />
+              }
+              <button type="button" class="icon" [attr.aria-label]="t('automation.editNamed', { name: r.name })" [title]="t('automation.edit')" (click)="editing.set(r)">
+                <svg lucidePencil [size]="14" aria-hidden="true"></svg>
+              </button>
+              <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: r.name })" [title]="t('hosts.actions.delete')" (click)="deleting.set(r)">
+                <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty">{{ t('automation.empty') }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <div class="toolbar">
+      <p class="hint">{{ t('automation.auditHint') }}</p>
+      <span class="buttons">
+        <button type="button" class="btn" (click)="export('csv')">
+          <svg lucideDownload [size]="14" aria-hidden="true"></svg>
+          CSV
+        </button>
+        <button type="button" class="btn" (click)="export('json')">
+          <svg lucideDownload [size]="14" aria-hidden="true"></svg>
+          JSON
+        </button>
+        <button type="button" class="btn" [disabled]="store.audit().length === 0" (click)="clearing.set(true)">{{ t('automation.clearAudit') }}</button>
+      </span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">{{ t('automation.when') }}</th>
+          <th scope="col">{{ t('automation.host') }}</th>
+          <th scope="col">{{ t('automation.name') }}</th>
+          <th scope="col">{{ t('automation.detail') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of store.audit(); track e.id) {
+          <tr>
+            <td class="nowrap">{{ formatTime(e.at) }}</td>
+            <td>{{ e.host }}</td>
+            <td>{{ e.subject }}</td>
+            <td><code>{{ e.detail }}</code></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="empty">{{ t('automation.auditEmpty') }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (editing(); as r) {
+    <app-rule-dialog [rule]="r === 'new' ? null : r" (closed)="editing.set(null)" />
+  }
+  @if (deleting(); as r) {
+    <app-confirm-dialog
+      [heading]="t('automation.deleteTitle')"
+      [message]="t('automation.deleteMessage', { name: r.name })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+  @if (clearing()) {
+    <app-confirm-dialog
+      [heading]="t('automation.clearAudit')"
+      [message]="t('automation.clearAuditMessage')"
+      [confirmLabel]="t('automation.clearAudit')"
+      [danger]="true"
+      (confirmed)="confirmClear()"
+      (cancelled)="clearing.set(false)"
+    />
+  }
+</div>

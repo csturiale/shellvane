@@ -1,0 +1,9 @@
+<app-modal *transloco="let t" [heading]="heading()" (closed)="cancelled.emit()">
+  <p class="message">{{ message() }}</p>
+  <ng-container modal-actions>
+    <button type="button" class="btn" (click)="cancelled.emit()">{{ t('common.cancel') }}</button>
+    <button type="button" class="btn" [class.danger]="danger()" [class.primary]="!danger()" (click)="confirmed.emit()">
+      {{ confirmLabel() }}
+    </button>
+  </ng-container>
+</app-modal>

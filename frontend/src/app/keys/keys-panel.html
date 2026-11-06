@@ -1,0 +1,239 @@
+<section *transloco="let t" class="panel">
+  <header>
+    <h2>{{ t('panels.keys.title') }} <app-help-link topic="keys" /></h2>
+    <span class="actions-head">
+      <button type="button" class="icon" [attr.aria-label]="t('keys.token.add')" [title]="t('keys.token.add')" (click)="addingToken.set(true)">
+        <svg lucideUsb [size]="16" aria-hidden="true"></svg>
+      </button>
+    </span>
+    @if (vault.state() === 'unlocked') {
+      <span class="actions-head">
+        <button type="button" class="icon" [attr.aria-label]="t('keys.import')" [title]="t('keys.import')" (click)="open({ kind: 'import' })">
+          <svg lucideUpload [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" class="icon" [attr.aria-label]="t('panels.keys.add')" [title]="t('keys.generate')" (click)="open({ kind: 'generate' })">
+          <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+        </button>
+      </span>
+    }
+  </header>
+
+  @if (vault.state() !== 'unlocked') {
+    <p class="message">{{ t(vault.state() === 'notSetUp' ? 'keys.needVault' : 'keys.unlockVault') }}</p>
+  }
+  @if (message(); as m) {
+    <p class="message" role="status">{{ m }}</p>
+  }
+  @if (store.agent(); as a) {
+    <div class="agent">
+      <label class="check" [title]="t('keys.agentHint')">
+        <input type="checkbox" [checked]="a.running" (change)="toggleAgent($any($event.target).checked)" />
+        {{ t('keys.agent') }}
+      </label>
+      @if (a.running) {
+        <button type="button" class="link" [title]="t('keys.agentCopy')" (click)="copyAgent(a.path)">SSH_AUTH_SOCK</button>
+      }
+    </div>
+  }
+
+  <div class="list">
+    @for (k of store.keys(); track k.id) {
+      <div class="key" tabindex="0">
+        <svg lucideKeyRound [size]="15" aria-hidden="true"></svg>
+        <div class="text">
+          <span class="name">{{ k.name }}</span>
+          <code>{{ k.type }} {{ k.bits }} · {{ k.fingerprint }}</code>
+          @if (k.token; as tk) {
+            <span class="token" [title]="tk.module">{{ t('keys.token.on', { label: tk.label || tk.serial }) }}</span>
+          }
+          @if (k.certificate) {
+            <span class="cert" [class.expired]="certExpired(k)">
+              {{
+                certExpired(k)
+                  ? t('keys.cert.expired')
+                  : t('keys.cert.summary', { principals: (k.certPrincipals ?? []).join(', ') || '*', until: certUntil(k) || t('keys.cert.forever') })
+              }}
+            </span>
+          }
+        </div>
+        <span class="actions">
+          <button type="button" class="icon" [attr.aria-label]="t('keys.copyNamed', { name: k.name })" [title]="t('keys.copyPublic')" (click)="copy(k)">
+            <svg lucideCopy [size]="14" aria-hidden="true"></svg>
+          </button>
+          <button type="button" class="icon" [attr.aria-label]="t('keys.cert.attachNamed', { name: k.name })" [title]="t('keys.cert.attach')" (click)="open({ kind: 'certificate', key: k })">
+            <svg lucideBadgeCheck [size]="14" aria-hidden="true"></svg>
+          </button>
+          <button type="button" class="icon" [attr.aria-label]="t('keys.deployNamed', { name: k.name })" [title]="t('keys.deploy')" (click)="open({ kind: 'deploy', key: k })">
+            <svg lucideUpload [size]="14" aria-hidden="true"></svg>
+          </button>
+          <button type="button" class="icon" [attr.aria-label]="t('keys.usageNamed', { name: k.name })" [title]="t('keys.usage')" (click)="open({ kind: 'usage', key: k })">
+            <svg lucideNetwork [size]="14" aria-hidden="true"></svg>
+          </button>
+          @if (!k.token) {
+            <button type="button" class="icon" [attr.aria-label]="t('keys.exportNamed', { name: k.name })" [title]="t('keys.export')" (click)="open({ kind: 'export', key: k })">
+              <svg lucideFileKey [size]="14" aria-hidden="true"></svg>
+            </button>
+          }
+          <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: k.name })" [title]="t('hosts.actions.delete')" (click)="askDelete(k)">
+            <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+          </button>
+        </span>
+      </div>
+    } @empty {
+      @if (store.loaded()) {
+        <div class="empty">
+          <svg lucideKeyRound [size]="32" aria-hidden="true"></svg>
+          <p>{{ t('panels.keys.empty') }}</p>
+        </div>
+      }
+    }
+  </div>
+
+  @if (dialog(); as d) {
+    <app-modal [heading]="t('keys.titles.' + d.kind)" (closed)="dialog.set(null)">
+      <form id="key-form" class="form" (ngSubmit)="submit()">
+        @switch (d.kind) {
+          @case ('generate') {
+            <label class="field">
+              <span>{{ t('keys.name') }}</span>
+              <input name="name" autofocus [(ngModel)]="name" />
+            </label>
+            <label class="field">
+              <span>{{ t('keys.type') }}</span>
+              <select name="kind" [(ngModel)]="kind">
+                <option value="ed25519">Ed25519 ({{ t('keys.recommended') }})</option>
+                <option value="rsa:4096">RSA 4096</option>
+                <option value="rsa:3072">RSA 3072</option>
+                <option value="ecdsa:256">ECDSA P-256</option>
+                <option value="ecdsa:384">ECDSA P-384</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>{{ t('keys.comment') }}</span>
+              <input name="comment" spellcheck="false" [(ngModel)]="comment" placeholder="user@laptop" />
+            </label>
+          }
+          @case ('import') {
+            <label class="field">
+              <span>{{ t('keys.name') }}</span>
+              <input name="name" autofocus [(ngModel)]="name" />
+            </label>
+            <label class="field">
+              <span>{{ t('keys.privateKey') }}</span>
+              <textarea name="data" rows="7" spellcheck="false" class="mono" [(ngModel)]="keyData" [placeholder]="t('keys.pastePlaceholder')"></textarea>
+            </label>
+            <label class="field">
+              <span>{{ t('keys.passphrase') }}</span>
+              <input name="passphrase" type="password" autocomplete="off" [(ngModel)]="passphrase" />
+            </label>
+            <p class="hint">{{ t('keys.importHint') }}</p>
+          }
+          @case ('certificate') {
+            <p class="hint">{{ t('keys.cert.hint', { name: d.key.name }) }}</p>
+            <label class="field">
+              <span>{{ t('keys.cert.label') }}</span>
+              <textarea name="cert" rows="5" spellcheck="false" class="mono" autofocus [(ngModel)]="keyData" placeholder="ssh-ed25519-cert-v01@openssh.com AAAA…"></textarea>
+            </label>
+            <p class="hint">{{ t('keys.cert.clearHint') }}</p>
+          }
+          @case ('usage') {
+            @if (usage(); as u) {
+              @if (u.length === 0) {
+                <p class="hint">{{ t('keys.unused', { name: d.key.name }) }}</p>
+              } @else {
+                <ul class="usage">
+                  @for (x of u; track x.kind + x.id) {
+                    <li>
+                      <span class="kind">{{ t('keys.usageKinds.' + x.kind) }}</span>
+                      {{ x.name }}
+                      @if (x.inherited) {
+                        <small>{{ t('keys.inherited') }}</small>
+                      }
+                    </li>
+                  }
+                </ul>
+                @if (d.key.token) {
+                  <p class="hint">{{ t('keys.token.noRotation') }}</p>
+                } @else {
+                  <p class="hint">{{ t('keys.rotateHint') }}</p>
+                  <label class="check"><input type="checkbox" name="removeOld" [(ngModel)]="removeOld" /> {{ t('keys.removeOld') }}</label>
+                }
+              }
+            } @else {
+              <p class="hint">{{ t('common.loading') }}</p>
+            }
+            @if (rotation(); as r) {
+              <ul class="usage results">
+                @for (h of r.hosts; track h.hostId) {
+                  <li [class.bad]="!!h.error">
+                    {{ h.name }}:
+                    {{ h.verified ? t('keys.steps.verified') : h.deployed ? t('keys.steps.deployed') : t('keys.steps.failed') }}
+                    @if (h.removed) {
+                      · {{ t('keys.steps.removed') }}
+                    }
+                    @if (h.error; as e) {
+                      <small>{{ t('errors.' + e.code, e.params ?? {}) }}</small>
+                    }
+                  </li>
+                }
+              </ul>
+              <p class="hint">{{ r.switched ? t('keys.rotated', { name: r.newKey.name }) : t('keys.notSwitched', { name: r.newKey.name }) }}</p>
+            }
+          }
+          @case ('export') {
+            <p class="hint">{{ t('keys.exportHint', { name: d.key.name }) }}</p>
+            <label class="field">
+              <span>{{ t('keys.format') }}</span>
+              <select name="format" [(ngModel)]="format">
+                <option value="openssh">OpenSSH</option>
+                <option value="ppk">PuTTY (PPK v3)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>{{ t('keys.exportPassphrase') }}</span>
+              <input name="exportPassphrase" type="password" autocomplete="new-password" [(ngModel)]="passphrase" />
+            </label>
+            @if (exported(); as text) {
+              <textarea class="mono exported" rows="6" readonly [attr.aria-label]="t('keys.privateKey')">{{ text }}</textarea>
+            }
+          }
+          @case ('deploy') {
+            <p class="hint">{{ t('keys.deployHint', { name: d.key.name }) }}</p>
+            <label class="field">
+              <span>{{ t('keys.toHost') }}</span>
+              <select name="host" [(ngModel)]="hostId">
+                @for (h of hosts(); track h.id) {
+                  <option [value]="h.id">{{ h.name }} ({{ h.hostname }})</option>
+                }
+              </select>
+            </label>
+          }
+        }
+        @if (dialogError(); as e) {
+          <p class="error" role="alert">{{ e }}</p>
+        }
+      </form>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="dialog.set(null)">{{ t(rotation() || exported() ? 'common.close' : 'common.cancel') }}</button>
+        @if (d.kind !== 'usage' || ((usage()?.length ?? 0) > 0 && !d.key.token)) {
+          <button type="submit" form="key-form" class="btn primary" [disabled]="busy() || (d.kind === 'usage' && !!rotation())">{{ t('keys.submit.' + d.kind) }}</button>
+        }
+      </ng-container>
+    </app-modal>
+  }
+  @if (addingToken()) {
+    @defer (on immediate) {
+      <app-token-dialog (closed)="tokenAdded($event)" />
+    }
+  }
+  @if (deleting(); as k) {
+    <app-confirm-dialog
+      [heading]="t('keys.deleteTitle')"
+      [message]="t(deleteUsage() > 0 ? 'keys.deleteUsed' : 'keys.deleteMessage', { name: k.name, count: deleteUsage() })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</section>

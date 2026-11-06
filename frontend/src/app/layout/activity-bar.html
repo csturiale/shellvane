@@ -1,0 +1,77 @@
+<nav *transloco="let t" class="bar" [attr.aria-label]="t('nav.label')">
+  @for (section of sections; track section) {
+    <button
+      type="button"
+      [class.active]="active() === section"
+      [attr.aria-current]="active() === section ? 'page' : null"
+      [attr.aria-label]="t('nav.' + section)"
+      [title]="t('nav.' + section)"
+      (click)="select.emit(section)"
+    >
+      <!-- Static icons: the dynamic icon component would bundle every icon. -->
+      @switch (section) {
+        @case ('hosts') { <svg lucideServer [size]="22" aria-hidden="true"></svg> }
+        @case ('environments') { <svg lucideLayers [size]="22" aria-hidden="true"></svg> }
+        @case ('snippets') { <svg lucideSquareCode [size]="22" aria-hidden="true"></svg> }
+        @case ('tunnels') { <svg lucideCable [size]="22" aria-hidden="true"></svg> }
+        @case ('files') { <svg lucideFolderSync [size]="22" aria-hidden="true"></svg> }
+        @case ('keys') { <svg lucideKeyRound [size]="22" aria-hidden="true"></svg> }
+        @case ('automation') { <svg lucideZap [size]="22" aria-hidden="true"></svg> }
+        @case ('plugins') { <svg lucidePuzzle [size]="22" aria-hidden="true"></svg> }
+      }
+    </button>
+  }
+  @for (v of extensionViews; track v.id) {
+    <button
+      type="button"
+      [class.active]="active() === v.id"
+      [attr.aria-current]="active() === v.id ? 'page' : null"
+      [attr.aria-label]="t(v.label)"
+      [title]="t(v.label)"
+      (click)="select.emit(v.id)"
+    >
+      <ng-container *ngComponentOutlet="v.icon" />
+    </button>
+  }
+  <span class="spacer"></span>
+  @if (hasPanel()) {
+    <button
+      type="button"
+      class="panel-toggle"
+      [attr.aria-label]="t(collapsed() ? 'nav.showPanel' : 'nav.hidePanel')"
+      [attr.aria-pressed]="!collapsed()"
+      [title]="t(collapsed() ? 'nav.showPanel' : 'nav.hidePanel') + ' (' + panelKeys + ')'"
+      (click)="togglePanel.emit()"
+    >
+      @if (collapsed()) {
+        <svg lucidePanelLeftOpen [size]="20" aria-hidden="true"></svg>
+      } @else {
+        <svg lucidePanelLeftClose [size]="20" aria-hidden="true"></svg>
+      }
+    </button>
+  }
+  <button
+    type="button"
+    class="guide"
+    [class.active]="active() === 'guide'"
+    [attr.aria-current]="active() === 'guide' ? 'page' : null"
+    [attr.aria-label]="t('nav.guide')"
+    [title]="t('nav.guide')"
+    (click)="select.emit('guide')"
+  >
+    <svg lucideBookOpen [size]="22" aria-hidden="true"></svg>
+    @if (news()) {
+      <span class="news" [attr.aria-label]="t('guide.news')"></span>
+    }
+  </button>
+  <button
+    type="button"
+    [class.active]="active() === 'settings'"
+    [attr.aria-current]="active() === 'settings' ? 'page' : null"
+    [attr.aria-label]="t('nav.settings')"
+    [title]="t('nav.settings')"
+    (click)="select.emit('settings')"
+  >
+    <svg lucideSettings [size]="22" aria-hidden="true"></svg>
+  </button>
+</nav>

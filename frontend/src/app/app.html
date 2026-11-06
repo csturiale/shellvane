@@ -1,0 +1,202 @@
+<ng-container *transloco="let t">
+  @if (!detached) {
+  <header class="toolbar">
+    <span class="brand">
+      <img src="logo.svg" width="20" height="20" alt="" />
+      {{ t('app.name') }}
+    </span>
+    <label class="quick-connect">
+      <svg lucideSearch [size]="14" aria-hidden="true"></svg>
+      <input
+        #quick
+        type="text"
+        spellcheck="false"
+        autocomplete="off"
+        [attr.aria-label]="t('toolbar.quickConnect')"
+        [placeholder]="t('toolbar.quickConnectPlaceholder')"
+        [title]="t('palette.tip', { keys: paletteKeys })"
+        list="quick-history"
+        (keydown.enter)="quickConnect(quick)"
+        (focus)="loadSerialPorts()"
+      />
+      <datalist id="quick-history">
+        @for (h of quickHistory(); track h) {
+          <option [value]="h"></option>
+        }
+        @for (s of serialSuggestions(); track s) {
+          <option [value]="s"></option>
+        }
+      </datalist>
+    </label>
+  </header>
+  }
+
+  @if (!detached) {
+  <app-activity-bar
+    class="activity"
+    [active]="view()"
+    [news]="news()"
+    [collapsed]="panelCollapsed() || paneMaximized()"
+    [hasPanel]="!fullView()"
+    (select)="onSelect($event)"
+    (togglePanel)="togglePanel()"
+  />
+  }
+
+  <!-- Panels other than Hosts load when first shown. -->
+  @if (!panelHidden()) {
+    <div
+      class="panel-resizer"
+      role="separator"
+      aria-orientation="vertical"
+      [attr.aria-label]="t('nav.resizePanel')"
+      [title]="t('nav.resizePanel')"
+      (pointerdown)="startResize($event)"
+      (dblclick)="togglePanel()"
+    ></div>
+  }
+  @if (section(); as s) {
+    @switch (s) {
+      @case ('hosts') {
+        <!-- Loaded right after startup, to keep the first bundle small. -->
+        @defer (on immediate) {
+          <app-hosts-panel class="panel" />
+        }
+      }
+      @case ('snippets') {
+        @defer (on immediate) {
+          <app-snippets-panel class="panel" />
+        }
+      }
+      @case ('tunnels') {
+        @defer (on immediate) {
+          <app-tunnels-panel class="panel" />
+        }
+      }
+      @case ('keys') {
+        @defer (on immediate) {
+          <app-keys-panel class="panel" />
+        }
+      }
+      @case ('environments') {
+        @defer (on immediate) {
+          <app-environments-panel class="panel" />
+        }
+      }
+    }
+  }
+
+  <main class="workspace">
+    @if (view() === 'settings') {
+      @defer (on immediate) {
+        <app-settings-page />
+      }
+    } @else if (view() === 'files') {
+      @defer (on immediate) {
+        <app-files-view />
+      }
+    } @else if (view() === 'recordings') {
+      @defer (on immediate) {
+        <app-recordings-view />
+      }
+    } @else if (view() === 'guide') {
+      @defer (on immediate) {
+        <app-guide-view />
+      }
+    } @else if (view() === 'automation') {
+      @defer (on immediate) {
+        <app-automation-view />
+      }
+    } @else if (view() === 'plugins') {
+      @defer (on immediate) {
+        <app-plugins-view />
+      }
+    } @else if (extensionView()?.id === view()) {
+      <ng-container *ngComponentOutlet="extensionView()!.component" />
+    } @else if (sessions.tabs().length === 0) {
+      <div class="welcome">
+        <img src="logo.svg" width="64" height="64" alt="" />
+        <p>{{ t('workspace.welcome') }}</p>
+        <div class="welcome-actions">
+          <button type="button" class="btn" (click)="sessions.openLocal()">
+            <svg lucideSquareTerminal [size]="16" aria-hidden="true"></svg>
+            {{ t('local.new') }}
+          </button>
+          <app-workspace-menu [labelled]="true" />
+        </div>
+      </div>
+    }
+    <!--
+      Terminals stay alive under the full-page views (settings, files, guide…):
+      destroying them would close their streams, and with them the sessions.
+      xterm.js is loaded with the first terminal, not at startup.
+    -->
+    @if (sessions.tabs().length > 0) {
+      @defer (on immediate) {
+        <app-workspace [class.covered]="fullView()" />
+      }
+    }
+  </main>
+
+  <app-prompt-dialog />
+  <app-context-menu />
+  <app-trigger-toasts />
+  <app-environment-notice />
+
+  @if (showTour()) {
+    @defer (on immediate) {
+      <app-welcome-tour (closed)="closeTour()" />
+    }
+  }
+  @if (paletteOpen()) {
+    @defer (on immediate) {
+      <app-command-palette (closed)="paletteOpen.set(false)" (cheatsheet)="cheatsheetOpen.set(true)" />
+    }
+  }
+  @if (cheatsheetOpen()) {
+    @defer (on immediate) {
+      <app-cheatsheet (closed)="cheatsheetOpen.set(false)" />
+    }
+  }
+
+  @if (!detached) {
+  <footer class="statusbar">
+    <button type="button" class="link" (click)="view.set('tunnels')">{{ t('status.activeTunnels', { count: tunnels.activeCount() }) }}</button>
+    @if (!fullView() && sessions.focused(); as p) {
+      <span class="connection">
+        {{ t('status.connection', { label: label(p), state: t('sessions.states.' + p.state) }) }}
+      </span>
+    }
+    <span class="spacer"></span>
+    @if (updates()?.info()?.available) {
+      <button type="button" class="link update" (click)="view.set('settings')">{{ t('updates.available', { version: updates()!.info()!.latest }) }}</button>
+    }
+    @if (vault.state(); as v) {
+      @if (v !== 'notSetUp') {
+        <button
+          type="button"
+          class="vault"
+          [attr.aria-label]="t(v === 'unlocked' ? 'vault.lockNow' : 'vault.openSettings')"
+          [title]="t(v === 'unlocked' ? 'vault.lockNow' : 'vault.openSettings')"
+          (click)="v === 'unlocked' ? vault.lock() : view.set('settings')"
+        >
+          @if (v === 'unlocked') {
+            <svg lucideLockOpen [size]="13" aria-hidden="true"></svg>
+          } @else {
+            <svg lucideLock [size]="13" aria-hidden="true"></svg>
+          }
+          {{ t(v === 'unlocked' ? 'vault.isUnlockedShort' : 'vault.isLockedShort') }}
+        </button>
+      }
+    }
+    @if (info(); as i) {
+      <span>{{ t('status.version', { version: i.version, os: i.os, arch: i.arch }) }}</span>
+    } @else if (!backend.connected()) {
+      <span>{{ t('status.browserMode') }}</span>
+    }
+  </footer>
+  }
+  @for (root of extensionRoots; track $index) {
+    <ng-container *ngComponentOutlet="root" />
+  }
+</ng-container>

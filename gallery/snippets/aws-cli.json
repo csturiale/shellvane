@@ -1,0 +1,14 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "AWS CLI", "name": "Who am I", "body": "aws sts get-caller-identity", "run": true},
+    {"folder": "AWS CLI", "name": "EC2 instances", "body": "aws ec2 describe-instances --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,PrivateIpAddress,Tags[?Key==`Name`]|[0].Value]' --output table", "run": true},
+    {"folder": "AWS CLI", "name": "Session Manager shell", "body": "aws ssm start-session --target {{instance}}", "run": true},
+    {"folder": "AWS CLI", "name": "S3 buckets", "body": "aws s3 ls", "run": true},
+    {"folder": "AWS CLI", "name": "S3 folder size", "body": "aws s3 ls s3://{{bucket}}/{{prefix}} --recursive --summarize --human-readable | tail -2", "run": true},
+    {"folder": "AWS CLI", "name": "Follow a log group", "body": "aws logs tail {{group}} --follow --since 10m", "run": true},
+    {"folder": "AWS CLI", "name": "EKS: add cluster to kubeconfig", "body": "aws eks update-kubeconfig --name {{cluster}}", "run": false},
+    {"folder": "AWS CLI", "name": "ECR login for Docker", "body": "aws ecr get-login-password | docker login --username AWS --password-stdin {{registry}}", "run": false}
+  ]
+}

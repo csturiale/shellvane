@@ -1,0 +1,124 @@
+:host {
+  position: relative;
+  display: inline-block;
+}
+button.icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text-muted);
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+    background: var(--hover);
+  }
+
+  &.labelled {
+    display: inline-flex;
+    gap: 6px;
+    width: auto;
+    height: auto;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+  }
+}
+:host-context(.welcome) .menu {
+  inset-inline-end: auto;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+}
+.menu {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  width: 280px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  text-align: start;
+}
+h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.save {
+  display: flex;
+  gap: 6px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    background: var(--surface);
+  }
+}
+.btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+
+  &.primary {
+    border-color: var(--accent);
+    color: var(--on-accent);
+    background: var(--accent);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+.hint,
+.error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.error {
+  color: var(--danger);
+}
+ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.open {
+  flex: 1;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text);
+  background: none;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+.empty {
+  padding: 5px 6px;
+  color: var(--text-muted);
+}

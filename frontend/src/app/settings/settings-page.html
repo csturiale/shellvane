@@ -1,0 +1,149 @@
+<div *transloco="let t; prefix: 'settings'" class="page">
+  <h1>{{ t('title') }}</h1>
+
+  <section>
+    <h2>{{ t('appearance') }}</h2>
+    <div class="row">
+      <div class="label">
+        <span id="theme-label">{{ t('theme') }}</span>
+        <small>{{ t('themeHint') }}</small>
+      </div>
+      <div class="segmented" role="radiogroup" aria-labelledby="theme-label">
+        @for (mode of theme.modes; track mode) {
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="theme.mode() === mode"
+            [class.selected]="theme.mode() === mode"
+            (click)="theme.set(mode)"
+          >
+            @switch (mode) {
+              @case ('light') { <svg lucideSun [size]="16" aria-hidden="true"></svg> }
+              @case ('dark') { <svg lucideMoon [size]="16" aria-hidden="true"></svg> }
+              @default { <svg lucideMonitor [size]="16" aria-hidden="true"></svg> }
+            }
+            {{ t('themes.' + mode) }}
+          </button>
+        }
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">
+        <label for="ui-scale">{{ t('uiScale') }}</label>
+        <small>{{ t('uiScaleHint') }}</small>
+      </div>
+      <select id="ui-scale" [value]="theme.scale()" (change)="theme.setScale(+$any($event.target).value)">
+        @for (s of uiScales; track s) {
+          <option [value]="s" [selected]="theme.scale() === s">{{ s }}%</option>
+        }
+      </select>
+    </div>
+  </section>
+
+  <section>
+    <h2>{{ t('general') }}</h2>
+    <div class="row">
+      <div class="label">
+        <label for="language">{{ t('language') }}</label>
+        <small>{{ t('languageHint') }}</small>
+      </div>
+      <select id="language" (change)="onLanguageChange($event)">
+        @for (lang of language.available; track lang) {
+          <!-- Language names are shown in their own language on purpose. -->
+          <option [value]="lang" [selected]="lang === language.current()">
+            {{ t('languageNames.' + lang) }}
+          </option>
+        }
+      </select>
+    </div>
+  </section>
+
+  <section>
+    <h2>{{ t('sessions') }} <app-help-link topic="continuity" /></h2>
+    <div class="row">
+      <div class="label">
+        <label for="show-status">{{ t('showStatus') }}</label>
+        <small>{{ t('showStatusHint') }}</small>
+      </div>
+      <input id="show-status" type="checkbox" [checked]="hosts.showStatus()" (change)="hosts.setShowStatus($any($event.target).checked)" />
+    </div>
+    <div class="row">
+      <div class="label">
+        <label for="auto-reconnect">{{ t('autoReconnect') }}</label>
+        <small>{{ t('autoReconnectHint') }}</small>
+      </div>
+      <input id="auto-reconnect" type="checkbox" [checked]="sessionPrefs.autoReconnect()" (change)="sessionPrefs.setAutoReconnect($any($event.target).checked)" />
+    </div>
+    <div class="row">
+      <div class="label">
+        <label for="restore-on-start">{{ t('restoreOnStart') }}</label>
+        <small>{{ t('restoreOnStartHint') }}</small>
+      </div>
+      <input id="restore-on-start" type="checkbox" [checked]="sessionPrefs.restoreOnStart()" (change)="sessionPrefs.setRestoreOnStart($any($event.target).checked)" />
+    </div>
+    <div class="row">
+      <div class="label">
+        <label for="env-auto-stop">{{ t('envAutoStop') }}</label>
+        <small>{{ t('envAutoStopHint') }}</small>
+      </div>
+      <input id="env-auto-stop" type="checkbox" [checked]="environments.autoStop()" (change)="environments.setAutoStop($any($event.target).checked)" />
+    </div>
+  </section>
+
+  <section>
+    <h2>{{ t('local') }} <app-help-link topic="kubernetes" anchor="local" /></h2>
+    <div class="row">
+      <div class="label">
+        <label for="local-shell">{{ t('localShell') }}</label>
+        <small>{{ t('localShellHint', { keys: newLocalKeys }) }}</small>
+      </div>
+      <select id="local-shell" (change)="onShell($event)">
+        <option value="" [selected]="!sessionPrefs.localShell()">{{ t('localShellDefault') }}</option>
+        @for (p of shells(); track p.id) {
+          <option [value]="p.id" [selected]="sessionPrefs.localShell() === p.id">{{ p.name }} — {{ p.path }}</option>
+        }
+      </select>
+    </div>
+    <div class="row">
+      <div class="label">
+        <label for="local-kube">{{ t('localKube') }}</label>
+        <small>{{ t('localKubeHint') }}</small>
+      </div>
+      <span class="pair">
+        <input id="local-kube" spellcheck="false" [value]="sessionPrefs.localKubeContext()" [placeholder]="t('localKubeContext')" (change)="onLocalKube($event, 'context')" />
+        <input spellcheck="false" [attr.aria-label]="t('localKubeNamespace')" [value]="sessionPrefs.localKubeNamespace()" [placeholder]="t('localKubeNamespace')" (change)="onLocalKube($event, 'namespace')" />
+      </span>
+    </div>
+    <div class="row">
+      <div class="label">
+        <label for="kube-prod">{{ t('kubeProd') }}</label>
+        <small>{{ t('kubeProdHint') }}</small>
+      </div>
+      <input id="kube-prod" spellcheck="false" [value]="sessionPrefs.kubeProdPattern()" (change)="sessionPrefs.setKubeProdPattern($any($event.target).value)" />
+    </div>
+  </section>
+
+  <section>
+    <h2>{{ t('broadcastSection') }} <app-help-link topic="broadcast" anchor="safety" /></h2>
+    <div class="row stacked">
+      <div class="label">
+        <label for="dangerous">{{ t('dangerous') }}</label>
+        <small>{{ t('dangerousHint') }}</small>
+      </div>
+      <textarea id="dangerous" class="mono" rows="6" spellcheck="false" [value]="danger.patterns().join('\n')" (change)="danger.set($any($event.target).value.split('\n'))"></textarea>
+      @if (danger.invalid().length > 0) {
+        <p class="error" role="alert">{{ t('dangerousInvalid', { patterns: danger.invalid().join(', ') }) }}</p>
+      }
+      <button type="button" class="btn small" (click)="danger.reset()">{{ t('dangerousReset') }}</button>
+    </div>
+  </section>
+
+  <app-terminal-settings />
+  <app-vault-settings />
+  <app-sync-settings />
+  @for (section of extensionSettings(); track $index) {
+    <ng-container *ngComponentOutlet="section" />
+  }
+  <app-update-settings />
+  <app-diagnostics-settings />
+</div>

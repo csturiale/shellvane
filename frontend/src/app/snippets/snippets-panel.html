@@ -1,0 +1,106 @@
+<section *transloco="let t" class="panel">
+  <header>
+    <h2>{{ t('panels.snippets.title') }} <app-help-link topic="snippets" /></h2>
+    <span class="header-actions">
+      <button type="button" class="icon" [attr.aria-label]="t('gallery.open')" [title]="t('gallery.open')" (click)="galleryOpen.set(true)">
+        <svg lucideStore [size]="16" aria-hidden="true"></svg>
+      </button>
+      <label class="icon file" [title]="t('snippets.import')">
+        <svg lucideDownload [size]="16" aria-hidden="true"></svg>
+        <input type="file" multiple accept=".json,.sh,.bash,.zsh,.fish,.ps1,.txt,*" [attr.aria-label]="t('snippets.import')" (change)="importFiles($event)" />
+      </label>
+      @if (store.snippets().length > 0) {
+        <button type="button" class="icon" [attr.aria-label]="t('snippets.export')" [title]="t('snippets.export')" (click)="exportFile()">
+          <svg lucideUpload [size]="16" aria-hidden="true"></svg>
+        </button>
+      }
+      <button type="button" class="icon" [attr.aria-label]="t('panels.snippets.add')" [title]="t('panels.snippets.add')" (click)="editing.set({ snippet: null })">
+        <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+      </button>
+    </span>
+  </header>
+
+  @if (store.snippets().length > 0) {
+    <label class="filter">
+      <svg lucideSearch [size]="14" aria-hidden="true"></svg>
+      <input type="search" [placeholder]="t('snippets.filter')" [attr.aria-label]="t('snippets.filter')" (input)="onFilter($event)" />
+    </label>
+  }
+
+  @if (message(); as m) {
+    <p class="message" role="status">{{ m }}</p>
+  }
+  @if (galleryOpen()) {
+    <app-gallery-dialog start="snippets" (closed)="galleryOpen.set(false)" (installed)="store.load()" />
+  }
+
+  <div class="list">
+    @for (group of groups(); track group.folder) {
+      @if (group.folder) {
+        <h3>{{ group.folder }}</h3>
+      }
+      @for (s of group.snippets; track s.id) {
+        <div class="snippet" tabindex="0" (dblclick)="run(s)" (keydown.enter)="run(s)">
+          <div class="text">
+            <span class="name">{{ s.name }}</span>
+            <code>{{ s.body }}</code>
+          </div>
+          <span class="actions">
+            @if (sharing.button; as c) {
+              <ng-container *ngComponentOutlet="c; inputs: { kind: 'snippet', localId: s.id, name: s.name }" />
+            }
+            <button type="button" class="icon" [attr.aria-label]="t('snippets.runNamed', { name: s.name })" [title]="t('snippets.run')" (click)="run(s)">
+              <svg lucidePlay [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('snippets.runOnManyNamed', { name: s.name })" [title]="t('snippets.runOnMany')" (click)="runOnMany(s)">
+              <svg lucideListChecks [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.editItem', { name: s.name })" [title]="t('hosts.actions.edit')" (click)="editing.set({ snippet: s })">
+              <svg lucidePencil [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: s.name })" [title]="t('hosts.actions.delete')" (click)="deleting.set(s)">
+              <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+            </button>
+          </span>
+        </div>
+      }
+    } @empty {
+      @if (store.snippets().length === 0) {
+        <div class="empty">
+          <svg lucideSquareCode [size]="32" aria-hidden="true"></svg>
+          <p>{{ t('panels.snippets.empty') }}</p>
+          <button type="button" class="btn primary" (click)="editing.set({ snippet: null })">{{ t('panels.snippets.add') }}</button>
+        </div>
+      } @else {
+        <p class="message">{{ t('snippets.noResults') }}</p>
+      }
+    }
+  </div>
+
+  @if (editing(); as e) {
+    <app-snippet-dialog [snippet]="e.snippet" (closed)="editing.set(null)" />
+  }
+  @if (asking(); as s) {
+    <app-run-dialog [snippet]="s" (run)="send(s, $event)" (closed)="asking.set(null)" />
+  }
+  @if (confirming(); as c) {
+    <app-confirm-dialog
+      [heading]="t('snippets.dangerousTitle')"
+      [message]="c.message"
+      [confirmLabel]="t('snippets.sendAnyway')"
+      [danger]="true"
+      (confirmed)="deliver(c.snippet, c.text)"
+      (cancelled)="confirming.set(null)"
+    />
+  }
+  @if (deleting(); as d) {
+    <app-confirm-dialog
+      [heading]="t('snippets.deleteTitle')"
+      [message]="t('snippets.deleteMessage', { name: d.name })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</section>

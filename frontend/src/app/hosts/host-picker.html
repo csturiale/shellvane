@@ -1,0 +1,53 @@
+<ng-container *transloco="let t">
+  <button type="button" class="trigger" [disabled]="disabled()" [attr.aria-label]="label()" [attr.aria-expanded]="open()" (click)="toggle()">
+    @if (current(); as c) {
+      <span class="name">{{ c.name }}</span>
+      @if (c.detail) {
+        <span class="detail">{{ c.detail }}</span>
+      }
+    } @else {
+      <span class="detail">{{ placeholder() }}</span>
+    }
+    <svg lucideChevronDown [size]="14" aria-hidden="true"></svg>
+  </button>
+  @if (open()) {
+    <div class="popover" role="dialog" [attr.aria-label]="label()">
+      <input
+        #search
+        type="search"
+        spellcheck="false"
+        autocomplete="off"
+        [placeholder]="t('hosts.picker.search')"
+        [attr.aria-label]="t('hosts.picker.search')"
+        [ngModel]="query()"
+        (ngModelChange)="setQuery($event)"
+        (keydown)="onKeydown($event)"
+      />
+      <div #list class="list" role="listbox">
+        @for (item of items().shown; track item.id; let i = $index) {
+          <button
+            type="button"
+            role="option"
+            class="item"
+            [class.active]="i === active()"
+            [class.chosen]="item.id === value()"
+            [attr.aria-selected]="item.id === value()"
+            (mouseenter)="active.set(i)"
+            (click)="choose(item)"
+          >
+            <span class="name">{{ item.name }}</span>
+            <span class="detail">{{ item.detail }}</span>
+            @if (item.group) {
+              <span class="group">{{ item.group }}</span>
+            }
+          </button>
+        } @empty {
+          <p class="empty">{{ t('hosts.picker.none') }}</p>
+        }
+        @if (items().more > 0) {
+          <p class="empty">{{ t('hosts.picker.more', { count: items().more }) }}</p>
+        }
+      </div>
+    </div>
+  }
+</ng-container>

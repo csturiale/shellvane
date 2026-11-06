@@ -1,0 +1,13 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Google Cloud", "name": "Current configuration", "body": "gcloud config list", "run": true},
+    {"folder": "Google Cloud", "name": "Switch project", "body": "gcloud config set project {{project}}", "run": false},
+    {"folder": "Google Cloud", "name": "Compute instances", "body": "gcloud compute instances list", "run": true},
+    {"folder": "Google Cloud", "name": "SSH through IAP", "body": "gcloud compute ssh {{instance}} --tunnel-through-iap --zone {{zone}}", "run": true},
+    {"folder": "Google Cloud", "name": "GKE: get credentials", "body": "gcloud container clusters get-credentials {{cluster}} --region {{region}}", "run": false},
+    {"folder": "Google Cloud", "name": "Recent errors in logs", "body": "gcloud logging read 'severity>=ERROR' --freshness=1h --limit 50", "run": true},
+    {"folder": "Google Cloud", "name": "Storage buckets", "body": "gcloud storage ls", "run": true}
+  ]
+}

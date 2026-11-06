@@ -1,0 +1,16 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Git", "name": "Status, short", "body": "git status -sb", "run": true},
+    {"folder": "Git", "name": "History graph", "body": "git log --oneline --graph --decorate -20", "run": true},
+    {"folder": "Git", "name": "What changed in the last commit", "body": "git show --stat HEAD", "run": true},
+    {"folder": "Git", "name": "Branches by last commit", "body": "git branch --sort=-committerdate -vv | head -20", "run": true},
+    {"folder": "Git", "name": "Fetch and prune", "body": "git fetch --all --prune", "run": true},
+    {"folder": "Git", "name": "Stash with a message", "body": "git stash push -m \"{{message}}\"", "run": false},
+    {"folder": "Git", "name": "Undo the last commit, keep changes", "body": "git reset --soft HEAD~1", "run": false},
+    {"folder": "Git", "name": "Who changed these lines", "body": "git blame -L {{from}},{{to}} {{file}}", "run": true},
+    {"folder": "Git", "name": "Search the history for a text", "body": "git log -S \"{{text}}\" --oneline", "run": true},
+    {"folder": "Git", "name": "Discard local changes to a file", "body": "git restore {{file}}", "run": false}
+  ]
+}

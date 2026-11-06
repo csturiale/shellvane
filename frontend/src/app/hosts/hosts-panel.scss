@@ -1,0 +1,329 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px 6px 12px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.actions,
+.row-actions {
+  display: flex;
+  gap: 2px;
+}
+
+button.icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+    background: var(--hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 6px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-muted);
+
+  &:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+  }
+}
+
+.error {
+  margin: 0 8px 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.tree {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 16px;
+
+  &.drop {
+    background: var(--drop);
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding-inline-end: 6px;
+  color: var(--text);
+  cursor: default;
+  user-select: none;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--hover);
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  &.drop {
+    background: var(--drop);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  > svg {
+    flex: none;
+  }
+}
+
+.host > svg {
+  color: var(--text-muted);
+}
+
+.chevron {
+  display: inline-grid;
+  flex: none;
+  color: var(--text-muted);
+  transition: transform 0.1s;
+
+  &.open {
+    transform: rotate(90deg);
+  }
+
+  &.hidden {
+    visibility: hidden;
+  }
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  small {
+    margin-inline-start: 6px;
+    color: var(--text-muted);
+  }
+}
+
+.count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.row-actions {
+  display: none;
+}
+
+.row:hover .row-actions,
+.row:focus-within .row-actions {
+  display: flex;
+}
+
+.row:hover .count,
+.row:focus-within .count,
+.row:hover .fav,
+.row:focus-within .fav {
+  display: none;
+}
+
+/* The actions take the place of the name's end when shown. */
+.row .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.row-actions {
+  flex: none;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 40px;
+  padding: 0 20px;
+  text-align: center;
+  color: var(--text-muted);
+
+  p {
+    margin: 0;
+  }
+}
+
+.empty-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  max-width: 180px;
+  margin-top: 8px;
+
+  button {
+    white-space: nowrap;
+  }
+}
+
+.no-results {
+  padding: 0 12px;
+  color: var(--text-muted);
+}
+
+.connect-all {
+  align-self: flex-start;
+  margin: 0 8px 6px;
+}
+.quick {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 6px;
+  border-block-end: 1px solid var(--border);
+
+  h3 {
+    margin: 6px 12px 2px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+}
+.quick-host {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border: 0;
+  color: var(--text);
+  background: none;
+  text-align: start;
+  cursor: default;
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+.star.on,
+button.icon.on {
+  color: var(--group-yellow);
+}
+.fav {
+  flex: none;
+}
+.tag {
+  margin-inline-start: 4px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--accent);
+  background: var(--hover);
+  cursor: pointer;
+}
+.notes {
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+.host-name {
+  display: flex;
+  flex-direction: column;
+
+  .line,
+  .tags {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tags .tag:first-child {
+    margin-inline-start: 0;
+  }
+}
+
+.notice {
+  margin: 4px 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.server-icon {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.status-dot {
+  position: absolute;
+  right: -2px;
+  bottom: -1px;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--surface);
+  border-radius: 50%;
+
+  &.up {
+    background: var(--group-green);
+  }
+  &.down {
+    background: var(--danger);
+  }
+  &.unknown {
+    display: none;
+  }
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

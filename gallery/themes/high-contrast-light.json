@@ -1,0 +1,8 @@
+{
+  "name": "High Contrast Light",
+  "background": "#FFFFFF", "foreground": "#000000", "cursorColor": "#0033CC", "selectionBackground": "#B3CCFF",
+  "black": "#000000", "red": "#B00000", "green": "#006400", "yellow": "#704C00",
+  "blue": "#0033CC", "purple": "#7A00A3", "cyan": "#005C66", "white": "#595959",
+  "brightBlack": "#3D3D3D", "brightRed": "#8C0000", "brightGreen": "#004D00", "brightYellow": "#5C3D00",
+  "brightBlue": "#002699", "brightPurple": "#5E007D", "brightCyan": "#00474F", "brightWhite": "#1A1A1A"
+}

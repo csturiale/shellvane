@@ -1,0 +1,93 @@
+<ng-container *transloco="let t">
+  <app-modal
+    [heading]="t(target().mode === 'create' ? 'hosts.group.createTitle' : 'hosts.group.editTitle')"
+    (closed)="closed.emit()"
+  >
+    <form id="group-form" class="form" (ngSubmit)="save()">
+      @if (sharing.note; as c) {
+        <ng-container *ngComponentOutlet="c; inputs: { kind: 'group', localId: noteGroup() }" />
+      }
+      <label class="field">
+        <span>{{ t('hosts.group.name') }}</span>
+        <input name="name" [(ngModel)]="name" required autofocus />
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.group.parent') }}</span>
+        <select name="parent" [(ngModel)]="parentId" (ngModelChange)="loadInherited()">
+          <option value="">{{ t('hosts.rootGroup') }}</option>
+          @for (p of parents(); track p.id) {
+            <option [value]="p.id">{{ p.path }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="field">
+        <span id="color-label">{{ t('hosts.group.color') }}</span>
+        <div class="swatches" role="radiogroup" aria-labelledby="color-label">
+          @for (c of colors; track c) {
+            <button
+              type="button"
+              role="radio"
+              class="swatch"
+              [style.background]="colorVar(c)"
+              [class.selected]="color === c"
+              [attr.aria-checked]="color === c"
+              [attr.aria-label]="t('hosts.colors.' + c)"
+              [title]="t('hosts.colors.' + c)"
+              (click)="color = c"
+            ></button>
+          }
+        </div>
+      </div>
+
+      <p class="hint">{{ t('hosts.group.defaultsHint') }}</p>
+      <div class="row">
+        <label class="field">
+          <span>{{ t('hosts.fields.user') }}</span>
+          <input name="user" [(ngModel)]="user" [placeholder]="placeholder(t, 'user')" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>{{ t('hosts.fields.port') }}</span>
+          <input name="port" type="number" min="1" max="65535" [(ngModel)]="port" [placeholder]="placeholder(t, 'port')" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>{{ t('hosts.fields.key') }}</span>
+        <select name="identity" [(ngModel)]="identityId">
+          <option value="">{{ keyPlaceholder(t) }}</option>
+          @for (k of keys.keys(); track k.id) {
+            <option [value]="k.id">{{ k.name }} ({{ k.type }})</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ t('terminal.scheme') }}</span>
+        <select name="scheme" [(ngModel)]="terminalTheme">
+          <option value="">{{ t('hosts.schemeDefault') }}</option>
+          @for (sc of schemes(); track sc.id) {
+            <option [value]="sc.id">{{ sc.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>{{ t('hosts.fields.startup') }} <app-help-link topic="automation" anchor="scripts" /></span>
+        <textarea name="startup" rows="3" spellcheck="false" class="mono" [(ngModel)]="startup" [placeholder]="startupPlaceholder(t)"></textarea>
+      </label>
+
+      <app-connection-options [model]="conn" />
+
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="group-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

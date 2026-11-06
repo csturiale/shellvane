@@ -1,0 +1,68 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t(tunnel() ? 'tunnels.editTitle' : 'tunnels.createTitle')" (closed)="closed.emit()">
+    <form id="tunnel-form" class="form" (ngSubmit)="save()">
+      <div class="field">
+        <span id="kind-label">{{ t('tunnels.kind') }}</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="kind-label">
+          @for (k of kinds; track k) {
+            <button type="button" role="radio" [attr.aria-checked]="kind() === k" [class.selected]="kind() === k" (click)="kind.set(k)">
+              {{ t('tunnels.kinds.' + k) }}
+            </button>
+          }
+        </div>
+        <p class="hint">{{ t('tunnels.explain.' + kind()) }}</p>
+      </div>
+
+      <label class="field">
+        <span>{{ t('tunnels.host') }}</span>
+        <select name="host" [(ngModel)]="hostId">
+          @for (h of hosts(); track h.id) {
+            <option [value]="h.id">{{ h.name }} ({{ h.hostname }})</option>
+          }
+        </select>
+      </label>
+
+      <div class="row">
+        <label class="field">
+          <span>{{ t(kind() === 'remote' ? 'tunnels.bindAddrRemote' : 'tunnels.bindAddr') }}</span>
+          <input name="bindAddr" spellcheck="false" [(ngModel)]="bindAddr" />
+        </label>
+        <label class="field">
+          <span>{{ t('tunnels.bindPort') }}</span>
+          <input name="bindPort" type="number" min="0" max="65535" [(ngModel)]="bindPort" />
+        </label>
+      </div>
+
+      @if (kind() !== 'dynamic') {
+        <div class="row">
+          <label class="field">
+            <span>{{ t(kind() === 'remote' ? 'tunnels.destHostLocal' : 'tunnels.destHost') }}</span>
+            <input name="destHost" spellcheck="false" [(ngModel)]="destHost" [title]="t('tunnels.socketHint')" />
+          </label>
+          <label class="field">
+            <span>{{ t('tunnels.destPort') }}</span>
+            <input name="destPort" type="number" min="1" max="65535" [(ngModel)]="destPort" [disabled]="destHost.startsWith('/')" />
+          </label>
+        </div>
+      }
+
+      <label class="field">
+        <span>{{ t('tunnels.name') }}</span>
+        <input name="name" [(ngModel)]="name" [placeholder]="t('tunnels.namePlaceholder')" />
+      </label>
+
+      <label class="check">
+        <input name="autostart" type="checkbox" [(ngModel)]="autostart" />
+        {{ t('tunnels.autostart') }}
+      </label>
+
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="tunnel-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

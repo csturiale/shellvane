@@ -1,0 +1,8 @@
+{
+  "name": "Production Red",
+  "background": "#2A1215", "foreground": "#F2DEDF", "cursorColor": "#FF6B6B", "selectionBackground": "#55252B",
+  "black": "#2A1215", "red": "#FF6B6B", "green": "#9BD47A", "yellow": "#F4C26B",
+  "blue": "#7FA7E8", "purple": "#D08AD8", "cyan": "#6CC4CC", "white": "#F2DEDF",
+  "brightBlack": "#7A4A50", "brightRed": "#FF8E8E", "brightGreen": "#B7E79B", "brightYellow": "#FFD58F",
+  "brightBlue": "#A3C2F2", "brightPurple": "#E3A9EA", "brightCyan": "#93DDE3", "brightWhite": "#FFFFFF"
+}

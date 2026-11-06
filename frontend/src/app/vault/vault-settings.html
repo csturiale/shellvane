@@ -1,0 +1,179 @@
+<section *transloco="let t">
+  <h2>{{ t('vault.title') }}</h2>
+  <div class="card">
+    @switch (vault.state()) {
+      @case ('notSetUp') {
+        <p class="intro">{{ t('vault.intro') }}</p>
+        <form class="form" (ngSubmit)="setup()">
+          <div class="row">
+            <label class="field">
+              <span>{{ t('vault.master') }}</span>
+              <input name="password" type="password" autocomplete="new-password" [(ngModel)]="password" />
+            </label>
+            <label class="field">
+              <span>{{ t('vault.confirm') }}</span>
+              <input name="confirm" type="password" autocomplete="new-password" [(ngModel)]="confirm" />
+            </label>
+          </div>
+          <p class="hint">{{ t('vault.noRecovery') }}</p>
+          <div class="actions">
+            <button type="submit" class="btn primary" [disabled]="busy()">{{ t('vault.create') }}</button>
+          </div>
+        </form>
+      }
+      @case ('locked') {
+        <p class="status"><svg lucideLock [size]="16" aria-hidden="true"></svg> {{ t('vault.isLocked') }}</p>
+        <form class="form inline" (ngSubmit)="unlock()">
+          <label class="field grow">
+            <span>{{ t('vault.master') }}</span>
+            <input name="password" type="password" autocomplete="current-password" [(ngModel)]="password" />
+          </label>
+          <button type="submit" class="btn primary" [disabled]="busy()">{{ t('vault.unlock') }}</button>
+          @if (vault.hasKeychain()) {
+            <button type="button" class="btn" [disabled]="busy()" (click)="unlockWithKeychain()">{{ t('vault.keychainUnlock') }}</button>
+          }
+        </form>
+        @if (vault.hasRecoveryKey()) {
+          <details>
+            <summary>{{ t('vault.forgot') }}</summary>
+            <form class="form" (ngSubmit)="recover()">
+              <label class="field">
+                <span>{{ t('vault.recoveryKey') }}</span>
+                <input name="recoveryKey" class="mono" spellcheck="false" autocomplete="off" [(ngModel)]="recoveryKey" placeholder="XXXX-XXXX-XXXX-…" />
+              </label>
+              <div class="row">
+                <label class="field">
+                  <span>{{ t('vault.new') }}</span>
+                  <input name="recoverNew" type="password" autocomplete="new-password" [(ngModel)]="newPassword" />
+                </label>
+                <label class="field">
+                  <span>{{ t('vault.confirm') }}</span>
+                  <input name="recoverConfirm" type="password" autocomplete="new-password" [(ngModel)]="confirm" />
+                </label>
+              </div>
+              <div class="actions">
+                <button type="submit" class="btn" [disabled]="busy()">{{ t('vault.recover') }}</button>
+              </div>
+            </form>
+          </details>
+        }
+      }
+      @case ('unlocked') {
+        <div class="status-row">
+          <p class="status"><svg lucideLockOpen [size]="16" aria-hidden="true"></svg> {{ t('vault.isUnlocked') }}</p>
+          <button type="button" class="btn" (click)="vault.lock()">{{ t('vault.lock') }}</button>
+        </div>
+        <details>
+          <summary>{{ t('vault.changePassword') }}</summary>
+          <form class="form" (ngSubmit)="changePassword()">
+            <div class="row">
+              <label class="field">
+                <span>{{ t('vault.current') }}</span>
+                <input name="old" type="password" autocomplete="current-password" [(ngModel)]="oldPassword" />
+              </label>
+              <label class="field">
+                <span>{{ t('vault.new') }}</span>
+                <input name="new" type="password" autocomplete="new-password" [(ngModel)]="newPassword" />
+              </label>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn" [disabled]="busy()">{{ t('vault.changePassword') }}</button>
+            </div>
+          </form>
+        </details>
+        <label class="keychain">
+          <input type="checkbox" [checked]="vault.hasKeychain()" [disabled]="busy()" (change)="setKeychain($any($event.target).checked)" />
+          <span>
+            {{ t('vault.keychain') }} <app-help-link topic="vault" anchor="keychain" />
+            <span class="hint">{{ t('vault.keychainHint') }}</span>
+          </span>
+        </label>
+        @if (vault.hasKeychain() && vault.biometric(); as b) {
+          @if (b.kind) {
+            <label class="keychain">
+              <input type="checkbox" [checked]="b.required" [disabled]="busy() || (!b.available && !b.required)" (change)="setBiometric($any($event.target).checked)" />
+              <span>
+                {{ t('vault.biometric.' + b.kind) }}
+                <span class="hint">{{ t(b.available ? 'vault.biometric.hint' : 'vault.biometric.unavailable') }}</span>
+              </span>
+            </label>
+          }
+        }
+        <div class="status-row">
+          <p class="status">{{ t(vault.hasRecoveryKey() ? 'vault.recoverySet' : 'vault.recoveryNotSet') }}</p>
+          <span class="buttons">
+            <button type="button" class="btn small" [disabled]="busy()" (click)="createRecoveryKey()">
+              {{ t(vault.hasRecoveryKey() ? 'vault.recoveryReplace' : 'vault.recoveryCreate') }}
+            </button>
+            @if (vault.hasRecoveryKey()) {
+              <button type="button" class="btn small" [disabled]="busy()" (click)="removeRecoveryKey()">{{ t('vault.recoveryRemove') }}</button>
+            }
+          </span>
+        </div>
+      }
+      @default {
+        <p class="hint">{{ t('vault.unavailable') }}</p>
+      }
+    }
+
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+    }
+    @if (notice(); as n) {
+      <p class="notice" role="status">{{ t(n) }}</p>
+    }
+  </div>
+
+  @if (vault.state() !== 'notSetUp' && vault.state() !== null) {
+    <div class="card options">
+      <div class="option">
+        <label for="auto-lock">{{ t('vault.autoLock') }}</label>
+        <select id="auto-lock" (change)="vault.setAutoLock(+$any($event.target).value, vault.lockOnSleep())">
+          @for (m of autoLockChoices; track m) {
+            <option [value]="m" [selected]="vault.autoLockMinutes() === m">{{ m === 0 ? t('vault.never') : t('vault.minutes', { count: m }) }}</option>
+          }
+        </select>
+      </div>
+      <div class="option">
+        <label for="lock-sleep">{{ t('vault.lockOnSleep') }}</label>
+        <input id="lock-sleep" type="checkbox" [checked]="vault.lockOnSleep()" (change)="vault.setAutoLock(vault.autoLockMinutes(), $any($event.target).checked)" />
+      </div>
+      <div class="option">
+        <label for="never-save">{{ t('vault.neverSave') }}</label>
+        <input id="never-save" type="checkbox" [checked]="vault.neverSave()" (change)="vault.setNeverSave($any($event.target).checked)" />
+      </div>
+    </div>
+
+    <h2>{{ t('vault.saved') }}</h2>
+    <div class="card list">
+      @for (c of vault.credentials(); track c.scope) {
+        <div class="credential">
+          <svg lucideKeyRound [size]="14" aria-hidden="true"></svg>
+          <span class="label">{{ c.label }}</span>
+          <span class="kind">{{ t(c.scope.startsWith('passphrase:') ? 'vault.kinds.passphrase' : 'vault.kinds.password') }}</span>
+          <button
+            type="button"
+            class="icon"
+            [attr.aria-label]="t('vault.forget', { label: c.label })"
+            [title]="t('vault.forget', { label: c.label })"
+            (click)="deleteCredential(c.scope)"
+          >
+            <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+          </button>
+        </div>
+      } @empty {
+        <p class="hint">{{ t('vault.none') }}</p>
+      }
+    </div>
+  }
+  @if (shownKey(); as k) {
+    <app-modal [heading]="t('vault.recoveryTitle')" (closed)="shownKey.set(null)">
+      <p>{{ t('vault.recoveryShowOnce') }}</p>
+      <p class="code mono">{{ k }}</p>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="copyKey(k)">{{ t(copied() ? 'vault.copied' : 'vault.copy') }}</button>
+        <button type="button" class="btn primary" (click)="shownKey.set(null)">{{ t('vault.recoveryStored') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+</section>

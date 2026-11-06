@@ -1,0 +1,9 @@
+@if (store.notice(); as n) {
+  <div *transloco="let t" class="notice" role="status" aria-live="polite">
+    <span class="text">{{ t('environments.autoStopped', { name: n.name }) }}</span>
+    <button type="button" class="undo" (click)="store.undoStop()">{{ t('environments.undoStop') }}</button>
+    <button type="button" class="icon" [attr.aria-label]="t('common.close')" (click)="store.notice.set(null)">
+      <svg lucideX [size]="14" aria-hidden="true"></svg>
+    </button>
+  </div>
+}

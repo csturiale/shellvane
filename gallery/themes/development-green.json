@@ -1,0 +1,8 @@
+{
+  "name": "Development Green",
+  "background": "#0E1F17", "foreground": "#DCEFE3", "cursorColor": "#4FD18B", "selectionBackground": "#1F4433",
+  "black": "#0E1F17", "red": "#EF6F6C", "green": "#4FD18B", "yellow": "#E8C766",
+  "blue": "#6FA8E8", "purple": "#C58FE0", "cyan": "#5CC9C9", "white": "#DCEFE3",
+  "brightBlack": "#7A9A8A", "brightRed": "#FF9693", "brightGreen": "#85E8B0", "brightYellow": "#F2DA94",
+  "brightBlue": "#99C3F2", "brightPurple": "#DBB3F0", "brightCyan": "#8ADEDE", "brightWhite": "#FFFFFF"
+}

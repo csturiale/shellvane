@@ -1,0 +1,27 @@
+{
+  "app.name": "Shellvane",
+  "app.description": "SSH, SFTP and tunnel manager",
+  "cli.usage": "Usage: {{.Command}} <command>\n\nCommands:\n  list                      List saved hosts\n  connect <host|user@host>  Open a host in the running Shellvane\n  connect --ssh <host>      Run the system's ssh for a saved host in this terminal\n  open <ssh://… | sftp://…> Open a link in the running Shellvane\n  tunnel [list]             List tunnels and their state\n  tunnel up|down <name>     Start or stop a tunnel in the running Shellvane\n  import ssh-config [file]  Import ~/.ssh/config (or file)\n  version                   Print version information\n  help                      Show this help",
+  "cli.unknownCommand": "Unknown command: {{.Command}}",
+  "cli.version": "{{.Name}} {{.Version}}",
+  "menu.file": "File",
+  "menu.quit": "Quit",
+  "tray.openWindow": "Open Shellvane",
+  "tray.activeTunnels": {
+    "one": "{{.Count}} active tunnel",
+    "other": "{{.Count}} active tunnels"
+  },
+  "cli.error": "Error: {{.Error}}",
+  "cli.importGroup": "Imported from OpenSSH",
+  "cli.imported": "Imported {{.Hosts}} hosts and {{.Tunnels}} tunnels; {{.Skipped}} already present; {{.Warnings}} items not imported.",
+  "cli.errors.control.notRunning": "Shellvane is not running: start it first, or use “{{.Command}} connect --ssh <host>”.",
+  "cli.errors.control.notFound": "No saved host called “{{.target}}”.",
+  "cli.errors.url.invalid": "Not a valid ssh:// or sftp:// link: {{.url}}",
+  "cli.errors.tunnel.notFound": "No tunnel called “{{.id}}”.",
+  "cli.errors.hosts.notFound": "Host not found.",
+  "tray.recent": "Recent hosts",
+  "tray.noRecent": "No recent hosts",
+  "tray.noTunnels": "No saved tunnels",
+  "tray.lockVault": "Lock the vault",
+  "vault.biometricReason": "unlock Shellvane's vault"
+}

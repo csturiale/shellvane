@@ -1,0 +1,138 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('tour.' + step() + '.title')" (closed)="closed.emit()">
+    <ol
+      class="dots"
+      [attr.aria-label]="t('tour.progress', { n: index() + 1, total: steps.length })"
+    >
+      @for (s of steps; track s; let i = $index) {
+        <li [class.on]="i <= index()"></li>
+      }
+    </ol>
+    @switch (step()) {
+      @case ('welcome') {
+        <img class="logo" src="logo.svg" width="48" height="48" alt="" />
+        <p>{{ t('tour.welcome.intro') }}</p>
+        <label class="field">
+          <span>{{ t('settings.language') }}</span>
+          <select [value]="language.current()" (change)="setLanguage($any($event.target).value)">
+            @for (lang of language.available; track lang) {
+              <!-- Language names are shown in their own language on purpose. -->
+              <option [value]="lang" [selected]="lang === language.current()">
+                {{ t('settings.languageNames.' + lang) }}
+              </option>
+            }
+          </select>
+        </label>
+      }
+      @case ('vault') {
+        @if (vault.state() === 'notSetUp') {
+          <p>{{ t('tour.vault.intro') }}</p>
+          <form id="tour-vault" class="form" (ngSubmit)="createVault()">
+            <div class="row">
+              <label class="field">
+                <span>{{ t('vault.master') }}</span>
+                <input
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  [(ngModel)]="password"
+                />
+              </label>
+              <label class="field">
+                <span>{{ t('vault.confirm') }}</span>
+                <input
+                  name="confirm"
+                  type="password"
+                  autocomplete="new-password"
+                  [(ngModel)]="confirm"
+                />
+              </label>
+            </div>
+            <label class="check">
+              <input type="checkbox" name="keychain" [(ngModel)]="keychain" />
+              {{ t('vault.keychain') }}
+            </label>
+            <p class="hint">{{ t('tour.vault.hint') }}</p>
+          </form>
+        } @else {
+          <p>{{ t('tour.vault.ready') }}</p>
+        }
+      }
+      @case ('import') {
+        <p>{{ t('tour.import.intro') }}</p>
+        @if (sources().length > 0) {
+          <p class="hint">{{ t('tour.import.found') }}</p>
+          <ul class="sources">
+            @for (s of sources(); track s.id + s.path) {
+              <li>
+                <strong>{{ t('import.tools.' + s.id) }}</strong>
+                @if (s.path) {
+                  <span class="mono">{{ s.path }}</span>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="hint">{{ t('tour.import.none') }}</p>
+        }
+        <div class="choices">
+          <button type="button" class="btn primary" (click)="importHosts()">
+            {{ t('tour.import.import') }}
+          </button>
+          <button type="button" class="btn" (click)="newHost()">
+            {{ t('hosts.actions.newHost') }}
+          </button>
+        </div>
+      }
+      @case ('done') {
+        <p>{{ t('tour.done.intro') }}</p>
+        <ul class="tips">
+          <li>{{ t('tour.done.palette', { keys: paletteKeys }) }}</li>
+          <li>{{ t('tour.done.quick') }}</li>
+          <li>{{ t('tour.done.guide') }}</li>
+        </ul>
+      }
+    }
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+    }
+    <ng-container modal-actions>
+      @if (index() > 0) {
+        <button type="button" class="btn" (click)="back()">{{ t('tour.back') }}</button>
+      }
+      <span class="spacer"></span>
+      @switch (step()) {
+        @case ('vault') {
+          @if (vault.state() === 'notSetUp') {
+            <button type="button" class="btn" (click)="next()">{{ t('tour.later') }}</button>
+            <button
+              type="submit"
+              form="tour-vault"
+              class="btn primary"
+              [disabled]="busy() || !password"
+            >
+              {{ t('vault.create') }}
+            </button>
+          } @else {
+            <button type="button" class="btn primary" (click)="next()">{{ t('tour.next') }}</button>
+          }
+        }
+        @case ('import') {
+          <button type="button" class="btn" (click)="next()">{{ t('tour.later') }}</button>
+        }
+        @case ('done') {
+          <button type="button" class="btn" (click)="openGuide()">
+            {{ t('tour.done.openGuide') }}
+          </button>
+          <button type="button" class="btn primary" (click)="closed.emit()">
+            {{ t('tour.done.start') }}
+          </button>
+        }
+        @default {
+          <button type="button" class="btn" (click)="closed.emit()">{{ t('tour.skip') }}</button>
+          <button type="button" class="btn primary" (click)="next()">{{ t('tour.next') }}</button>
+        }
+      }
+    </ng-container>
+  </app-modal>
+</ng-container>
