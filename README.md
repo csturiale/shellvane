@@ -15,10 +15,11 @@ Download the app for Windows, macOS (Apple silicon) or Linux from the
 It updates itself afterwards.
 
 On a Mac with [Homebrew](https://brew.sh), the app and the command-line
-companion:
+companion (recent Homebrew asks to trust a third-party tap first, hence
+`brew trust`):
 
 ```sh
-brew tap csturiale/shellvane && brew install --cask shellvane && brew install shellvane-cli
+brew tap csturiale/shellvane && brew trust csturiale/shellvane && brew install --cask shellvane && brew install shellvane-cli
 ```
 
 ## Layout

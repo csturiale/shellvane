@@ -31,7 +31,7 @@ L'icona nella tray elenca gli host recenti (clicca per aprirne uno), i tunnel sa
 
 **macOS dice che Shellvane non può essere aperto** ("Apple non può verificare…", *Sposta nel Cestino*): le release non ancora firmate con un Developer ID Apple vengono bloccate alla prima apertura. Apri **Impostazioni di Sistema › Privacy e sicurezza**, scorri fino a Sicurezza e scegli **Apri comunque** per Shellvane (una volta sola), oppure esegui `xattr -dr com.apple.quarantine /Applications/Shellvane.app` nel Terminale.
 
-**Homebrew** (macOS, Apple silicon): `brew install --cask csturiale/shellvane/shellvane` installa l'app, `brew install csturiale/shellvane/shellvane-cli` la CLI (anche su Linux). Installata così, macOS apre l'app senza l'avviso di sicurezza.
+**Homebrew** (macOS, Apple silicon): `brew tap csturiale/shellvane && brew trust csturiale/shellvane && brew install --cask shellvane && brew install shellvane-cli` installa l'app e la CLI (la CLI anche su Linux). Le versioni recenti di Homebrew caricano un tap di terzi solo dopo `brew trust`; senza, si fermano con "Refusing to load cask … from untrusted tap". Installata così, macOS apre l'app senza l'avviso di sicurezza.
 
 ## Installazione {#install}
 
