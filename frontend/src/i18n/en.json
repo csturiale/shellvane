@@ -1250,8 +1250,9 @@
     "commandDone": "Command finished in {{seconds}} s.",
     "commandFailed": "Command failed (exit {{code}}) after {{seconds}} s.",
     "suggestions": "Suggest commands as you type",
-    "suggestionsHint": "From the commands already run on this computer and your snippets; → or Tab accepts the suggestion. Kept only on this computer.",
-    "clearHistory": "Clear history ({{count}})"
+    "suggestionsHint": "From the commands already run on this computer and your snippets; → accepts the suggestion (Tab too, if chosen). Kept only on this computer.",
+    "clearHistory": "Clear history ({{count}})",
+    "suggestionsTab": "Also with Tab"
   },
   "workspaces": {
     "title": "Workspaces",

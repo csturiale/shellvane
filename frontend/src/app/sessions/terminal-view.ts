@@ -392,7 +392,7 @@ export class TerminalView {
 
     // App shortcuts (split, focus moves) must not reach the remote shell.
     term.attachCustomKeyEventHandler((ev) => {
-      if (ev.type === 'keydown' && (ev.key === 'ArrowRight' || ev.key === 'Tab') && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && this.ghost?.suffix) {
+      if (ev.type === 'keydown' && (ev.key === 'ArrowRight' || (ev.key === 'Tab' && this.prefs.suggestionsTab())) && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && this.ghost?.suffix) {
         ev.preventDefault(); // Tab must not move the focus out of the terminal
         this.acceptSuggestion();
         return false;
@@ -606,7 +606,7 @@ export class TerminalView {
     this.ghost.suffix = suffix;
   }
 
-  /** → or Tab takes the suggestion (Tab reaches the shell only when none is shown). */
+  /** → takes the suggestion, and Tab too if chosen in the settings (otherwise Tab is the shell's). */
   private acceptSuggestion(): void {
     const suffix = this.ghost?.suffix ?? '';
     if (!suffix) {
