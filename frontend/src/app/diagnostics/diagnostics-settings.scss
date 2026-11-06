@@ -164,4 +164,10 @@ app-handshake-view {
     display: block;
     color: var(--text-muted);
   }
+
+  .bench-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 6px;
+  }
 }

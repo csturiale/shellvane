@@ -34,6 +34,8 @@ import { WorkspaceMenu } from './sessions/workspace-menu';
 import { SettingsPage } from './settings/settings-page';
 import { Cheatsheet } from './palette/cheatsheet';
 import { CommandPalette } from './palette/command-palette';
+import { GalleryDialog } from './gallery/gallery-dialog';
+import { SnippetsStore } from './snippets/snippets.store';
 import { combo, shortcutAction } from './sessions/shortcuts';
 import { VaultStore } from './vault/vault.store';
 import { HostsStore } from './hosts/hosts.store';
@@ -73,6 +75,7 @@ import { EXTENSIONS } from './extensions/extensions';
     TriggerToasts,
     EnvironmentNotice,
     CommandPalette,
+    GalleryDialog,
     Cheatsheet,
     WelcomeTour,
   ],
@@ -103,7 +106,7 @@ export class App {
   private readonly workspaces = inject(WorkspacesStore);
   private readonly environments = inject(EnvironmentsStore);
 
-  private readonly nav = inject(Navigation);
+  protected readonly nav = inject(Navigation);
   protected readonly view = this.nav.view;
   protected readonly fullView = computed(() => FULL_VIEWS.includes(this.view()));
   protected readonly section = computed<Section | null>(() => (this.fullView() ? null : (this.view() as Section)));
@@ -193,6 +196,14 @@ export class App {
     writePreference('tour.done', 'true');
     this.nav.tour.set(false);
     this.tourDismissed.set(true);
+  }
+  /** After an install from the gallery, the list it changed reloads. */
+  protected galleryInstalled(kind: 'snippets' | 'themes'): void {
+    if (kind === 'snippets') {
+      void this.injector.get(SnippetsStore).load();
+    } else {
+      void import('./themes/themes.store').then((m) => this.injector.get(m.ThemesStore).load()).catch(() => undefined);
+    }
   }
   protected readonly paletteOpen = signal(false);
   protected readonly cheatsheetOpen = signal(false);

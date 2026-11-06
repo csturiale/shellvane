@@ -124,4 +124,4 @@ The pulse icon in the header of a host's pane shows the server's CPU use, load a
 
 ## Measure performance {#benchmark}
 
-**Settings › Diagnostics › Terminal performance › Measure** opens a tab that prints 8 MB of numbered lines and times them from the first byte to the last one drawn, then shows the speed with the renderer (WebGL or DOM), the web engine and the system. Use **Copy** to report it: the target is 20 MB/s or more.
+**Settings › Diagnostics › Terminal performance › Measure** opens a tab that prints 8 MB of numbered lines and times them from the first byte to the last one drawn, then shows the speed with the renderer (WebGL or DOM), the web engine and the system. It also says when the last byte was received and how many times the app paused the output for the terminal to catch up. **Transport only** sends the same 8 MB without drawing them: if it is much faster than **Measure**, the limit is drawing, not the stream. Use **Copy** to report the results: the target is 20 MB/s or more.

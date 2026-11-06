@@ -8,11 +8,29 @@ gallery, and code are all welcome.
 - For anything larger than a small fix, open an issue first so we can agree on
   the approach.
 - Security problems: do not open an issue, see [docs/SECURITY.md](docs/SECURITY.md).
-- Contributions are accepted under the project's Contributor License
-  Agreement, signed once from the pull request (a bot asks for it). You keep
-  the copyright; the CLA lets the project ship your change in the official
-  builds as well, which also include separately licensed features
-  ([ADR 0006](docs/adr/0006-open-core.md)). The code here stays AGPL-3.0.
+- Color schemes, snippet collections and third-party plugins for the store:
+  the in-app guide, topic **Contribute**
+  (termoraplus.com/docs/contribute/), explains each step; no Git needed.
+
+## Contribution terms
+
+By opening a pull request you confirm that you wrote the contribution (or
+may submit it) and you agree that:
+
+- it is published under the AGPL-3.0, like the rest of this repository;
+- you also grant the project's maintainer a perpetual, worldwide,
+  royalty-free license to use, change and distribute it under other terms,
+  so it can ship in the official builds, which also include separately
+  licensed features ([ADR 0006](docs/adr/0006-open-core.md)).
+
+You keep the copyright. Plugins listed in `plugins/` are not covered: their
+code stays in their authors' repositories, under their own licenses.
+
+## What happens to a pull request
+
+This repository is generated from the project's main repository. An
+accepted pull request is applied there with you as the commit's author,
+published here with the next update, and closed with a link to that commit.
 
 ## Conventions
 
@@ -46,7 +64,7 @@ cd frontend && npm test && npm run i18n:check
 Integration tests against real OpenSSH servers are in `test/integration/`
 (Docker).
 
-## Gallery
+## Gallery and plugin store
 
 Snippet collections and color schemes live in `gallery/`: a `snippets/*.json`
 file is a Shellvane snippet export (`"kind": "shellvane-snippets"`), a
@@ -54,3 +72,7 @@ file is a Shellvane snippet export (`"kind": "shellvane-snippets"`), a
 Settings › Terminal). `go test ./app/ -run GalleryContent` checks that every
 file imports. Commands that change something should have `"run": false`, so
 they are pasted but not executed.
+
+Third-party plugins are listed in `plugins/<id>.json` (format in
+`plugins/README.md`); `python3 scripts/store-entries.py --fetch plugins`
+checks that each package downloads and matches its SHA-256 and manifest.

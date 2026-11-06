@@ -16,7 +16,8 @@
     "hidePanel": "Nascondi il pannello laterale",
     "showPanel": "Mostra il pannello laterale",
     "resizePanel": "Trascina per ridimensionare il pannello, doppio clic per nasconderlo",
-    "plugins": "Plugin"
+    "plugins": "Plugin",
+    "gallery": "Galleria della comunità"
   },
   "panels": {
     "hosts": {
@@ -1386,7 +1387,8 @@
       "environments": "Ambienti",
       "runbooks": "Runbook",
       "integration": "Riga di comando e link",
-      "sync": "Sincronizzazione tra computer"
+      "sync": "Sincronizzazione tra computer",
+      "contribute": "Contribuisci"
     }
   },
   "environments": {
@@ -1966,7 +1968,8 @@
       "removed": "{{name}} disinstallato.",
       "uninstallTitle": "Disinstalla plugin",
       "uninstallBuiltIn": "Disinstallare {{name}}? I suoi pannelli spariscono; puoi reinstallarlo quando vuoi.",
-      "uninstallExternal": "Disinstallare {{name}} ed eliminarne i file?"
+      "uninstallExternal": "Disinstallare {{name}} ed eliminarne i file?",
+      "publish": "Pubblica il tuo plugin"
     },
     "vault": {
       "description": "Accessi da HashiCorp Vault: un certificato SSH firmato per una chiave creata a ogni connessione (motore SSH), oppure una password da un segreto KV."
@@ -2007,9 +2010,12 @@
   },
   "benchmark": {
     "title": "Prestazioni del terminale",
-    "hint": "Stampa 8 MB di righe numerate in una nuova scheda e le cronometra dal primo byte all'ultimo disegnato: eseguila su ogni sistema e confronta (obiettivo: 20 MB/s o più).",
+    "hint": "Stampa 8 MB di righe numerate in una nuova scheda e le cronometra dal primo byte all'ultimo disegnato: eseguilo su ogni sistema e confronta (obiettivo: 20 MB/s o più). \"Ricevuti in\" è quando è arrivato l'ultimo byte.",
     "run": "Misura",
-    "result": "{{mb}} MB in {{seconds}} s = {{rate}} MB/s · {{renderer}} · {{engine}} · {{os}}",
-    "copy": "Copia"
+    "result": "{{mb}} MB in {{seconds}} s = {{rate}} MB/s (ricevuti in {{received}} s, {{pauses}} pause) · {{renderer}} · {{engine}} · {{os}}",
+    "copy": "Copia",
+    "transport": "Solo trasporto",
+    "transportHint": "Gli stessi 8 MB, contati ma non disegnati: la velocità del flusso dall'app al terminale, senza xterm.js.",
+    "resultTransport": "Solo trasporto: {{mb}} MB in {{seconds}} s = {{rate}} MB/s · {{engine}} · {{os}}"
   }
 }

@@ -52,6 +52,15 @@
   }
   <button
     type="button"
+    [class.active]="galleryOpen()"
+    [attr.aria-label]="t('nav.gallery')"
+    [title]="t('nav.gallery')"
+    (click)="gallery.emit()"
+  >
+    <svg lucideStore [size]="22" aria-hidden="true"></svg>
+  </button>
+  <button
+    type="button"
     class="guide"
     [class.active]="active() === 'guide'"
     [attr.aria-current]="active() === 'guide' ? 'page' : null"

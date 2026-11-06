@@ -16,7 +16,8 @@
     "hidePanel": "Hide the side panel",
     "showPanel": "Show the side panel",
     "resizePanel": "Drag to resize the panel, double-click to hide it",
-    "plugins": "Plugins"
+    "plugins": "Plugins",
+    "gallery": "Community gallery"
   },
   "panels": {
     "hosts": {
@@ -1386,7 +1387,8 @@
       "environments": "Environments",
       "runbooks": "Runbooks",
       "integration": "Command line and links",
-      "sync": "Sync between computers"
+      "sync": "Sync between computers",
+      "contribute": "Contribute"
     }
   },
   "environments": {
@@ -1966,7 +1968,8 @@
       "removed": "{{name}} uninstalled.",
       "uninstallTitle": "Uninstall plugin",
       "uninstallBuiltIn": "Uninstall {{name}}? Its panels disappear; it can be installed again at any time.",
-      "uninstallExternal": "Uninstall {{name}} and delete its files?"
+      "uninstallExternal": "Uninstall {{name}} and delete its files?",
+      "publish": "Publish your plugin"
     },
     "vault": {
       "description": "Logins from HashiCorp Vault: an SSH certificate signed for a key made at each connection (SSH secrets engine), or a password from a KV secret."
@@ -2007,9 +2010,12 @@
   },
   "benchmark": {
     "title": "Terminal performance",
-    "hint": "Prints 8 MB of numbered lines in a new tab and times them from the first byte to the last one drawn: run it on each system and compare (target: 20 MB/s or more).",
+    "hint": "Prints 8 MB of numbered lines in a new tab and times them from the first byte to the last one drawn: run it on each system and compare (target: 20 MB/s or more). \"Received in\" is when the last byte arrived.",
     "run": "Measure",
-    "result": "{{mb}} MB in {{seconds}} s = {{rate}} MB/s · {{renderer}} · {{engine}} · {{os}}",
-    "copy": "Copy"
+    "result": "{{mb}} MB in {{seconds}} s = {{rate}} MB/s (received in {{received}} s, {{pauses}} pauses) · {{renderer}} · {{engine}} · {{os}}",
+    "copy": "Copy",
+    "transport": "Transport only",
+    "transportHint": "The same 8 MB, counted but not drawn: the speed of the stream from the app to the terminal, without xterm.js.",
+    "resultTransport": "Transport only: {{mb}} MB in {{seconds}} s = {{rate}} MB/s · {{engine}} · {{os}}"
   }
 }

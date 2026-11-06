@@ -54,6 +54,11 @@ jobs:
           npm ci
           npm run i18n:check
           npm test
+      # Third-party plugins proposed for the store (plugins/*.json): the
+      # package must download and match its SHA-256 and manifest.
+      - name: Plugin store entries
+        if: runner.os == 'Linux'
+        run: python3 scripts/store-entries.py --fetch plugins
       - run: go vet ./core/... ./app/... ./cmd/...
       - run: go test ./core/... ./app/... ./cmd/...
       - if: runner.os == 'Linux'

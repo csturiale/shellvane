@@ -883,7 +883,11 @@ export class TerminalView {
   /** The renderer xterm.js uses: WebGL, or the DOM when there is none. */
   private renderer: 'webgl' | 'dom' = 'dom';
   /** A running measurement (benchmark panes). */
-  private bench?: { start: number; bytes: number; ended: boolean };
+  private bench?: { start: number; bytes: number; ended: boolean; received: number; pauses: number };
+  private transportOnly(): boolean {
+    const src = this.pane().source;
+    return src.kind === 'benchmark' && !!src.transportOnly;
+  }
   /** The measurement's result, shown on the pane. */
   protected readonly benchResult = signal<string | null>(null);
 
@@ -899,10 +903,12 @@ export class TerminalView {
     const engine = /Edg\//.test(ua) ? 'WebView2' : /AppleWebKit/.test(ua) && !/Chrome/.test(ua) ? 'WebKit' : /Chrome/.test(ua) ? 'Chromium' : 'other';
     this.zone.run(() =>
       this.benchResult.set(
-        this.transloco.translate('benchmark.result', {
+        this.transloco.translate(this.transportOnly() ? 'benchmark.resultTransport' : 'benchmark.result', {
           mb: mb.toFixed(1),
           seconds: seconds.toFixed(2),
           rate: (mb / seconds).toFixed(1),
+          received: ((b.received - b.start) / 1000).toFixed(2),
+          pauses: b.pauses,
           renderer: this.renderer === 'webgl' ? 'WebGL' : 'DOM',
           engine,
           os: navigator.platform,
@@ -925,9 +931,17 @@ export class TerminalView {
     }
     this.pending += data.length;
     this.watchPorts(data);
-    if (this.pane().source.kind === 'benchmark') {
-      this.bench ??= { start: performance.now(), bytes: 0, ended: false };
+    const src = this.pane().source;
+    if (src.kind === 'benchmark') {
+      this.bench ??= { start: performance.now(), bytes: 0, ended: false, received: 0, pauses: 0 };
       this.bench.bytes += data.length;
+      this.bench.received = performance.now();
+    }
+    // "Transport only": the bytes are counted, not drawn, to tell the
+    // stream's speed from xterm.js's.
+    if (this.bench && src.kind === 'benchmark' && src.transportOnly) {
+      this.pending -= data.length;
+      return;
     }
     this.term.write(data, () => {
       this.pending -= data.length;
@@ -941,6 +955,9 @@ export class TerminalView {
     });
     if (!this.paused && this.pending > FLOW_HIGH) {
       this.paused = true;
+      if (this.bench) {
+        this.bench.pauses++;
+      }
       void this.api.pause(sessionId).catch(() => undefined);
     }
   }

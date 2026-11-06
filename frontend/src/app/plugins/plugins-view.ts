@@ -7,6 +7,7 @@ import { toTranslatableError } from '../core/backend/errors';
 import { DEFAULT_STORE_URL, PluginApi, PluginConfig, PluginInfo, StoreItem } from '../core/backend/plugin-api';
 import { readPreference, writePreference } from '../core/preferences';
 import { HelpLink } from '../guide/help-link';
+import { Navigation } from '../layout/navigation';
 import { HostsStore } from '../hosts/hosts.store';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
@@ -33,6 +34,7 @@ export class PluginsView {
   private readonly api = inject(PluginApi);
   private readonly hosts = inject(HostsStore);
   private readonly transloco = inject(TranslocoService);
+  private readonly nav = inject(Navigation);
 
   protected readonly plugins = signal<PluginInfo[]>([]);
   protected readonly configs = signal<PluginConfig[]>([]);
@@ -60,6 +62,11 @@ export class PluginsView {
   constructor() {
     void this.load();
     void this.loadStore();
+  }
+
+  /** How to get a plugin into the store: the guide's Contribute topic. */
+  protected publish(): void {
+    this.nav.openGuide('contribute', 'plugins');
   }
 
   protected async loadStore(): Promise<void> {

@@ -31,6 +31,9 @@ export class Navigation {
   /** The first-run tour is shown (also reopened from the guide). */
   readonly tour = signal(false);
 
+  /** The community gallery dialog is open, on this tab. */
+  readonly gallery = signal<'snippets' | 'themes' | null>(null);
+
   /** Guide topic and heading to show. */
   readonly guideTopic = signal<{ topic: string; anchor: string }>({ topic: 'getting-started', anchor: '' });
 

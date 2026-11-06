@@ -113,6 +113,7 @@
       <div class="store-url">
         <input name="storeUrl" spellcheck="false" class="mono" [attr.aria-label]="t('plugins.store.url')" [(ngModel)]="storeUrl" (keydown.enter)="loadStore()" />
         <button type="button" class="btn small" [disabled]="storeLoading()" (click)="loadStore()">{{ t('plugins.store.load') }}</button>
+        <button type="button" class="btn small" (click)="publish()">{{ t('plugins.store.publish') }}</button>
       </div>
       @if (storeError(); as e) {
         <p class="hint">{{ e }}</p>
