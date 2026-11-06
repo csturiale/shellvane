@@ -31,7 +31,7 @@ The tray icon lists the recent hosts (click to open one), the saved tunnels with
 
 **macOS says Shellvane cannot be opened** ("Apple could not verify…", *Move to Trash*): releases not yet signed with an Apple Developer ID are blocked on first open. Open **System Settings › Privacy & Security**, scroll to Security and choose **Open Anyway** for Shellvane (once), or run `xattr -dr com.apple.quarantine /Applications/Shellvane.app` in Terminal.
 
-**Homebrew** (macOS, Apple silicon): `brew install --cask csturiale/shellvane/shellvane` installs the app, `brew install csturiale/shellvane/shellvane-cli` the CLI (also on Linux). Installed this way, macOS opens the app without the security prompt.
+**Homebrew** (macOS, Apple silicon): `brew tap csturiale/shellvane && brew trust csturiale/shellvane && brew install --cask shellvane && brew install shellvane-cli` installs the app and the CLI (the CLI also on Linux). Recent Homebrew versions load a third-party tap only after `brew trust`; without it they stop with "Refusing to load cask … from untrusted tap". Installed this way, macOS opens the app without the security prompt.
 
 ## Installing {#install}
 
