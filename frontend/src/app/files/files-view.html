@@ -1,0 +1,152 @@
+<div *transloco="let t" class="view">
+  @if (error(); as e) {
+    <p class="error" role="alert">{{ e }}</p>
+  }
+
+  <div class="toolbar">
+    <label>
+      {{ t('files.conflict.label') }}
+      <select (change)="setConflict($event)">
+        @for (c of conflicts; track c) {
+          <option [value]="c" [selected]="conflict() === c">{{ t('files.conflict.' + c) }}</option>
+        }
+      </select>
+    </label>
+    <button type="button" class="btn small" [disabled]="!sides().left || !sides().right" (click)="openCompare()">{{ t('files.compare.button') }}</button>
+    @for (e of edits(); track e.id) {
+      <span class="edit" [class]="e.state">
+        ✎ {{ e.name }} — {{ t('files.editStates.' + e.state) }}
+        <button type="button" class="link" (click)="stopEdit(e.id)">{{ t('files.stopEdit') }}</button>
+      </span>
+    }
+  </div>
+
+  <div class="panes">
+    @for (name of sideNames; track name) {
+      @let side = sides()[name];
+      <div class="side">
+        <div class="source">
+          <span>{{ t('files.sides.' + name) }}</span>
+          <app-host-picker
+            [label]="t('files.sides.' + name)"
+            [value]="side?.source ?? ''"
+            [extra]="[{ id: local, name: t('files.thisComputer'), detail: '', group: '' }]"
+            [placeholder]="t('files.chooseHost')"
+            [disabled]="connecting() === name"
+            (picked)="choose(name, $event)"
+          />
+          @if (connecting() === name) {
+            <span class="hint">{{ t('files.connecting') }}</span>
+          }
+        </div>
+        @if (side) {
+          @if (name === 'left') {
+            <app-file-pane
+              #left
+              [fs]="side.fs"
+              [title]="titleOf(side)"
+              [start]="side.home"
+              [shell]="!!side.shell"
+              [bookmarkKey]="side.source"
+              [dropTarget]="side.fs === local ? '' : dropTarget(name)"
+              (send)="sendFrom(name, $event)"
+              (receive)="receiveOn(name, $event)"
+            />
+          } @else {
+            <app-file-pane
+              #right
+              [fs]="side.fs"
+              [title]="titleOf(side)"
+              [start]="side.home"
+              [shell]="!!side.shell"
+              [bookmarkKey]="side.source"
+              [dropTarget]="side.fs === local ? '' : dropTarget(name)"
+              (send)="sendFrom(name, $event)"
+              (receive)="receiveOn(name, $event)"
+            />
+          }
+        } @else {
+          <div class="placeholder">
+            <p>{{ t('files.placeholder') }}</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (transfers.transfers().length > 0) {
+    <section class="queue" [attr.aria-label]="t('files.transfers')">
+      <header>
+        <strong>{{ t('files.transfers') }}</strong>
+        <span class="spacer"></span>
+        <button type="button" class="btn small" (click)="transfers.clearFinished()">{{ t('files.clearFinished') }}</button>
+      </header>
+      @for (tr of transfers.transfers(); track tr.id) {
+        <div class="transfer" [class]="tr.state">
+          <span class="arrow" [title]="t('files.directions.' + direction(tr))">{{ direction(tr) }}</span>
+          <span class="name">{{ tr.name }}</span>
+          <progress max="100" [value]="percent(tr.done, tr.total)"></progress>
+          <span class="state">
+            @switch (tr.state) {
+              @case ('running') {
+                {{ bytes(tr.done) }} / {{ bytes(tr.total) }}
+              }
+              @case ('failed') {
+                {{ t('errors.' + tr.error?.code, tr.error?.params ?? {}) }}
+              }
+              @default {
+                {{ t('files.states.' + tr.state) }}
+              }
+            }
+          </span>
+          @if (tr.state === 'queued' || tr.state === 'running') {
+            <button type="button" class="icon" [attr.aria-label]="t('files.cancelNamed', { name: tr.name })" [title]="t('common.cancel')" (click)="transfers.cancel(tr.id)">
+              <svg lucideX [size]="13" aria-hidden="true"></svg>
+            </button>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  @if (comparing(); as c) {
+    <app-modal [heading]="t('files.compare.title')" (closed)="comparing.set(null)">
+      <div class="form">
+        <label class="field">
+          <span>{{ t('files.compare.direction') }}</span>
+          <select [value]="c.from" (change)="setDirection($any($event.target).value)">
+            <option value="left">{{ t('files.compare.leftToRight') }}</option>
+            <option value="right">{{ t('files.compare.rightToLeft') }}</option>
+          </select>
+        </label>
+        @if (c.diffs === null) {
+          <p class="hint">{{ t('common.loading') }}</p>
+        } @else if (c.diffs.length === 0) {
+          <p class="hint">{{ t('files.compare.same') }}</p>
+        } @else {
+          <ul class="diffs">
+            @for (d of c.diffs; track d.rel) {
+              <li [class]="d.kind">
+                <label>
+                  <input type="checkbox" [checked]="c.chosen.has(d.rel)" [disabled]="d.kind === 'extra' && !c.deleteExtra" (change)="toggleDiff(d.rel)" />
+                  <span class="kind">{{ t('files.compare.kinds.' + d.kind) }}</span>
+                  <span class="rel mono">{{ d.rel }}{{ d.isDir ? '/' : '' }}</span>
+                </label>
+              </li>
+            }
+          </ul>
+          <label class="check">
+            <input type="checkbox" [checked]="c.deleteExtra" (change)="setDeleteExtra($any($event.target).checked)" />
+            {{ t('files.compare.deleteExtra') }}
+          </label>
+        }
+      </div>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="comparing.set(null)">{{ t('common.cancel') }}</button>
+        <button type="button" class="btn primary" [disabled]="!c.diffs || c.chosen.size === 0" (click)="applyCompare()">
+          {{ t('files.compare.apply', { count: c.chosen.size }) }}
+        </button>
+      </ng-container>
+    </app-modal>
+  }
+</div>

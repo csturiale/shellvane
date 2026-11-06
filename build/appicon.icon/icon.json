@@ -1,0 +1,40 @@
+{
+  "fill": {
+    "linear-gradient": [
+      "srgb:0.23137,0.50980,0.96471,1.00000",
+      "srgb:0.11765,0.22745,0.54118,1.00000"
+    ]
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "image-name": "shellvane_glyph.svg",
+          "name": "shellvane_glyph",
+          "position": {
+            "scale": 0.6,
+            "translation-in-points": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "specular": true,
+      "translucency": {
+        "enabled": true,
+        "value": 0.5
+      }
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}

@@ -1,0 +1,5 @@
+palette = 0=#1d1f21
+palette = 1=#cc6666
+background = 1d1f21
+foreground = c5c8c6
+cursor-color = aeafad

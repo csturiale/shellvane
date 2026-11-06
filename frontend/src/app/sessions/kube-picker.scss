@@ -1,0 +1,110 @@
+:host {
+  position: relative;
+  display: inline-flex;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 220px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: none;
+  cursor: pointer;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  &.set {
+    border-color: var(--border);
+    color: var(--text);
+  }
+  &.prod {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: var(--danger-bg);
+  }
+  &:hover {
+    background: var(--hover);
+  }
+}
+.ns {
+  color: var(--text-muted);
+}
+.menu {
+  position: fixed;
+  /* Its own compositing layer: WebKit would otherwise paint the terminal's
+     WebGL canvas over it (it looked transparent and cut). */
+  isolation: isolate;
+  transform: translateZ(0);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 280px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+  font-size: 13px;
+  color: var(--text);
+}
+h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  select,
+  input {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    background: var(--surface);
+  }
+}
+.hint,
+.error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.error {
+  color: var(--danger);
+}
+option.prod {
+  color: var(--danger);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+
+  &.primary {
+    border-color: var(--accent);
+    color: var(--on-accent);
+    background: var(--accent);
+  }
+}

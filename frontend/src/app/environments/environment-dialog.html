@@ -1,0 +1,136 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t(environment() ? 'environments.editTitle' : 'environments.new')" (closed)="closed.emit()">
+    <form id="env-form" class="form" (ngSubmit)="save()">
+      @if (sharing.note; as c) {
+        <ng-container *ngComponentOutlet="c; inputs: { kind: 'environment', localId: environment()?.id }" />
+      }
+      <label class="field">
+        <span>{{ t('environments.name') }}</span>
+        <input name="name" autofocus [(ngModel)]="name" placeholder="GKE prod" />
+      </label>
+      <label class="field">
+        <span>{{ t('environments.description') }}</span>
+        <input name="description" [(ngModel)]="description" />
+      </label>
+
+      <fieldset>
+        <legend>{{ t('environments.variables') }} <app-help-link topic="environments" anchor="variables" /></legend>
+        @for (v of variables; track $index; let i = $index) {
+          <div class="row">
+            <input [name]="'vname' + i" spellcheck="false" class="mono" [(ngModel)]="v.name" [placeholder]="t('environments.varName')" [attr.aria-label]="t('environments.varName')" />
+            <input [name]="'vdef' + i" spellcheck="false" [(ngModel)]="v.default" [placeholder]="t('environments.varDefault')" [attr.aria-label]="t('environments.varDefault')" />
+            <input [name]="'vch' + i" spellcheck="false" [(ngModel)]="v.choices" [placeholder]="t('environments.varChoices')" [attr.aria-label]="t('environments.varChoices')" />
+            <button type="button" class="btn small" [attr.aria-label]="t('environments.removeVar')" (click)="variables.splice(i, 1)">✕</button>
+          </div>
+        }
+        <button type="button" class="btn small add" (click)="variables.push({ name: '', default: '', choices: '' })">{{ t('environments.addVar') }}</button>
+        <p class="hint">{{ hint.fill(t('environments.variablesHint', hint.params)) }}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>1. {{ t('environments.steps.login') }} <app-help-link topic="environments" anchor="login" /></legend>
+        <div class="presets">
+          <button type="button" class="btn small" (click)="preset('gcloud')">Google Cloud</button>
+          <button type="button" class="btn small" (click)="preset('aws')">AWS SSO</button>
+          <button type="button" class="btn small" (click)="preset('azure')">Azure</button>
+          <button type="button" class="btn small" (click)="presetGke()">{{ t('environments.presetGke') }}</button>
+        </div>
+        <label class="field">
+          <span>{{ t('environments.check') }}</span>
+          <input name="check" spellcheck="false" class="mono" [(ngModel)]="check" placeholder="gcloud auth print-access-token" />
+        </label>
+        <label class="field">
+          <span>{{ t('environments.login') }}</span>
+          <input name="login" spellcheck="false" class="mono" [(ngModel)]="login" placeholder="gcloud auth login" />
+        </label>
+        <label class="field">
+          <span>{{ t('environments.prepare') }}</span>
+          <input name="prepare" spellcheck="false" class="mono" [(ngModel)]="prepare" [placeholder]="prepareExample" />
+        </label>
+        <p class="hint">{{ t('environments.loginHint') }} {{ t('environments.prepareHint') }}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>2. {{ t('environments.steps.remote') }}</legend>
+        <label class="field">
+          <span>{{ t('environments.host') }}</span>
+          <select name="host" [(ngModel)]="hostId">
+            <option value="">{{ t('environments.noHost') }}</option>
+            @for (h of hosts(); track h.id) {
+              <option [value]="h.id">{{ h.name }} ({{ h.hostname }})</option>
+            }
+          </select>
+        </label>
+        @if (hostId) {
+          <label class="check">
+            <input name="terminal" type="checkbox" [(ngModel)]="terminal" />
+            {{ t('environments.terminal') }}
+          </label>
+          <label class="field">
+            <span>{{ t('environments.script') }}</span>
+            <textarea name="script" rows="4" spellcheck="false" class="mono" [(ngModel)]="script" placeholder="gcloud container clusters get-credentials {{ '{' }}{{ '{' }}cluster{{ '}' }}{{ '}' }} --region {{ '{' }}{{ '{' }}region{{ '}' }}{{ '}' }}"></textarea>
+          </label>
+          <div class="row">
+            <input name="kubeContext" spellcheck="false" class="mono" [(ngModel)]="kubeContext" [placeholder]="t('kube.context')" [attr.aria-label]="t('kube.context')" />
+            <input name="kubeNamespace" spellcheck="false" class="mono" [(ngModel)]="kubeNamespace" [placeholder]="t('kube.namespace')" [attr.aria-label]="t('kube.namespace')" />
+          </div>
+          <p class="hint">{{ t('environments.remoteHint') }}</p>
+        }
+      </fieldset>
+
+      <fieldset>
+        <legend>3. {{ t('environments.steps.tunnels') }}</legend>
+        @for (tn of tunnels.tunnels(); track tn.profile.id) {
+          <label class="check">
+            <input type="checkbox" [name]="'tunnel-' + tn.profile.id" [ngModel]="tunnelIds.includes(tn.profile.id)" (ngModelChange)="toggleTunnel(tn.profile.id, $event)" />
+            {{ tn.profile.name }} <code>{{ describe(tn.profile) }}</code>
+          </label>
+        } @empty {
+          <p class="hint">{{ t('environments.noTunnels') }}</p>
+        }
+      </fieldset>
+
+      <fieldset>
+        <legend>4. {{ t('environments.steps.localKube') }} <app-help-link topic="environments" anchor="kubectl" /></legend>
+        <div class="row">
+          <input name="localContext" spellcheck="false" class="mono" [(ngModel)]="localContext" [placeholder]="t('kube.context')" [attr.aria-label]="t('kube.context')" />
+          <input name="localNamespace" spellcheck="false" class="mono" [(ngModel)]="localNamespace" [placeholder]="t('kube.namespace')" [attr.aria-label]="t('kube.namespace')" />
+        </div>
+        <label class="field">
+          <span>{{ t('environments.through') }}</span>
+          <select name="localTunnel" [(ngModel)]="localTunnel">
+            <option value="">{{ t('environments.direct') }}</option>
+            @for (tn of tunnels.tunnels(); track tn.profile.id) {
+              @if (tn.profile.kind !== 'remote') {
+                <option [value]="tn.profile.id">{{ tn.profile.name }}</option>
+              }
+            }
+          </select>
+        </label>
+        <label class="field">
+          <span>{{ t('environments.terminals') }}</span>
+          <input name="localTerminals" type="number" min="0" max="8" [(ngModel)]="localTerminals" />
+        </label>
+        <p class="hint">{{ t('environments.localKubeHint') }}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>5. {{ t('environments.steps.workspace') }}</legend>
+        <select name="workspace" [(ngModel)]="workspaceId" [attr.aria-label]="t('environments.steps.workspace')">
+          <option value="">{{ t('environments.noWorkspace') }}</option>
+          @for (w of workspaces.list(); track w.id) {
+            <option [value]="w.id">{{ w.name }}</option>
+          }
+        </select>
+      </fieldset>
+
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="env-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

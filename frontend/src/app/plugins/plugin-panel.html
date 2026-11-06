@@ -1,0 +1,89 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('plugins.panel.title', { host: hostName() })" [wide]="true" (closed)="closed.emit()">
+    <div class="bar">
+      <div class="tabs" role="tablist">
+        @for (p of plugins(); track p.id) {
+          <button type="button" role="tab" [class.on]="selected() === p.id" [attr.aria-selected]="selected() === p.id" (click)="select(p.id)">{{ p.name }}</button>
+        }
+      </div>
+      <input type="search" name="filter" [placeholder]="t('plugins.panel.filter')" [attr.aria-label]="t('plugins.panel.filter')" [(ngModel)]="filter" (ngModelChange)="filterText.set($event)" />
+      @for (a of actions(); track a.id) {
+        <button type="button" class="btn small" (click)="act(a)">{{ text(a.label) }}</button>
+      }
+      <button type="button" class="btn small" [disabled]="loading()" (click)="refresh()">
+        <svg lucideRefreshCw [size]="13" aria-hidden="true"></svg> {{ t('plugins.panel.refresh') }}
+      </button>
+    </div>
+    @if (plugin(); as p) {
+      <p class="hint">{{ text(p.description) }}</p>
+    } @else if (ready()) {
+      <p class="hint">{{ t('plugins.panel.noneInstalled') }}</p>
+      <button type="button" class="btn small primary" (click)="openStore()">{{ t('plugins.panel.openStore') }}</button>
+    }
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ e }}</p>
+    }
+    @if (output(); as o) {
+      <pre class="output" role="status">{{ o }}</pre>
+    }
+    <div class="content" [attr.aria-busy]="loading()">
+      @if (loading() && !panel()) {
+        <p class="hint">{{ t('plugins.panel.loading') }}</p>
+      }
+      @if (panel(); as panel) {
+        @for (table of panel.tables ?? []; track $index) {
+          @let rows = this.rows(table.rows);
+          <h3>{{ text(table.title) }} <small>{{ rows.length }}</small></h3>
+          @if (rows.length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  @for (c of table.columns ?? []; track $index) {
+                    <th>{{ text(c) }}</th>
+                  }
+                  @if (table.actions?.length) {
+                    <th></th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of rows; track $index) {
+                  <tr>
+                    @for (cell of row; track $index) {
+                      <td [title]="cell">{{ cell }}</td>
+                    }
+                    @if (table.actions?.length) {
+                      <td class="row-actions">
+                        @for (a of table.actions; track a.id) {
+                          <button type="button" class="btn small" [class.danger]="a.confirm" (click)="act(a, row[0])">{{ text(a.label) }}</button>
+                        }
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="hint">{{ t('plugins.panel.empty') }}</p>
+          }
+        }
+        @if (panel.text) {
+          <pre class="text">{{ panel.text }}</pre>
+        }
+      }
+    </div>
+    <ng-container modal-actions>
+      <button type="button" class="btn primary" (click)="closed.emit()">{{ t('common.close') }}</button>
+    </ng-container>
+  </app-modal>
+  @if (pending(); as p) {
+    <app-confirm-dialog
+      [heading]="text(p.action.label)"
+      [message]="t('plugins.panel.confirm', { action: text(p.action.label), item: p.item, host: hostName() })"
+      [confirmLabel]="text(p.action.label)"
+      [danger]="true"
+      (confirmed)="confirmed()"
+      (cancelled)="pending.set(null)"
+    />
+  }
+</ng-container>

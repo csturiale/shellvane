@@ -1,0 +1,7 @@
+<dialog [class.wide]="wide()" #dialog [attr.aria-labelledby]="titleId" (cancel)="onCancel($event)">
+  <h2 [id]="titleId">{{ heading() }}</h2>
+  <ng-content />
+  <footer>
+    <ng-content select="[modal-actions]" />
+  </footer>
+</dialog>

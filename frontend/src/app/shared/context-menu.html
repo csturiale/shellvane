@@ -1,0 +1,23 @@
+@if (service.menu(); as menu) {
+  <div
+    #list
+    *transloco="let t"
+    class="context-menu"
+    role="menu"
+    [style.left.px]="position()?.x ?? menu.x"
+    [style.top.px]="position()?.y ?? menu.y"
+    [style.visibility]="position() ? 'visible' : 'hidden'"
+    (keydown)="onKeydown($event)"
+    (contextmenu)="$event.preventDefault()"
+  >
+    @for (item of menu.items; track $index) {
+      @if (item) {
+        <button type="button" role="menuitem" [class.danger]="item.danger" [disabled]="item.disabled" (click)="run(item)">
+          {{ t(item.label, item.params ?? {}) }}
+        </button>
+      } @else {
+        <hr role="separator" />
+      }
+    }
+  </div>
+}

@@ -1,0 +1,26 @@
+version: 3
+profiles:
+  - type: ssh
+    name: jump
+    id: ssh:custom:jump:1111
+    options:
+      host: jump.example.net
+      user: ops
+  - type: ssh
+    name: app server
+    id: ssh:custom:app:2222
+    group: g-prod
+    options:
+      host: 10.1.0.20
+      port: 2201
+      user: app
+      jumpHost: ssh:custom:jump:1111
+      password: hunter2
+  - type: serial
+    name: console
+    options: {}
+  - type: local
+    name: zsh
+groups:
+  - id: g-prod
+    name: Production

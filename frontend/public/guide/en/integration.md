@@ -1,0 +1,38 @@
+# Command line, links, tray and portable use {#top}
+
+## Command line {#cli}
+
+`shellvane-cli` works with the same data as the app:
+
+- `shellvane-cli list` prints the saved hosts with their group and address;
+- `shellvane-cli connect <host>` opens a saved host (by name), or `user@host:port`, in the running Shellvane;
+- `shellvane-cli connect --ssh <host>` runs the system's `ssh` for a saved host in the current terminal, with its port, user, jump hosts and ProxyCommand, and Shellvane's agent when it runs;
+- `shellvane-cli open ssh://… | sftp://…` opens a link in the running Shellvane;
+- `shellvane-cli tunnel list`, `tunnel up <name>`, `tunnel down <name>` control saved tunnels;
+- `shellvane-cli import ssh-config [file]` imports `~/.ssh/config`.
+
+The CLI talks to the app through a local socket that only your user can open.
+
+## ssh:// and sftp:// links {#links}
+
+Shellvane handles `ssh://user@host:port` and `sftp://user@host:port/path` links from the browser, documentation or other apps. A link that matches a saved host (same address, port and user) opens that host, with its credentials, jump hosts and options; otherwise it opens a quick connection. `sftp://` links open the folder in Files. A link clicked while Shellvane runs goes to the open window.
+
+## Portable mode {#portable}
+
+Put an empty file named `shellvane.portable` next to the Shellvane executable (on macOS, next to `Shellvane.app`): Shellvane then keeps all its data in a `ShellvaneData` folder beside it, for example on a USB stick. The `SHELLVANE_DATA_DIR` environment variable chooses the data folder explicitly.
+
+## Tray {#tray}
+
+The tray icon lists the recent hosts (click to open one), the saved tunnels with a check mark on the active ones (click to start or stop them without opening a window), **Lock the vault** when it is unlocked, and **Quit**.
+
+## Updates {#updates}
+
+**Settings → Updates** checks for new versions (and, unless turned off, does so once a day). Only full releases are offered, not pre-releases (`v1.2.0-rc1`); if none is published yet, the page says there is nothing to update to. Updates come from termoraplus.com, where every release publishes a manifest signed with the project's key; Shellvane installs an update only if that signature and the package's checksum are valid, and keeps the previous version until the next start. The check tells the website only Shellvane's version and your system (for example `Shellvane/1.2.0 (windows/amd64)`), which is how the project counts how many copies of each version are in use; there is no identifier and nothing about you, your hosts or your use of the app. On macOS the whole app is replaced with the new one. If macOS runs Shellvane from where it was downloaded (it then uses a temporary read-only copy) or from a folder you cannot write to, move Shellvane to Applications first; until then, use the release page.
+
+**macOS says Shellvane cannot be opened** ("Apple could not verify…", *Move to Trash*): releases not yet signed with an Apple Developer ID are blocked on first open. Open **System Settings › Privacy & Security**, scroll to Security and choose **Open Anyway** for Shellvane (once), or run `xattr -dr com.apple.quarantine /Applications/Shellvane.app` in Terminal.
+
+**Homebrew** (macOS, Apple silicon): `brew install --cask csturiale/shellvane/shellvane` installs the app, `brew install csturiale/shellvane/shellvane-cli` the CLI (also on Linux). Installed this way, macOS opens the app without the security prompt.
+
+## Installing {#install}
+
+Every release is on [termoraplus.com/download](https://termoraplus.com/download/) and has: a Windows installer (and the bare `shellvane-windows-amd64.exe`), the macOS app for Apple silicon Macs (M1 or later; Intel Macs are not supported) as a disk image (`.dmg`: drag Shellvane to Applications) and in a zip, and for Linux a `.deb`, an `.rpm` and an AppImage (which updates itself in place). `shellvane-cli` is published for each system too. Releases whose version has a suffix (`v1.2.0-rc1`) are pre-releases.

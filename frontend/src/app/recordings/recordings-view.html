@@ -1,0 +1,63 @@
+<div *transloco="let t" class="page">
+  <aside>
+    <header>
+      <h1>{{ t('logs.title') }} <app-help-link topic="terminal" anchor="logs" /></h1>
+      <button type="button" class="icon" [attr.aria-label]="t('logs.refresh')" [title]="t('logs.refresh')" (click)="load()">
+        <svg lucideRefreshCw [size]="14" aria-hidden="true"></svg>
+      </button>
+    </header>
+    <p class="hint">{{ t('logs.folder', { dir: dir() }) }}</p>
+    @if (message(); as m) {
+      <p class="hint" role="status">{{ m }}</p>
+    }
+    <ul>
+      @for (f of files(); track f.path) {
+        <li [class.selected]="selected()?.path === f.path">
+          <button type="button" class="open" (click)="open(f)">
+            @if (f.kind === 'recording') {
+              <svg lucideVideo [size]="14" aria-hidden="true"></svg>
+            } @else {
+              <svg lucideFileText [size]="14" aria-hidden="true"></svg>
+            }
+            <span class="text">
+              <span class="name">{{ f.title || f.name }}</span>
+              <span class="detail">
+                {{ date(f.modified) }} · {{ size(f.size) }}
+                @if (f.kind === 'recording') {
+                  · {{ clock(f.duration) }}
+                }
+              </span>
+            </span>
+          </button>
+          <button type="button" class="icon" [attr.aria-label]="t('logs.copyPath')" [title]="t('logs.copyPath')" (click)="copyPath(f)">
+            <svg lucideCopy [size]="13" aria-hidden="true"></svg>
+          </button>
+          <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: f.name })" [title]="t('hosts.actions.delete')" (click)="deleting.set(f)">
+            <svg lucideTrash2 [size]="13" aria-hidden="true"></svg>
+          </button>
+        </li>
+      } @empty {
+        <li class="empty">{{ t('logs.empty') }}</li>
+      }
+    </ul>
+  </aside>
+  <main>
+    @if (selected(); as f) {
+      @if (content(); as text) {
+        <app-cast-player [text]="text" [kind]="f.kind === 'recording' ? 'recording' : 'log'" />
+      }
+    } @else {
+      <p class="placeholder">{{ t('logs.choose') }}</p>
+    }
+  </main>
+  @if (deleting(); as f) {
+    <app-confirm-dialog
+      [heading]="t('logs.deleteTitle')"
+      [message]="t('logs.deleteMessage', { name: f.name })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</div>

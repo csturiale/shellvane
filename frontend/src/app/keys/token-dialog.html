@@ -1,0 +1,66 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('keys.token.title')" (closed)="closed.emit(null)">
+    <form id="token-form" class="form" (ngSubmit)="add()">
+      <p class="hint">{{ t('keys.token.intro') }} <app-help-link topic="keys" anchor="token" /></p>
+      @if (!supported()) {
+        <p class="error" role="alert">{{ t('errors.pkcs11.unsupported') }}</p>
+      }
+      <div class="field">
+        <label for="token-module">{{ t('keys.token.module') }}</label>
+        <div class="row-inline">
+          <input id="token-module" name="module" class="mono" spellcheck="false" list="token-modules" [(ngModel)]="module" placeholder="/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so" />
+          <datalist id="token-modules">
+            @for (m of modules(); track m) {
+              <option [value]="m"></option>
+            }
+          </datalist>
+          <button type="button" class="btn" [disabled]="busy() || !module.trim()" (click)="findTokens()">{{ t('keys.token.find') }}</button>
+        </div>
+        <p class="hint">{{ t(modules().length ? 'keys.token.moduleFound' : 'keys.token.moduleHint') }}</p>
+      </div>
+      @if (tokens(); as list) {
+        @if (list.length === 0) {
+          <p class="hint">{{ t('keys.token.none') }}</p>
+        } @else {
+          <label class="field">
+            <span>{{ t('keys.token.token') }}</span>
+            <select name="serial" [(ngModel)]="serial" (ngModelChange)="findKeys()">
+              @for (tk of list; track tk.serial) {
+                <option [value]="tk.serial">{{ tk.label || tk.model }} · {{ tk.manufacturer }} · {{ tk.serial }}</option>
+              }
+            </select>
+          </label>
+        }
+      }
+      @if (keys(); as list) {
+        @if (list.length === 0) {
+          <p class="hint">{{ t('keys.token.noKeys') }}</p>
+        } @else {
+          <fieldset class="field">
+            <legend>{{ t('keys.token.key') }}</legend>
+            @for (k of list; track k.id) {
+              <label class="choice">
+                <input type="radio" name="keyId" [value]="k.id" [(ngModel)]="keyId" />
+                <span>
+                  {{ k.label || k.id }} <small>{{ k.type }}</small><br />
+                  <code>{{ k.fingerprint }}</code>
+                </span>
+              </label>
+            }
+          </fieldset>
+          <label class="field">
+            <span>{{ t('keys.name') }}</span>
+            <input name="name" [(ngModel)]="name" required />
+          </label>
+        }
+      }
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit(null)">{{ t('common.cancel') }}</button>
+      <button type="submit" form="token-form" class="btn primary" [disabled]="busy() || !keyId || !name.trim()">{{ t('keys.token.submit') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

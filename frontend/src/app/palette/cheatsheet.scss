@@ -1,0 +1,28 @@
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td {
+  padding: 6px 4px;
+  border-block-end: 1px solid var(--border);
+}
+
+td:last-child {
+  text-align: end;
+}
+
+kbd {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.hint {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}

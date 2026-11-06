@@ -1,0 +1,15 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Files and archives", "name": "Largest files under here", "body": "find . -xdev -type f -size +100M -exec ls -lh {} + 2>/dev/null | sort -k5 -rh | head -20", "run": true},
+    {"folder": "Files and archives", "name": "Recently changed files", "body": "find . -xdev -type f -mmin -{{minutes:10|60|1440}} 2>/dev/null | head -50", "run": true},
+    {"folder": "Files and archives", "name": "Search text in files", "body": "grep -rIn --exclude-dir=.git \"{{text}}\" .", "run": true},
+    {"folder": "Files and archives", "name": "Create a tar.gz", "body": "tar -czf {{name}}-{{date}}.tar.gz {{folder}}", "run": false},
+    {"folder": "Files and archives", "name": "List a tar.gz", "body": "tar -tzf {{archive}} | less", "run": true},
+    {"folder": "Files and archives", "name": "Extract a tar.gz here", "body": "tar -xzf {{archive}}", "run": false},
+    {"folder": "Files and archives", "name": "Copy a folder keeping attributes", "body": "rsync -aHv --progress {{from}}/ {{to}}/", "run": false},
+    {"folder": "Files and archives", "name": "Deleted files still open", "body": "sudo lsof +L1", "run": true},
+    {"folder": "Files and archives", "name": "Who uses this folder", "body": "sudo fuser -vm {{folder}}", "run": true}
+  ]
+}

@@ -1,0 +1,254 @@
+<header
+  *transloco="let t"
+  class="pane-header"
+  draggable="true"
+  (contextmenu)="paneMenu($event)"
+  [class.focused]="focused()"
+  [class.broadcasting]="broadcasting()"
+  [style.--pane-color]="color()"
+  [title]="t('sessions.paneTooltip', { label: label(), state: t('sessions.states.' + pane().state) }) + ' — ' + t('sessions.dragHint')"
+>
+  <span class="dot" [class]="pane().state" aria-hidden="true"></span>
+  <span class="title">{{ pane().title }}</span>
+  @if (pane().title !== address()) {
+    <span class="address">{{ address() }}</span>
+  }
+  @if (pane().local) {
+    <span class="badge">{{ t('local.badge') }}</span>
+  }
+  @if (pane().protocol) {
+    <span class="badge">{{ t('sessions.protocol.' + pane().protocol) }}</span>
+  }
+  @if (pane().env; as env) {
+    <button
+      type="button"
+      class="env"
+      [class]="envState()"
+      [title]="t('environments.badge.' + envState(), { name: env.name })"
+      [attr.aria-label]="t('environments.badge.' + envState(), { name: env.name })"
+      (click)="envAction()"
+    >
+      <svg lucideLayers [size]="11" aria-hidden="true"></svg>
+      {{ env.name }}
+      @if (envState() !== 'ready') {
+        <span class="env-state">{{ t('environments.badgeShort.' + envState()) }}</span>
+      }
+    </button>
+  }
+  @if (!pane().protocol && (pane().state === 'connected' || pane().kube)) {
+    <app-kube-picker [pane]="pane()" />
+  }
+  @if (pane().multiplexer) {
+    <span class="badge" [title]="t('sessions.multiplexed', { name: pane().multiplexer })">{{ pane().multiplexer }}</span>
+  }
+  @if (pane().via.length > 0) {
+    <span class="via">{{ t('sessions.via', { hops: pane().via.join(' → ') }) }}</span>
+  }
+  @if (pane().group.length > 0) {
+    <span class="group">
+      <svg lucideFolder [size]="12" aria-hidden="true"></svg>
+      {{ pane().group.join(' / ') }}
+    </span>
+  }
+  <span class="spacer"></span>
+  @if (broadcastOn()) {
+    <label class="receive" [title]="t('broadcast.receiveHint')">
+      <input type="checkbox" [checked]="broadcasting()" (change)="toggleReceive()" />
+      <svg lucideRadioTower [size]="12" aria-hidden="true"></svg>
+      {{ t('broadcast.receive') }}
+    </label>
+  }
+  @if (pane().recording) {
+    <span class="rec" [title]="t('logs.recording')">REC</span>
+  }
+  <span class="state">{{ t('sessions.states.' + pane().state) }}</span>
+  @if (pane().source.kind === 'host' && pane().state === 'connected') {
+    <app-monitor-menu [hostId]="$any(pane().source).hostId" />
+    <app-ports-menu [hostId]="$any(pane().source).hostId" />
+    <button type="button" class="icon optional" [attr.aria-label]="t('plugins.panel.open')" [title]="t('plugins.panel.open')" (click)="pluginsOpen.set(true)">
+      <svg lucidePuzzle [size]="12" aria-hidden="true"></svg>
+    </button>
+  }
+  @if (pane().cwd && pane().source.kind !== 'target') {
+    <button type="button" class="icon optional" [attr.aria-label]="t('sessions.openFolder')" [title]="t('sessions.openFolderAt', { path: pane().cwd })" (click)="openFolder()">
+      <svg lucideFolderOpen [size]="12" aria-hidden="true"></svg>
+    </button>
+  }
+  <button
+    type="button"
+    class="icon optional"
+    [class.on]="pane().logging"
+    [attr.aria-pressed]="pane().logging"
+    [attr.aria-label]="t(pane().logging ? 'logs.stopLog' : 'logs.startLog')"
+    [title]="t(pane().logging ? 'logs.stopLog' : 'logs.startLog')"
+    [disabled]="pane().state !== 'connected'"
+    (click)="toggleLog()"
+  >
+    <svg lucideScrollText [size]="12" aria-hidden="true"></svg>
+  </button>
+  <button
+    type="button"
+    class="icon optional"
+    [class.recording]="pane().recording"
+    [attr.aria-pressed]="pane().recording"
+    [attr.aria-label]="t(pane().recording ? 'logs.stopRecording' : 'logs.startRecording')"
+    [title]="t(pane().recording ? 'logs.stopRecording' : 'logs.startRecording')"
+    [disabled]="pane().state !== 'connected'"
+    (click)="toggleRecord()"
+  >
+    <svg lucideCircleDot [size]="12" aria-hidden="true"></svg>
+  </button>
+  <button type="button" class="icon optional" [attr.aria-label]="t('sessions.search')" [title]="t('sessions.search') + ' (' + searchKeys + ')'" (click)="openSearch()">
+    <svg lucideSearch [size]="12" aria-hidden="true"></svg>
+  </button>
+  <button
+    type="button"
+    class="icon maximize"
+    [attr.aria-label]="t(maximized() ? 'sessions.restore' : 'sessions.maximize')"
+    [title]="t(maximized() ? 'sessions.restore' : 'sessions.maximize') + ' (' + maximizeKeys + ')'"
+    (click)="store.toggleMaximized(pane().key)"
+  >
+    @if (maximized()) {
+      <svg lucideMinimize2 [size]="12" aria-hidden="true"></svg>
+    } @else {
+      <svg lucideMaximize2 [size]="12" aria-hidden="true"></svg>
+    }
+  </button>
+  <button
+    type="button"
+    class="icon"
+    [attr.aria-label]="t('sessions.closeNamed', { title: pane().title })"
+    [title]="t('sessions.closePane')"
+    (click)="store.closePane(pane().key)"
+  >
+    <svg lucideX [size]="12" aria-hidden="true"></svg>
+  </button>
+</header>
+<div class="terminal-area" [style.background]="appearance().scheme.colors.background"></div>
+<div #host class="terminal" (contextmenu)="paneMenu($event)"></div>
+@if (pane().state !== 'connected') {
+  <div *transloco="let t" class="overlay" role="status" (mousedown)="$event.stopPropagation()" (pointerdown)="$event.stopPropagation()">
+    @if (pane().retry; as r) {
+      <p>{{ t('sessions.lost') }}</p>
+      <p class="hint">
+        @if (pane().state === 'connecting' || r.at === 0) {
+          {{ t('sessions.reconnecting', { attempt: r.attempt, max: maxAttempts }) }}
+        } @else {
+          {{ t('sessions.reconnectIn', { seconds: secondsLeft(), attempt: r.attempt, max: maxAttempts }) }}
+        }
+      </p>
+      @if (pane().error; as e) {
+        <p class="error">{{ t(e.key, e.params) }}</p>
+      }
+      <div class="actions">
+        <button type="button" class="btn primary" (click)="store.reconnect(pane().key)">{{ t('sessions.reconnectNow') }}</button>
+        <button type="button" class="btn" (click)="store.cancelRetry(pane().key)">{{ t('common.cancel') }}</button>
+      </div>
+    } @else {
+    @switch (pane().state) {
+      @case ('connecting') {
+        <p>{{ t('sessions.connecting', { title: pane().title }) }}</p>
+      }
+      @case ('failed') {
+        <p class="error">{{ t(pane().error?.key ?? 'errors.internal', pane().error?.params ?? {}) }}</p>
+        <div class="actions">
+          <button type="button" class="btn primary" (click)="store.reconnect(pane().key)">{{ t('sessions.retry') }}</button>
+          <button type="button" class="btn" (click)="store.closePane(pane().key)">{{ t('sessions.closePane') }}</button>
+          @if (!pane().local && !pane().protocol) {
+            <button type="button" class="btn" (click)="showHandshake()">{{ t('diagnostics.details') }}</button>
+          }
+        </div>
+      }
+      @case ('closed') {
+        <p>{{ t('sessions.ended', { code: pane().exitCode }) }}</p>
+        <div class="actions">
+          <button type="button" class="btn primary" (click)="store.reconnect(pane().key)">{{ t('sessions.reconnect') }}</button>
+          <button type="button" class="btn" (click)="store.closePane(pane().key)">{{ t('sessions.closePane') }}</button>
+        </div>
+      }
+    }
+    }
+  </div>
+}
+@if (searching()) {
+  <form *transloco="let t" class="search-bar" role="search" (submit)="$event.preventDefault(); find()">
+    <input
+      #searchInput
+      name="search"
+      spellcheck="false"
+      [attr.aria-label]="t('sessions.search')"
+      [placeholder]="t('sessions.searchPlaceholder')"
+      [(ngModel)]="searchText"
+      (ngModelChange)="find()"
+      (keydown)="onSearchKey($event)"
+    />
+    <span class="count">{{ searchResult() ? searchResult()!.index + '/' + searchResult()!.count : searchText ? t('sessions.noMatches') : '' }}</span>
+    <button type="button" class="toggle" [class.on]="searchCase()" [attr.aria-pressed]="searchCase()" [title]="t('sessions.matchCase')" (click)="searchCase.set(!searchCase()); find()">Aa</button>
+    <button type="button" class="toggle" [class.on]="searchRegex()" [attr.aria-pressed]="searchRegex()" [title]="t('sessions.regex')" (click)="searchRegex.set(!searchRegex()); find()">.*</button>
+    <button type="button" class="toggle" [title]="t('sessions.previous')" [attr.aria-label]="t('sessions.previous')" (click)="find(true)">↑</button>
+    <button type="button" class="toggle" [title]="t('sessions.next')" [attr.aria-label]="t('sessions.next')" (click)="find()">↓</button>
+    <button type="button" class="toggle" [attr.aria-label]="t('common.close')" (click)="closeSearch()">✕</button>
+  </form>
+}
+@if (pendingPaste(); as text) {
+  <ng-container *transloco="let t">
+    <app-confirm-dialog
+      [heading]="t('sessions.pasteTitle')"
+      [message]="t('sessions.pasteMessage', { lines: pasteLines(), preview: text.slice(0, 200) })"
+      [confirmLabel]="t('sessions.paste')"
+      (confirmed)="confirmPaste()"
+      (cancelled)="cancelPaste()"
+    />
+  </ng-container>
+}
+@if (notice(); as path) {
+  <p *transloco="let t" class="notice" role="status">
+    {{ t('logs.savingTo', { path: path }) }}
+    <button type="button" class="link" (click)="openRecordings()">{{ t('logs.openList') }}</button>
+    <button type="button" class="link" (click)="notice.set(null)">{{ t('common.close') }}</button>
+  </p>
+}
+@if (handshake() !== undefined) {
+  <ng-container *transloco="let t">
+    <app-modal [heading]="t('diagnostics.detailsTitle', { name: pane().title })" (closed)="handshake.set(undefined)">
+      @if (handshake(); as h) {
+        <app-handshake-view [handshake]="h" />
+      } @else {
+        <p>{{ t('diagnostics.noAttempt') }}</p>
+      }
+      <ng-container modal-actions>
+        <button type="button" class="btn primary" (click)="handshake.set(undefined)">{{ t('common.close') }}</button>
+      </ng-container>
+    </app-modal>
+  </ng-container>
+}
+@if (proposal(); as p) {
+  <div *transloco="let t" class="port-toast" role="status">
+    <span>{{ t('ports.detected', { port: p.port }) }}</span>
+    <button type="button" class="btn small primary" (click)="forwardProposal()">{{ t('ports.forward') }}</button>
+    <button type="button" class="btn small" [attr.aria-label]="t('common.close')" (click)="proposal.set(null)">✕</button>
+  </div>
+} @else if (forwardedTo(); as addr) {
+  <div *transloco="let t" class="port-toast" role="status">
+    <span>{{ t('ports.forwardedTo', { addr: addr }) }}</span>
+    <button type="button" class="btn small primary" (click)="browse(addr)">{{ t('ports.open') }}</button>
+    <button type="button" class="btn small" [attr.aria-label]="t('common.close')" (click)="forwardedTo.set(null)">✕</button>
+  </div>
+}
+
+<input #uploadInput type="file" multiple hidden (change)="onUploadChosen($event)" />
+<app-transfer-bar [state]="transfer()" [result]="transferResult()" (cancel)="cancelTransfer()" (reveal)="revealDownload($event)" (dismiss)="transferResult.set(null)" />
+@if (pluginsOpen() && pane().source.kind === 'host') {
+  @defer (on immediate) {
+    <app-plugin-panel [hostId]="$any(pane().source).hostId" [hostName]="pane().title" (closed)="pluginsOpen.set(false)" />
+  }
+}
+
+
+@if (benchResult(); as r) {
+  <div *transloco="let t" class="bench-result" role="status">
+    <strong>{{ t('benchmark.title') }}</strong>
+    <span class="mono">{{ r }}</span>
+    <button type="button" class="btn small" (click)="copyBench()">{{ t('benchmark.copy') }}</button>
+  </div>
+}

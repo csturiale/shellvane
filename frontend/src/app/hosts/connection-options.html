@@ -1,0 +1,310 @@
+<ng-container *transloco="let t">
+  @let m = model();
+  <details class="advanced" [open]="open()">
+    <summary>{{ t('hosts.advanced') }}</summary>
+    <div class="field">
+      <span>{{ t('hosts.jumpChain') }} <app-help-link topic="jump-proxy" anchor="jump" /></span>
+      @for (j of m.jumps; track $index; let i = $index) {
+        <div class="jump">
+          <span class="hop">{{ i + 1 }}.</span>
+          <select [name]="'jump' + i" [(ngModel)]="m.jumps[i]">
+            @for (h of jumpCandidates(); track h.id) {
+              <option [value]="h.id">{{ h.name }} ({{ h.hostname }})</option>
+            }
+          </select>
+          <button type="button" class="btn small" [attr.aria-label]="t('hosts.removeJump', { n: i + 1 })" (click)="m.jumps.splice(i, 1)">✕</button>
+        </div>
+      }
+      <button type="button" class="btn small add" [disabled]="jumpCandidates().length === 0" (click)="addJump()">{{ t('hosts.addJump') }}</button>
+      <p class="hint">{{ t('hosts.jumpHint') }}</p>
+    </div>
+
+    <div class="field">
+      <label for="transport">{{ t('hosts.cloud.transport') }} <app-help-link topic="jump-proxy" anchor="cloud" /></label>
+      <select id="transport" name="transport" [(ngModel)]="m.transport">
+        <option value="">{{ t('hosts.cloud.direct') }}</option>
+        <option value="awsSsm">{{ t('hosts.cloud.awsSsm') }}</option>
+        <option value="azureBastion">{{ t('hosts.cloud.azureBastion') }}</option>
+        <option value="gcpIap">{{ t('hosts.cloud.gcpIap') }}</option>
+      </select>
+    </div>
+    @if (m.transport) {
+      <label class="field">
+        <span>{{ t('hosts.cloud.target.' + m.transport) }}</span>
+        <input name="cloudTarget" spellcheck="false" class="mono" [(ngModel)]="m.cloudTarget" [placeholder]="t('hosts.cloud.targetPlaceholder.' + m.transport)" />
+      </label>
+      @if (m.transport === 'azureBastion') {
+        <label class="field"><span>{{ t('hosts.cloud.bastion') }}</span><input name="cloudBastion" spellcheck="false" [(ngModel)]="m.cloudBastion" /></label>
+        <label class="field"><span>{{ t('hosts.cloud.group') }}</span><input name="cloudGroup" spellcheck="false" [(ngModel)]="m.cloudGroup" /></label>
+      } @else {
+        <label class="field"><span>{{ t('hosts.cloud.region.' + m.transport) }}</span><input name="cloudRegion" spellcheck="false" [(ngModel)]="m.cloudRegion" /></label>
+      }
+      <label class="field"><span>{{ t('hosts.cloud.account.' + m.transport) }}</span><input name="cloudAccount" spellcheck="false" [(ngModel)]="m.cloudAccount" /></label>
+      <p class="hint">{{ t('hosts.cloud.hint.' + m.transport) }}</p>
+    }
+
+    <label class="field">
+      <span>{{ t('hosts.proxy') }} <app-help-link topic="jump-proxy" anchor="proxy" /></span>
+      <input name="proxy" spellcheck="false" class="mono" [(ngModel)]="m.proxy" placeholder="socks5://127.0.0.1:1080 · http://proxy:3128" />
+    </label>
+
+    <div class="field">
+      <div class="labelled">
+        <label for="proxyCommand">{{ t('hosts.proxyCommand') }} <app-help-link topic="jump-proxy" anchor="proxycommand" /></label>
+        <select class="preset" [attr.aria-label]="t('hosts.presets.label')" (change)="applyPreset($event, 'proxyCommand', proxyPresets)">
+          <option value="">{{ t('hosts.presets.label') }}</option>
+          @for (p of proxyPresets; track p.id) {
+            <option [value]="p.id">{{ t('hosts.presets.' + p.id) }}</option>
+          }
+        </select>
+      </div>
+      <input id="proxyCommand" name="proxyCommand" spellcheck="false" class="mono" [(ngModel)]="m.proxyCommand" placeholder="cloudflared access ssh --hostname %h" />
+      <p class="hint">{{ t('hosts.proxyCommandHint') }}</p>
+    </div>
+
+    <div class="field">
+      <label for="credentialPlugin">{{ t('hosts.credentialPlugin') }} <app-help-link topic="plugins" anchor="credentials" /></label>
+      <select id="credentialPlugin" name="credentialPlugin" [(ngModel)]="m.credentialPlugin">
+        <option value="">{{ t('hosts.credentialPluginNone') }}</option>
+        @for (b of brokers(); track b.id) {
+          <option [value]="b.id">{{ b.name }}</option>
+        }
+        @if (sharedLogins().length > 0) {
+          <optgroup [label]="t('hosts.sharedLogins')">
+            @for (l of sharedLogins(); track l.ref) {
+              <option [value]="l.ref">{{ l.group }} · {{ l.label }}</option>
+            }
+          </optgroup>
+        }
+        @if (m.credentialPlugin && !hasBroker(m.credentialPlugin)) {
+          <option [value]="m.credentialPlugin">{{ t('hosts.credentialPluginMissing') }}</option>
+        }
+      </select>
+      <p class="hint">{{ t('hosts.credentialPluginHint') }}</p>
+    </div>
+
+    <div class="field">
+      <div class="labelled">
+        <label for="passwordCommand">{{ t('hosts.passwordCommand') }} <app-help-link topic="auth" anchor="password-command" /></label>
+        <select class="preset" [attr.aria-label]="t('hosts.presets.label')" (change)="applyPreset($event, 'passwordCommand', passwordPresets)">
+          <option value="">{{ t('hosts.presets.label') }}</option>
+          @for (p of passwordPresets; track p.id) {
+            <option [value]="p.id">{{ t('hosts.presets.' + p.id) }}</option>
+          }
+        </select>
+      </div>
+      <input id="passwordCommand" name="passwordCommand" spellcheck="false" class="mono" [(ngModel)]="m.passwordCommand" />
+      <p class="hint">{{ t('hosts.passwordCommandHint') }}</p>
+    </div>
+
+    <div class="field">
+      <div class="labelled">
+        <label for="certificateCommand">{{ t('hosts.certificateCommand') }} <app-help-link topic="auth" anchor="certificates" /></label>
+        <select class="preset" [attr.aria-label]="t('hosts.presets.label')" (change)="applyPreset($event, 'certificateCommand', certificatePresets)">
+          <option value="">{{ t('hosts.presets.label') }}</option>
+          @for (p of certificatePresets; track p.id) {
+            <option [value]="p.id">{{ t('hosts.presets.' + p.id) }}</option>
+          }
+        </select>
+      </div>
+      <input id="certificateCommand" name="certificateCommand" spellcheck="false" class="mono" [(ngModel)]="m.certificateCommand" />
+      <p class="hint">{{ t('hosts.certificateCommandHint') }}</p>
+    </div>
+
+    <div class="field">
+      <div class="labelled">
+        <label for="preConnectCommand">{{ t('hosts.preConnectCommand') }} <app-help-link topic="jump-proxy" anchor="preconnect" /></label>
+        <select class="preset" [attr.aria-label]="t('hosts.presets.label')" (change)="applyPreset($event, 'preConnectCommand', preConnectPresets)">
+          <option value="">{{ t('hosts.presets.label') }}</option>
+          @for (p of preConnectPresets; track p.id) {
+            <option [value]="p.id">{{ t('hosts.presets.' + p.id) }}</option>
+          }
+        </select>
+      </div>
+      <input id="preConnectCommand" name="preConnectCommand" spellcheck="false" class="mono" [(ngModel)]="m.preConnectCommand" />
+      <p class="hint">{{ t('hosts.preConnectCommandHint') }}</p>
+    </div>
+
+    <div class="field">
+      <label class="check">
+        <input type="checkbox" name="authCustom" [(ngModel)]="m.authCustom" />
+        {{ t('hosts.authCustom') }} <app-help-link topic="auth" anchor="order" />
+      </label>
+      @if (m.authCustom) {
+        <ol class="auth-order" [attr.aria-label]="t('hosts.authOrder')">
+          @for (a of m.authMethods; track a.id; let i = $index, first = $first, last = $last) {
+            <li>
+              <label class="check">
+                <input type="checkbox" [name]="'auth-' + a.id" [(ngModel)]="a.on" />
+                {{ t('hosts.authMethod.' + a.id) }}
+              </label>
+              <button type="button" class="btn small" [disabled]="first" [attr.aria-label]="t('hosts.moveUp', { name: t('hosts.authMethod.' + a.id) })" (click)="moveAuth(i, -1)">↑</button>
+              <button type="button" class="btn small" [disabled]="last" [attr.aria-label]="t('hosts.moveDown', { name: t('hosts.authMethod.' + a.id) })" (click)="moveAuth(i, 1)">↓</button>
+            </li>
+          }
+        </ol>
+        @if (!hasAuth()) {
+          <p class="error" role="alert">{{ t('hosts.authNone') }}</p>
+        }
+      }
+      <p class="hint">{{ t('hosts.authOrderHint') }}</p>
+    </div>
+
+    <div class="field">
+      <label for="opt-identities-only">{{ t('hosts.identitiesOnly') }}</label>
+      <select id="opt-identities-only" name="identitiesOnly" [(ngModel)]="m.identitiesOnly" aria-describedby="opt-identities-only-hint">
+        <option value="">{{ t('hosts.inherit') }}</option>
+        <option value="on">{{ t('hosts.identitiesOnlyOn') }}</option>
+        <option value="off">{{ t('hosts.identitiesOnlyOff') }}</option>
+      </select>
+      <p id="opt-identities-only-hint" class="hint">{{ t('hosts.identitiesOnlyHint') }}</p>
+    </div>
+
+    <div class="field">
+      <label for="opt-kerberos">{{ t('hosts.kerberos.label') }} <app-help-link topic="auth" anchor="kerberos" /></label>
+      <select id="opt-kerberos" name="kerberos" [(ngModel)]="m.kerberos">
+        <option value="">{{ t('hosts.inherit') }}</option>
+        <option value="on">{{ t('hosts.kerberos.on') }}</option>
+        <option value="off">{{ t('hosts.kerberos.off') }}</option>
+      </select>
+      <p class="hint">{{ t('hosts.kerberos.hint') }}</p>
+    </div>
+    @if (m.kerberos === 'on') {
+      <label class="field"><span>{{ t('hosts.kerberos.realm') }}</span><input name="kerberosRealm" spellcheck="false" class="mono" [(ngModel)]="m.kerberosRealm" placeholder="CORP.EXAMPLE.COM" /></label>
+      <label class="field"><span>{{ t('hosts.kerberos.principal') }}</span><input name="kerberosPrincipal" spellcheck="false" class="mono" [(ngModel)]="m.kerberosPrincipal" placeholder="mario.rossi@CORP.EXAMPLE.COM" /></label>
+    }
+
+    <label class="field">
+      <span>{{ t('hosts.multiplexer') }} <app-help-link topic="continuity" anchor="tmux" /></span>
+      <select name="multiplexer" [(ngModel)]="m.multiplexer">
+        <option value="">{{ t('hosts.inherit') }}</option>
+        <option value="none">{{ t('hosts.multiplexerNone') }}</option>
+        <option value="tmux">tmux</option>
+        <option value="screen">GNU screen</option>
+      </select>
+      <p class="hint">{{ t('hosts.multiplexerHint') }}</p>
+    </label>
+
+    <div class="field">
+      <span>{{ t('hosts.kube') }} <app-help-link topic="kubernetes" anchor="remote" /></span>
+      <div class="jump">
+        <input name="kubeContext" spellcheck="false" class="mono" [(ngModel)]="m.kubeContext" [placeholder]="t('kube.context')" [attr.aria-label]="t('kube.context')" />
+        <input name="kubeNamespace" spellcheck="false" class="mono" [(ngModel)]="m.kubeNamespace" [placeholder]="t('kube.namespace')" [attr.aria-label]="t('kube.namespace')" />
+      </div>
+      <p class="hint">{{ t('hosts.kubeHint') }}</p>
+    </div>
+
+    <label class="field">
+      <span>{{ t('hosts.autoReconnect') }} <app-help-link topic="continuity" anchor="reconnect" /></span>
+      <select name="autoReconnect" [(ngModel)]="m.autoReconnect">
+        <option value="">{{ t('hosts.inherit') }}</option>
+        <option value="on">{{ t('hosts.autoReconnectOn') }}</option>
+        <option value="off">{{ t('hosts.forwardAgentOff') }}</option>
+      </select>
+    </label>
+
+    <div class="field">
+      <span>{{ t('hosts.terminalType') }} <app-help-link topic="terminal" anchor="encoding" /></span>
+      <div class="jump">
+        <select name="encoding" [(ngModel)]="m.encoding" [attr.aria-label]="t('hosts.encoding')">
+          <option value="">{{ t('hosts.encodingInherit') }}</option>
+          @for (e of encodings; track e) {
+            <option [value]="e">{{ e }}</option>
+          }
+        </select>
+        <input name="termType" spellcheck="false" class="mono" [(ngModel)]="m.termType" placeholder="xterm-256color" [attr.aria-label]="t('hosts.termType')" />
+      </div>
+    </div>
+
+    <label class="field">
+      <span>{{ t('hosts.initialDirectory') }} <app-help-link topic="connecting" anchor="session" /></span>
+      <input name="initialDirectory" spellcheck="false" class="mono" [(ngModel)]="m.initialDirectory" placeholder="~/projects" />
+    </label>
+    <div class="field">
+      <label for="opt-environment">{{ t('hosts.environment') }}</label>
+      <textarea id="opt-environment" name="environment" rows="2" spellcheck="false" class="mono" [(ngModel)]="m.environment" placeholder="APP_ENV=staging" aria-describedby="opt-environment-hint"></textarea>
+      <p id="opt-environment-hint" class="hint">{{ t('hosts.environmentHint') }}</p>
+    </div>
+    <div class="field">
+      <label for="opt-remote-command">{{ t('hosts.remoteCommand') }}</label>
+      <input id="opt-remote-command" name="remoteCommand" spellcheck="false" class="mono" [(ngModel)]="m.remoteCommand" placeholder="htop" aria-describedby="opt-remote-command-hint" />
+      <p id="opt-remote-command-hint" class="hint">{{ t('hosts.remoteCommandHint') }}</p>
+    </div>
+
+    <div class="field">
+      <label for="opt-desktop">{{ t('hosts.desktopSettings') }} <app-help-link topic="connecting" anchor="launchers" /></label>
+      <div class="jump">
+        <select id="opt-desktop" name="remoteDesktop" [(ngModel)]="m.remoteDesktop">
+          <option value="">{{ t('hosts.inherit') }}</option>
+          <option value="none">{{ t('hosts.desktopNone') }}</option>
+          <option value="rdp">RDP</option>
+          <option value="vnc">VNC</option>
+        </select>
+        <input name="remoteDesktopPort" type="number" min="1" max="65535" [(ngModel)]="m.remoteDesktopPort" [placeholder]="m.remoteDesktop === 'vnc' ? '5900' : '3389'" [attr.aria-label]="t('hosts.desktopPort')" />
+        <select name="remoteDesktopViaSsh" [(ngModel)]="m.remoteDesktopViaSsh" [attr.aria-label]="t('hosts.desktopViaSsh')">
+          <option value="">{{ t('hosts.inherit') }}</option>
+          <option value="on">{{ t('hosts.desktopViaSsh') }}</option>
+          <option value="off">{{ t('hosts.desktopDirect') }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="opt-mac">{{ t('hosts.wakeOnLan') }} <app-help-link topic="connecting" anchor="wake" /></label>
+      <div class="jump">
+        <input id="opt-mac" name="macAddress" spellcheck="false" class="mono" [(ngModel)]="m.macAddress" placeholder="aa:bb:cc:dd:ee:ff" />
+        <input name="wakeBroadcast" spellcheck="false" class="mono" [(ngModel)]="m.wakeBroadcast" placeholder="255.255.255.255" [attr.aria-label]="t('hosts.wakeBroadcast')" />
+        <select name="wakeOnConnect" [(ngModel)]="m.wakeOnConnect" [attr.aria-label]="t('hosts.wakeOnConnect')">
+          <option value="">{{ t('hosts.inherit') }}</option>
+          <option value="on">{{ t('hosts.wakeOnConnectOn') }}</option>
+          <option value="off">{{ t('hosts.forwardAgentOff') }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="opt-knock">{{ t('hosts.knock') }}</label>
+      <input id="opt-knock" name="knockSequence" spellcheck="false" class="mono" [(ngModel)]="m.knockSequence" placeholder="7000,8000/udp,9000" aria-describedby="opt-knock-hint" />
+      <p id="opt-knock-hint" class="hint">{{ t('hosts.knockHint') }}</p>
+    </div>
+
+    <div class="field">
+      <span>{{ t('hosts.capture') }} <app-help-link topic="terminal" anchor="logs" /></span>
+      <div class="jump">
+        <select name="logSession" [(ngModel)]="m.logSession" [attr.aria-label]="t('hosts.logSession')">
+          <option value="">{{ t('hosts.logInherit') }}</option>
+          <option value="on">{{ t('hosts.logOn') }}</option>
+          <option value="off">{{ t('hosts.logOff') }}</option>
+        </select>
+        <select name="logFormat" [(ngModel)]="m.logFormat" [attr.aria-label]="t('terminal.logFormat')">
+          <option value="">{{ t('hosts.inherit') }}</option>
+          <option value="text">{{ t('logs.formats.text') }}</option>
+          <option value="timestamped">{{ t('logs.formats.timestamped') }}</option>
+          <option value="raw">{{ t('logs.formats.raw') }}</option>
+        </select>
+        <select name="recordSession" [(ngModel)]="m.recordSession" [attr.aria-label]="t('hosts.recordSession')">
+          <option value="">{{ t('hosts.recordInherit') }}</option>
+          <option value="on">{{ t('hosts.recordOn') }}</option>
+          <option value="off">{{ t('hosts.recordOff') }}</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="field">
+      <span>{{ t('hosts.forwardAgent') }} <app-help-link topic="auth" anchor="forwarding" /></span>
+      <select name="forwardAgent" [(ngModel)]="m.forwardAgent">
+        <option value="">{{ t('hosts.inherit') }}</option>
+        <option value="on">{{ t('hosts.forwardAgentOn') }}</option>
+        <option value="off">{{ t('hosts.forwardAgentOff') }}</option>
+      </select>
+      <p class="hint">{{ t('hosts.forwardAgentHint') }}</p>
+    </label>
+    <div class="field">
+      <label for="opt-x11">{{ t('hosts.forwardX11') }} <app-help-link topic="connecting" anchor="x11" /></label>
+      <select id="opt-x11" name="forwardX11" [(ngModel)]="m.forwardX11" aria-describedby="opt-x11-hint">
+        <option value="">{{ t('hosts.inherit') }}</option>
+        <option value="on">{{ t('hosts.forwardX11On') }}</option>
+        <option value="off">{{ t('hosts.forwardAgentOff') }}</option>
+      </select>
+      <p id="opt-x11-hint" class="hint">{{ t('hosts.forwardX11Hint') }}</p>
+    </div>
+  </details>
+</ng-container>

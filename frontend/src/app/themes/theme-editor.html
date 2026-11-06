@@ -1,0 +1,53 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t(theme().id ? 'themes.editTitle' : 'themes.newTitle')" (closed)="closed.emit()">
+    <form id="theme-form" class="form" (ngSubmit)="save()">
+      <label class="field">
+        <span>{{ t('themes.name') }}</span>
+        <input name="name" required [(ngModel)]="name" />
+      </label>
+      <div class="layout">
+        <div class="colors">
+          @for (k of keys; track k) {
+            <div class="color">
+              <input type="color" [attr.aria-label]="t('themes.pick', { name: t('themes.colors.' + k) })" [value]="valid(colors()[k]) ? colors()[k] : '#000000'" (input)="setColor(k, $any($event.target).value)" />
+              <input
+                type="text"
+                class="mono"
+                spellcheck="false"
+                [class.invalid]="!!colors()[k] && !valid(colors()[k])"
+                [attr.aria-label]="t('themes.colors.' + k)"
+                [value]="colors()[k] ?? ''"
+                [placeholder]="t('themes.auto')"
+                (change)="setColor(k, $any($event.target).value)"
+              />
+              <span class="label">{{ t('themes.colors.' + k) }}</span>
+            </div>
+          }
+        </div>
+        <div class="preview" aria-hidden="true" [style.background]="c()('background')" [style.color]="c()('foreground')">
+          <div><span [style.color]="c()('green')">user&#64;web-01</span>:<span [style.color]="c()('blue')">~/app</span>$ ls</div>
+          <div>
+            <span [style.color]="c()('blue')">src</span>&nbsp; <span [style.color]="c()('green')">run.sh</span>&nbsp; <span [style.color]="c()('cyan')">link</span>&nbsp; README.md
+          </div>
+          <div><span [style.color]="c()('red')">ERROR</span> disk full · <span [style.color]="c()('yellow')">WARN</span> slow · <span [style.color]="c()('magenta')">200</span></div>
+          <div>
+            <span [style.background]="c()('selectionBackground')">{{ t('themes.selected') }}</span>
+            <span class="cursor" [style.background]="c()('cursor')" [style.color]="c()('cursorAccent') || c()('background')">█</span>
+          </div>
+          <div class="swatches">
+            @for (k of ansi; track k) {
+              <span [style.background]="c()(k)" [title]="t('themes.colors.' + k)"></span>
+            }
+          </div>
+        </div>
+      </div>
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ e }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="theme-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

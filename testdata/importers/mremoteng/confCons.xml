@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mrng:Connections xmlns:mrng="http://mremoteng.org" Name="Connections" Export="false" EncryptionEngine="AES" BlockCipherMode="GCM" KdfIterations="1000" FullFileEncryption="false" Protected="x" ConfVersion="2.6">
+  <Node Name="Linux" Type="Container" Expanded="true">
+    <Node Name="web" Type="Connection" Hostname="web.example.org" Port="22" Username="www" Protocol="SSH2" Password="abc" />
+    <Node Name="Inner" Type="Container">
+      <Node Name="db" Type="Connection" Hostname="db.example.org" Port="2222" Username="dba" Protocol="SSH2" />
+    </Node>
+  </Node>
+  <Node Name="win" Type="Connection" Hostname="win.example.org" Port="3389" Protocol="RDP" />
+</mrng:Connections>

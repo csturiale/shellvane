@@ -1,0 +1,16 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "systemd and logs", "name": "Failed units", "body": "systemctl --failed", "run": true},
+    {"folder": "systemd and logs", "name": "Service status", "body": "systemctl status {{service}} --no-pager -l", "run": true},
+    {"folder": "systemd and logs", "name": "Restart a service", "body": "sudo systemctl restart {{service}}", "run": false},
+    {"folder": "systemd and logs", "name": "Follow a service's log", "body": "journalctl -u {{service}} -f -n 100", "run": true},
+    {"folder": "systemd and logs", "name": "Errors since boot", "body": "journalctl -b -p err --no-pager | tail -50", "run": true},
+    {"folder": "systemd and logs", "name": "Log of the last hour", "body": "journalctl --since '1 hour ago' --no-pager | tail -100", "run": true},
+    {"folder": "systemd and logs", "name": "Previous boot's log (crashes)", "body": "journalctl -b -1 -n 100 --no-pager", "run": true},
+    {"folder": "systemd and logs", "name": "Timers", "body": "systemctl list-timers --no-pager", "run": true},
+    {"folder": "systemd and logs", "name": "Kernel messages", "body": "sudo dmesg -T | tail -50", "run": true},
+    {"folder": "systemd and logs", "name": "Journal disk usage", "body": "journalctl --disk-usage", "run": true}
+  ]
+}

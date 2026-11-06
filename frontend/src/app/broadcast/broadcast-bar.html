@@ -1,0 +1,51 @@
+<form *transloco="let t; prefix: 'broadcast.bar'" class="bar" (submit)="$event.preventDefault(); submit()">
+  <select [attr.aria-label]="t('targets')" [value]="selected()" (change)="select($any($event.target).value)">
+    @for (o of options(); track o.value) {
+      <option [value]="o.value" [selected]="o.value === selected()">
+        @switch (o.kind) {
+          @case ('all') {
+            {{ t('all') }}
+          }
+          @case ('group') {
+            {{ t('group', { name: o.name }) }}
+          }
+          @case ('tag') {
+            {{ t('tag', { name: o.name }) }}
+          }
+        }
+      </option>
+    }
+  </select>
+  <input
+    type="text"
+    class="mono"
+    spellcheck="false"
+    autocomplete="off"
+    [attr.aria-label]="t('input')"
+    [placeholder]="t('placeholder', { count: count() })"
+    [value]="text()"
+    (input)="text.set($any($event.target).value)"
+    (keydown.arrowup)="browse($event, 1)"
+    (keydown.arrowdown)="browse($event, -1)"
+  />
+  <label class="check" [title]="t('enterHint')">
+    <input type="checkbox" [checked]="enter()" (change)="enter.set($any($event.target).checked)" />
+    {{ t('enter') }}
+  </label>
+  <button type="submit" class="btn primary small" [attr.aria-label]="t('send')" [title]="t('send')">
+    <svg lucideSend [size]="13" aria-hidden="true"></svg>
+  </button>
+  <button type="button" class="btn small" [title]="t('interruptHint')" (click)="interrupt()">Ctrl+C</button>
+</form>
+@if (confirming(); as line) {
+  <ng-container *transloco="let t">
+    <app-confirm-dialog
+      [heading]="t('snippets.dangerousTitle')"
+      [message]="confirmMessage(line)"
+      [confirmLabel]="t('snippets.sendAnyway')"
+      [danger]="true"
+      (confirmed)="deliver(line)"
+      (cancelled)="confirming.set(null)"
+    />
+  </ng-container>
+}

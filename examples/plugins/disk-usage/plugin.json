@@ -1,0 +1,10 @@
+{
+  "id": "disk-usage",
+  "name": "Disk usage",
+  "version": "1.0.0",
+  "description": "Filesystems of the host with their use, and the largest folders of one of them.",
+  "protocol": 1,
+  "command": ["python3", "main.py"],
+  "capabilities": ["panel", "actions"],
+  "settings": []
+}

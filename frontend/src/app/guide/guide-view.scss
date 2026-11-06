@@ -1,0 +1,198 @@
+:host {
+  display: block;
+  height: 100%;
+}
+.guide {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100%;
+}
+aside {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 10px;
+  overflow: auto;
+  border-inline-end: 1px solid var(--border);
+  background: var(--surface);
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--bg);
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    color: var(--text);
+    background: none;
+  }
+}
+nav {
+  display: flex;
+  flex-direction: column;
+
+  button {
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 6px;
+    color: var(--text-muted);
+    background: none;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text);
+      background: var(--hover);
+    }
+    &.active {
+      color: var(--text);
+      background: var(--hover);
+      box-shadow: inset 2px 0 0 var(--accent);
+    }
+  }
+}
+.results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  button {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 6px;
+    color: var(--text);
+    background: none;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--hover);
+    }
+  }
+  .topic {
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .excerpt {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .empty {
+    padding: 8px;
+    color: var(--text-muted);
+  }
+}
+main {
+  overflow: auto;
+  padding: 24px 32px 48px;
+}
+.checklist {
+  max-width: 760px;
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .count {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    color: var(--text-muted);
+
+    span {
+      flex: 1;
+    }
+    &.done {
+      color: var(--group-green);
+    }
+  }
+  .try {
+    padding: 2px 10px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--accent);
+    background: none;
+    cursor: pointer;
+  }
+}
+// The article is innerHTML: it does not get the component's style scope.
+:host ::ng-deep .markdown {
+  max-width: 760px;
+  line-height: 1.6;
+
+  :is(h1, h2, h3) {
+    scroll-margin-top: 16px;
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-size: 22px;
+  }
+  h2 {
+    margin: 28px 0 8px;
+    font-size: 16px;
+  }
+  code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: var(--hover);
+  }
+  pre {
+    padding: 10px 12px;
+    overflow: auto;
+    border-radius: 6px;
+    background: var(--surface);
+
+    code {
+      padding: 0;
+      background: none;
+    }
+  }
+  table {
+    border-collapse: collapse;
+  }
+  th,
+  td {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    text-align: start;
+  }
+  a {
+    color: var(--accent);
+  }
+  a.action {
+    font-weight: 500;
+  }
+}

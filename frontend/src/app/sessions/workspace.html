@@ -1,0 +1,192 @@
+<ng-container *transloco="let t">
+  <div class="bar">
+    <div
+      class="tabs"
+      role="tablist"
+      [class.drop-new]="dropTab() === 0"
+      (dragover)="onTabDragOver($event, 0)"
+      (dragleave)="dropTab.set(null)"
+      (drop)="onTabDrop($event, 0)"
+    >
+      @for (tab of store.tabs(); track tab.key) {
+        @let pane = store.pane(tab.focus);
+        <div
+          class="tab"
+          role="tab"
+          tabindex="0"
+          [attr.aria-selected]="tab.key === store.activeKey()"
+          [class.active]="tab.key === store.activeKey()"
+          (click)="store.activate(tab.key)"
+          (keydown.enter)="store.activate(tab.key)"
+          (auxclick)="$event.button === 1 && close(tab)"
+          (contextmenu)="tabMenu($event, tab)"
+          [class.drop-target]="dropTab() === tab.key"
+          (dragover)="onTabDragOver($event, tab.key)"
+          (dragleave)="dropTab.set(null)"
+          (drop)="onTabDrop($event, tab.key)"
+          [style.--tab-color]="pane?.color ? colorVar(pane!.color) : null"
+          [title]="pane ? t('sessions.paneTooltip', { label: label(pane), state: t('sessions.states.' + pane.state) }) : ''"
+        >
+          <span class="dot" [class]="pane?.state" [attr.aria-label]="t('sessions.states.' + pane?.state)"></span>
+          @if (renaming() === tab.key) {
+            <input
+              class="rename"
+              autofocus
+              [attr.aria-label]="t('sessions.renameTab')"
+              [(ngModel)]="renameText"
+              (click)="$event.stopPropagation()"
+              (keydown.enter)="finishRename(tab)"
+              (keydown.escape)="renaming.set(null)"
+              (blur)="finishRename(tab)"
+            />
+          } @else {
+            <span class="title" [title]="t('sessions.renameHint')" (dblclick)="startRename(tab, pane?.title ?? '')">{{ tab.title || pane?.title }}</span>
+          }
+          @if (hasBell(tab)) {
+            <span class="bell" [attr.aria-label]="t('sessions.bell')">🔔</span>
+          }
+          @if (tab.maximized !== null) {
+            <span class="max" [attr.aria-label]="t('sessions.maximized')">⤢</span>
+          }
+          @if (pane?.kube?.context; as ctx) {
+            <span class="kube" [class.prod]="prefs.isProd(ctx)" [title]="t('kube.title')">⎈ {{ ctx }}</span>
+          }
+          @if (paneCount(tab) > 1) {
+            <span class="count" [attr.aria-label]="t('sessions.paneCount', { count: paneCount(tab) })">{{ paneCount(tab) }}</span>
+          }
+          @if (detachedWindow) {
+            <button
+              type="button"
+              class="icon"
+              [attr.aria-label]="t('sessions.reattachNamed', { title: pane?.title })"
+              [title]="t('sessions.reattach')"
+              (click)="$event.stopPropagation(); reattach(tab)"
+            >
+              <svg lucideArrowLeftToLine [size]="13" aria-hidden="true"></svg>
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="icon"
+              [attr.aria-label]="t('sessions.detachNamed', { title: pane?.title })"
+              [title]="t('sessions.detach')"
+              (click)="$event.stopPropagation(); detach(tab)"
+            >
+              <svg lucideExternalLink [size]="13" aria-hidden="true"></svg>
+            </button>
+          }
+          <button
+            type="button"
+            class="icon"
+            [attr.aria-label]="t('sessions.closeNamed', { title: pane?.title })"
+            [title]="t('sessions.closeTab')"
+            (click)="$event.stopPropagation(); close(tab)"
+          >
+            <svg lucideX [size]="14" aria-hidden="true"></svg>
+          </button>
+        </div>
+      }
+      <app-new-tab-menu />
+    </div>
+    <div class="tools">
+      @if (store.active(); as tab) {
+        <button
+          type="button"
+          class="icon broadcast-toggle"
+          [class.on]="tab.broadcast"
+          [attr.aria-pressed]="tab.broadcast"
+          [attr.aria-label]="t('broadcast.toggle')"
+          [title]="t(tab.broadcast ? 'broadcast.on' : 'broadcast.toggle') + ' (' + keys.broadcast + ')'"
+          (click)="store.toggleBroadcast(tab.key)"
+        >
+          <svg lucideRadioTower [size]="16" aria-hidden="true"></svg>
+          @if (tab.broadcast) {
+            <span>{{ t('broadcast.badge') }}</span>
+          }
+        </button>
+      }
+      <button type="button" class="icon" [attr.aria-label]="t('local.new')" [title]="t('local.new') + ' (' + keys.newLocal + ')'" (click)="store.openLocal()">
+        <svg lucideSquareTerminal [size]="16" aria-hidden="true"></svg>
+      </button>
+      <app-workspace-menu />
+      <button type="button" class="icon" [attr.aria-label]="t('sessions.splitRight')" [title]="t('sessions.splitRight') + ' (' + keys.splitRight + ')'" (click)="store.split('row')">
+        <svg lucideColumns2 [size]="16" aria-hidden="true"></svg>
+      </button>
+      <button type="button" class="icon" [attr.aria-label]="t('sessions.splitDown')" [title]="t('sessions.splitDown') + ' (' + keys.splitDown + ')'" (click)="store.split('column')">
+        <svg lucideRows2 [size]="16" aria-hidden="true"></svg>
+      </button>
+    </div>
+  </div>
+
+  @if (store.active(); as tab) {
+    @if (tab.broadcast) {
+      <app-broadcast-bar [tab]="tab" />
+    }
+  }
+
+  <!--
+    Every pane lives in this one container, keyed by pane, and is positioned
+    from its tab's layout: moving a pane to another tab or position never
+    re-creates its terminal or ends its session.
+  -->
+  <div class="tab-areas" #area>
+    @for (item of placed(); track item.pane.key) {
+      <div
+        class="pane"
+        role="tabpanel"
+        [class.hidden]="!item.active"
+        [class.focused]="item.count > 1 && item.pane.key === item.tab.focus"
+        [style.left.%]="item.rect.x"
+        [style.top.%]="item.rect.y"
+        [style.width.%]="item.rect.w"
+        [style.height.%]="item.rect.h"
+        (focusin)="store.focusPane(item.tab.key, item.pane.key)"
+        (mousedown)="store.focusPane(item.tab.key, item.pane.key)"
+        (dragstart)="onPaneDragStart($event, item.pane.key)"
+        (dragend)="endDrag()"
+        (dragover)="onPaneDragOver($event, item.pane.key)"
+        (drop)="onPaneDrop($event, item.pane.key)"
+      >
+        <app-terminal-view
+          [pane]="item.pane"
+          [visible]="item.active"
+          [focused]="item.pane.key === item.tab.focus"
+          [broadcastOn]="item.tab.broadcast"
+          [broadcasting]="item.tab.broadcast && !item.tab.excluded.includes(item.pane.key)"
+          [maximized]="item.tab.maximized === item.pane.key"
+        />
+        @if (dropHint(); as h) {
+          @if (h.target === item.pane.key) {
+            <div class="drop-hint" [class]="h.zone" aria-hidden="true"></div>
+          }
+        }
+      </div>
+    }
+    @if (store.active(); as tab) {
+      @for (d of tab.maximized === null ? layouts().get(tab.key)!.dividers : []; track d.path) {
+        <div
+          class="divider"
+          [class.row]="d.dir === 'row'"
+          [class.column]="d.dir === 'column'"
+          role="separator"
+          [attr.aria-orientation]="d.dir === 'row' ? 'vertical' : 'horizontal'"
+          [style.left.%]="d.rect.x"
+          [style.top.%]="d.rect.y"
+          [style.width.%]="d.dir === 'column' ? d.rect.w : null"
+          [style.height.%]="d.dir === 'row' ? d.rect.h : null"
+          (pointerdown)="startDrag($event, tab, d, area)"
+        ></div>
+      }
+    }
+  </div>
+  @if (closing(); as tabs) {
+    <app-confirm-dialog
+      [heading]="t('sessions.closeTabTitle')"
+      [message]="t('sessions.closeTabMessage')"
+      [confirmLabel]="t('sessions.closeTab')"
+      [danger]="true"
+      (confirmed)="confirmClose()"
+      (cancelled)="closing.set(null)"
+    />
+  }
+</ng-container>

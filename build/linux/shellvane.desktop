@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Shellvane
+Comment=SSH, SFTP and tunnel manager
+Exec=shellvane %u
+Icon=shellvane
+Categories=Network;RemoteAccess;Development;
+Terminal=false
+StartupNotify=false
+StartupWMClass=shellvane
+MimeType=x-scheme-handler/ssh;x-scheme-handler/sftp;

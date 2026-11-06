@@ -1,0 +1,8 @@
+{
+  "name": "Paper",
+  "background": "#F4EEDF", "foreground": "#3A332A", "cursorColor": "#8B4A2B", "selectionBackground": "#E2D6B8",
+  "black": "#3A332A", "red": "#A8342A", "green": "#466E22", "yellow": "#8C6500",
+  "blue": "#2F5D8C", "purple": "#7D3F7A", "cyan": "#2E7672", "white": "#D9CFB8",
+  "brightBlack": "#6B6152", "brightRed": "#BF4A3E", "brightGreen": "#5F8F33", "brightYellow": "#A37800",
+  "brightBlue": "#3F72A6", "brightPurple": "#94508F", "brightCyan": "#3A8C87", "brightWhite": "#FFFDF7"
+}

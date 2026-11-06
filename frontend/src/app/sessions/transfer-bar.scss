@@ -1,0 +1,43 @@
+:host {
+  display: contents;
+}
+
+.transfer {
+  position: absolute;
+  z-index: 7;
+  inset-inline: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  background: var(--bg);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 20%);
+
+  .name {
+    flex: 1 1 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  progress {
+    flex: 1 1 160px;
+  }
+
+  .link {
+    border: 0;
+    color: var(--accent);
+    background: none;
+    cursor: pointer;
+    word-break: break-all;
+  }
+}
+
+.error {
+  color: var(--danger);
+}

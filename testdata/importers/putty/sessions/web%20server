@@ -1,0 +1,5 @@
+HostName=root@web.example.org
+PortNumber=2222
+Protocol=ssh
+PortForwardings=L8080=localhost:80,4R9000=127.0.0.1:3000,D1080,Lbad
+PublicKeyFile=C:\keys\web.ppk

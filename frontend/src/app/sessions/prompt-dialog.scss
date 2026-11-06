@@ -1,0 +1,52 @@
+.info {
+  margin: 0;
+  line-height: 1.5;
+}
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+dt {
+  color: var(--text-muted);
+}
+dd {
+  margin: 0;
+}
+.hint.fingerprint,
+.fingerprint {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  word-break: break-all;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instruction {
+  white-space: pre-wrap;
+}
+.vault-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+
+  .btn {
+    align-self: flex-start;
+  }
+}

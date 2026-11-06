@@ -1,0 +1,13 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "MySQL and MariaDB", "name": "Connect", "body": "mysql -h {{host}} -u {{user}} -p {{database}}", "run": true},
+    {"folder": "MySQL and MariaDB", "name": "Running queries", "body": "mysql -e 'SHOW FULL PROCESSLIST;'", "run": true},
+    {"folder": "MySQL and MariaDB", "name": "Databases and sizes", "body": "mysql -e \"SELECT table_schema, ROUND(SUM(data_length + index_length)/1024/1024, 1) AS mb FROM information_schema.tables GROUP BY table_schema ORDER BY mb DESC;\"", "run": true},
+    {"folder": "MySQL and MariaDB", "name": "InnoDB status", "body": "mysql -e 'SHOW ENGINE INNODB STATUS\\G' | less", "run": true},
+    {"folder": "MySQL and MariaDB", "name": "Replica status", "body": "mysql -e 'SHOW REPLICA STATUS\\G'", "run": true},
+    {"folder": "MySQL and MariaDB", "name": "Kill a query", "body": "mysql -e 'KILL {{id}};'", "run": false},
+    {"folder": "MySQL and MariaDB", "name": "Dump a database", "body": "mysqldump --single-transaction --routines {{database}} | gzip > {{database}}-{{date}}.sql.gz", "run": false}
+  ]
+}

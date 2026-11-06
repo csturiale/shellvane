@@ -1,0 +1,8 @@
+{
+  "name": "High Contrast Dark",
+  "background": "#000000", "foreground": "#FFFFFF", "cursorColor": "#FFD400", "selectionBackground": "#1F4FA8",
+  "black": "#000000", "red": "#FF6E6E", "green": "#4DF07A", "yellow": "#FFE14D",
+  "blue": "#6CB6FF", "purple": "#FF8CFF", "cyan": "#4DF0F0", "white": "#E6E6E6",
+  "brightBlack": "#A6A6A6", "brightRed": "#FF8A8A", "brightGreen": "#8AFFA6", "brightYellow": "#FFF08A",
+  "brightBlue": "#A3D1FF", "brightPurple": "#FFB3FF", "brightCyan": "#8AFFFF", "brightWhite": "#FFFFFF"
+}

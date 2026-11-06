@@ -1,0 +1,19 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Kubernetes", "name": "Pods not running", "body": "kubectl get pods -A --field-selector=status.phase!=Running", "run": true},
+    {"folder": "Kubernetes", "name": "Recent events", "body": "kubectl get events -A --sort-by=.lastTimestamp | tail -30", "run": true},
+    {"folder": "Kubernetes", "name": "Node usage", "body": "kubectl top nodes", "run": true},
+    {"folder": "Kubernetes", "name": "Restart a deployment", "body": "kubectl rollout restart deployment/", "run": false},
+    {"folder": "Kubernetes", "name": "Follow a pod's logs", "body": "kubectl logs -f --tail=200 ", "run": false},
+    {"folder": "Kubernetes", "name": "Current context and namespace", "body": "kubectl config current-context && kubectl config view --minify -o jsonpath='{..namespace}'; echo", "run": true},
+    {"folder": "Kubernetes", "name": "Switch namespace", "body": "kubectl config set-context --current --namespace={{namespace}}", "run": false},
+    {"folder": "Kubernetes", "name": "Describe a pod", "body": "kubectl describe pod {{pod}}", "run": true},
+    {"folder": "Kubernetes", "name": "Logs of the previous crash", "body": "kubectl logs --previous --tail=200 {{pod}}", "run": true},
+    {"folder": "Kubernetes", "name": "Shell in a pod", "body": "kubectl exec -it {{pod}} -- sh", "run": true},
+    {"folder": "Kubernetes", "name": "Pods by memory", "body": "kubectl top pods -A --sort-by=memory | head -20", "run": true},
+    {"folder": "Kubernetes", "name": "Rollout status", "body": "kubectl rollout status deployment/{{deployment}}", "run": true},
+    {"folder": "Kubernetes", "name": "Port-forward to a service", "body": "kubectl port-forward svc/{{service}} {{local}}:{{remote}}", "run": true}
+  ]
+}

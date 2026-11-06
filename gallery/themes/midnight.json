@@ -1,0 +1,8 @@
+{
+  "name": "Midnight",
+  "background": "#0B1020", "foreground": "#C8D3F5", "cursorColor": "#82AAFF", "selectionBackground": "#24305A",
+  "black": "#0B1020", "red": "#FF7A93", "green": "#9DDB7F", "yellow": "#FFC777",
+  "blue": "#82AAFF", "purple": "#C099FF", "cyan": "#7FDBCA", "white": "#C8D3F5",
+  "brightBlack": "#7380AA", "brightRed": "#FF9EB0", "brightGreen": "#BDEBA6", "brightYellow": "#FFD8A1",
+  "brightBlue": "#A8C4FF", "brightPurple": "#D6BDFF", "brightCyan": "#A6EBDF", "brightWhite": "#FFFFFF"
+}

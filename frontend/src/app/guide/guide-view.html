@@ -1,0 +1,58 @@
+<div *transloco="let t" class="guide">
+  <aside>
+    <label class="search">
+      <svg lucideSearch [size]="14" aria-hidden="true"></svg>
+      <input type="search" [placeholder]="t('guide.search')" [attr.aria-label]="t('guide.search')" [value]="query()" (input)="onSearch($event)" />
+    </label>
+    @if (query()) {
+      <ul class="results" [attr.aria-label]="t('guide.results')">
+        @for (r of results(); track r.topic + r.anchor) {
+          <li>
+            <button type="button" (click)="open(r)">
+              <strong>{{ r.title }}</strong>
+              <span class="topic">{{ t('guide.topics.' + r.topic) }}</span>
+              <span class="excerpt">{{ excerpt(r, query()) }}</span>
+            </button>
+          </li>
+        } @empty {
+          <li class="empty">{{ t('guide.noResults') }}</li>
+        }
+      </ul>
+    } @else {
+      <nav [attr.aria-label]="t('guide.title')">
+        @for (id of topics; track id) {
+          <button type="button" [class.active]="nav.guideTopic().topic === id" [attr.aria-current]="nav.guideTopic().topic === id ? 'page' : null" (click)="open({ topic: id, anchor: '' })">
+            {{ t('guide.topics.' + id) }}
+          </button>
+        }
+      </nav>
+    }
+  </aside>
+
+  <main #content>
+    @if (nav.guideTopic().topic === 'getting-started') {
+      <section class="checklist" [attr.aria-label]="t('guide.checklist')">
+        <h2>
+          {{ t('guide.checklist') }} <span class="count">{{ t('guide.progress', { done: doneCount(), total: steps().length }) }}</span>
+          <button type="button" class="try" (click)="nav.tour.set(true)">{{ t('tour.restart') }}</button>
+        </h2>
+        <ul>
+          @for (s of steps(); track s.id) {
+            <li [class.done]="s.done">
+              @if (s.done) {
+                <svg lucideCircleCheck [size]="16" aria-hidden="true"></svg>
+              } @else {
+                <svg lucideCircle [size]="16" aria-hidden="true"></svg>
+              }
+              <span>{{ t('guide.steps.' + s.id) }}</span>
+              @if (!s.done) {
+                <button type="button" class="try" (click)="run(s.action)">{{ t('guide.tryIt') }}</button>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+    <article class="markdown" [innerHTML]="html()" (click)="onClick($event)"></article>
+  </main>
+</div>

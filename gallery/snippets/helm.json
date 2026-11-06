@@ -1,0 +1,12 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Helm", "name": "Releases in all namespaces", "body": "helm list -A", "run": true},
+    {"folder": "Helm", "name": "Release history", "body": "helm history {{release}} -n {{namespace}}", "run": true},
+    {"folder": "Helm", "name": "Values of a release", "body": "helm get values {{release}} -n {{namespace}}", "run": true},
+    {"folder": "Helm", "name": "Preview an upgrade", "body": "helm diff upgrade {{release}} {{chart}} -n {{namespace}} -f {{values}} 2>/dev/null || helm template {{release}} {{chart}} -n {{namespace}} -f {{values}} | less", "run": true},
+    {"folder": "Helm", "name": "Upgrade or install", "body": "helm upgrade --install {{release}} {{chart}} -n {{namespace}} -f {{values}}", "run": false},
+    {"folder": "Helm", "name": "Roll back", "body": "helm rollback {{release}} {{revision}} -n {{namespace}}", "run": false}
+  ]
+}

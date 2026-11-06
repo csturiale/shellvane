@@ -1,0 +1,24 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('snippets.runTitle', { name: snippet().name })" (closed)="closed.emit()">
+    <form id="run-form" class="form" (ngSubmit)="run.emit(values)">
+      @for (v of variables(); track v.name; let first = $first) {
+        <label class="field">
+          <span>{{ v.name }}</span>
+          @if (v.choices.length > 0) {
+            <select [name]="v.name" [(ngModel)]="values[v.name]">
+              @for (c of v.choices; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          } @else {
+            <input [name]="v.name" spellcheck="false" [autofocus]="first" [(ngModel)]="values[v.name]" />
+          }
+        </label>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="run-form" class="btn primary">{{ t('snippets.run') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

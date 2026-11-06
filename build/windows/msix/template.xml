@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MsixPackagingToolTemplate
+    xmlns="http://schemas.microsoft.com/msix/packaging/msixpackagingtool/template/2022">
+    <Settings
+        AllowTelemetry="false"
+        ApplyACLsToPackageFiles="true"
+        GenerateCommandLineFile="true"
+        AllowPromptForPassword="false">
+    </Settings>
+    <Installer
+        Path="shellvane"
+        Arguments=""
+        InstallLocation="C:\Program Files\Shellvane\Shellvane">
+    </Installer>
+    <PackageInformation
+        PackageName="Shellvane"
+        PackageDisplayName="Shellvane"
+        PublisherName="CN=Shellvane"
+        PublisherDisplayName="Shellvane"
+        Version="0.1.0.0"
+        PackageDescription="A shellvane application">
+        <Capabilities>
+            <Capability Name="runFullTrust" />
+            
+        </Capabilities>
+        <Applications>
+            <Application
+                Id="com.example.shellvane"
+                Description="A shellvane application"
+                DisplayName="Shellvane"
+                ExecutableName="shellvane"
+                EntryPoint="Windows.FullTrustApplication">
+                
+            </Application>
+        </Applications>
+        <Resources>
+            <Resource Language="en-us" />
+        </Resources>
+        <Dependencies>
+            <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+        </Dependencies>
+        <Properties>
+            <Framework>false</Framework>
+            <DisplayName>Shellvane</DisplayName>
+            <PublisherDisplayName>Shellvane</PublisherDisplayName>
+            <Description>A shellvane application</Description>
+            <Logo>Assets\AppIcon.png</Logo>
+        </Properties>
+    </PackageInformation>
+    <SaveLocation PackagePath="shellvane.msix" />
+    <PackageIntegrity>
+        <CertificatePath></CertificatePath>
+    </PackageIntegrity>
+</MsixPackagingToolTemplate>

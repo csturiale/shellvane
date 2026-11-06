@@ -1,0 +1,13 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Azure CLI", "name": "Current account", "body": "az account show -o table", "run": true},
+    {"folder": "Azure CLI", "name": "Switch subscription", "body": "az account set --subscription {{subscription}}", "run": false},
+    {"folder": "Azure CLI", "name": "Virtual machines", "body": "az vm list -d -o table", "run": true},
+    {"folder": "Azure CLI", "name": "Resource groups", "body": "az group list -o table", "run": true},
+    {"folder": "Azure CLI", "name": "AKS: get credentials", "body": "az aks get-credentials -g {{group}} -n {{cluster}}", "run": false},
+    {"folder": "Azure CLI", "name": "Web app logs", "body": "az webapp log tail -g {{group}} -n {{app}}", "run": true},
+    {"folder": "Azure CLI", "name": "Bastion SSH", "body": "az network bastion ssh -n {{bastion}} -g {{group}} --target-resource-id {{vm}} --auth-type AAD", "run": true}
+  ]
+}

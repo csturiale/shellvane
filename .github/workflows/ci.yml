@@ -1,0 +1,71 @@
+name: CI
+
+# Linux runs on every push to master and to pull requests. Windows and macOS
+# runners cost several times more (2x and 10x on private repositories), so
+# they run only by hand (workflow_dispatch) or on a pull request labeled
+# "full-ci".
+on:
+  push:
+    branches: [master]
+    paths-ignore: ['docs/**', 'README.md', 'LICENSE']
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths-ignore: ['docs/**', 'README.md', 'LICENSE']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push cancels the run still going for the same branch.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test (${{ matrix.os }})
+    # Adding any other label must not start a run.
+    if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON((github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'full-ci')) && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      # app/ imports Wails, which links GTK and WebKitGTK on Linux.
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+      - name: Frontend checks
+        if: runner.os == 'Linux'
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run i18n:check
+          npm test
+      - run: go vet ./core/... ./app/... ./cmd/...
+      - run: go test ./core/... ./app/... ./cmd/...
+      - if: runner.os == 'Linux'
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./core/... ./app/... ./cmd/...
+      # The desktop build also builds the frontend (and checks its budget).
+      - run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
+      - run: wails3 build
+        env:
+          VERSION: dev
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shellvane-${{ runner.os }}
+          path: bin/
+          if-no-files-found: error

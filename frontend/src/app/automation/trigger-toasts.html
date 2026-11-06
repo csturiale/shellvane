@@ -1,0 +1,15 @@
+<div *transloco="let t" class="stack" aria-live="polite">
+  @for (toast of toasts(); track toast.id) {
+    <div class="toast" [class]="toast.kind" role="status">
+      <button type="button" class="body" (click)="reveal(toast)">
+        <strong>{{ toast.title }}</strong>
+        @if (toast.text) {
+          <code>{{ toast.text }}</code>
+        }
+      </button>
+      <button type="button" class="icon" [attr.aria-label]="t('common.close')" (click)="dismiss(toast.id)">
+        <svg lucideX [size]="14" aria-hidden="true"></svg>
+      </button>
+    </div>
+  }
+</div>

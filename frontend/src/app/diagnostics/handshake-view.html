@@ -1,0 +1,21 @@
+<div *transloco="let t" class="handshake">
+  <ol class="steps">
+    @for (e of handshake().events; track $index) {
+      <li [class.bad]="e.step === 'error' || e.step === 'authFailed'" [class.good]="e.step === 'authenticated'">
+        <span class="ms">+{{ e.ms }} ms</span>
+        <span class="step">{{ t('diagnostics.steps.' + e.step) }}</span>
+        <span class="detail">
+          @for (d of details(e); track d[0]) {
+            <span><span class="key">{{ d[0] }}</span><code>{{ d[1] }}</code></span>
+          }
+        </span>
+      </li>
+    } @empty {
+      <li class="empty">{{ t('diagnostics.noSteps') }}</li>
+    }
+  </ol>
+  <div class="actions">
+    <button type="button" class="btn small" (click)="copy()">{{ t(copied() ? 'diagnostics.copied' : 'diagnostics.copyReport') }}</button>
+    <small>{{ t('diagnostics.reportHint') }}</small>
+  </div>
+</div>

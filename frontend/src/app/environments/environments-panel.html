@@ -1,0 +1,174 @@
+<section *transloco="let t" class="panel">
+  <header>
+    <h2>{{ t('environments.title') }} <app-help-link topic="environments" /></h2>
+    <span class="actions-head">
+      <button type="button" class="icon" [attr.aria-label]="t('environments.import')" [title]="t('environments.import')" (click)="importing.set(true)">
+        <svg lucideUpload [size]="16" aria-hidden="true"></svg>
+      </button>
+      <button type="button" class="icon" [attr.aria-label]="t('environments.new')" [title]="t('environments.new')" (click)="editing.set('new')">
+        <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+      </button>
+    </span>
+  </header>
+
+  @if (message(); as m) {
+    <p class="message" role="status">{{ m }}</p>
+  }
+
+  <div class="list">
+    @for (env of store.list(); track env.id) {
+      @let run = store.runOf(env.id);
+      <div class="env" [class.running]="!!run">
+        <div class="row">
+          @if (run) {
+            <button type="button" class="icon" [attr.aria-label]="t('environments.stopNamed', { name: env.name })" [title]="t('environments.stop')" (click)="store.stop(env.id)">
+              <svg lucideSquare [size]="14" aria-hidden="true"></svg>
+            </button>
+          } @else {
+            <button type="button" class="icon play" [attr.aria-label]="t('environments.startNamed', { name: env.name })" [title]="t('environments.start')" (click)="start(env)">
+              <svg lucidePlay [size]="14" aria-hidden="true"></svg>
+            </button>
+          }
+          <div class="text">
+            <span class="name">{{ env.name }}</span>
+            @if (env.remote.hostId) {
+              <span class="detail">{{ t('environments.via', { host: hostNames().get(env.remote.hostId) ?? '?' }) }}</span>
+            }
+            @if (env.description) {
+              <span class="detail">{{ env.description }}</span>
+            }
+          </div>
+          <span class="actions">
+            @if (sharing.button; as c) {
+              <ng-container *ngComponentOutlet="c; inputs: { kind: 'environment', localId: env.id, name: env.name, onFailed: shareFailed }" />
+            }
+            @if (run && store.stateOf(env.id) !== 'starting') {
+              <button type="button" class="icon" [attr.aria-label]="t('environments.newTerminalNamed', { name: env.name })" [title]="t('environments.newTerminal')" (click)="store.openTerminal(env.id)">
+                <svg lucideSquareTerminal [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
+            <button type="button" class="icon" [attr.aria-label]="t('environments.exportNamed', { name: env.name })" [title]="t('environments.export')" (click)="exportEnv(env)">
+              <svg lucideCopy [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.editItem', { name: env.name })" [title]="t('hosts.actions.edit')" (click)="editing.set(env)">
+              <svg lucidePencil [size]="14" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="t('hosts.actions.deleteItem', { name: env.name })" [title]="t('hosts.actions.delete')" (click)="deleting.set(env)">
+              <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+            </button>
+          </span>
+        </div>
+        @if (run?.loginExpired; as detail) {
+          <p class="expired">
+            <span class="error">{{ t('environments.loginExpired', { detail }) }}</span>
+            <button type="button" class="retry" (click)="store.resume(env.id)">{{ t('environments.resume') }}</button>
+          </p>
+        }
+        @if (run) {
+          <ol class="steps">
+            @for (s of run.steps; track s.id) {
+              @if (s.state !== 'skipped') {
+                <li [class]="s.state">
+                  <span class="dot" aria-hidden="true"></span>
+                  <span>{{ t('environments.steps.' + s.id) }} — {{ t('environments.states.' + s.state) }}</span>
+                  @if (s.state === 'running') {
+                    <span class="activity">
+                      @if (s.activity; as a) {
+                        {{ t(a.key, a.params) }}
+                      }
+                      @if (s.since) {
+                        <span class="elapsed">{{ t('environments.elapsed', { seconds: elapsed(s.since) }) }}</span>
+                      }
+                    </span>
+                  }
+                  @if (s.state === 'running' && s.id === 'login' && (s.waiting || s.activity?.key === 'environments.activity.loggingIn')) {
+                    @if (s.waiting) {
+                      <span class="waiting">{{ t('environments.checkFails', { detail: s.waiting }) }}</span>
+                    }
+                    <button type="button" class="retry" (click)="store.continueWithoutLogin(env.id)">{{ t('environments.continueWithoutCheck') }}</button>
+                  }
+                  @if (s.error; as e) {
+                    <span class="error">{{ t(e.key, e.params) }}</span>
+                    @if (e.key === 'errors.environments.reviewNeeded') {
+                      <button type="button" class="retry" (click)="reviewing.set(env)">{{ t('team.share.reviewCommands') }}</button>
+                    } @else {
+                      <button type="button" class="retry" (click)="start(env, s.id)">{{ t('environments.retryFrom') }}</button>
+                    }
+                  }
+                </li>
+              }
+            }
+          </ol>
+        }
+      </div>
+    } @empty {
+      <div class="empty">
+        <svg lucideLayers [size]="32" aria-hidden="true"></svg>
+        <p>{{ t('environments.empty') }}</p>
+        <button type="button" class="btn primary" (click)="editing.set('new')">{{ t('environments.new') }}</button>
+      </div>
+    }
+  </div>
+
+  @if (reviewing(); as r) {
+    @if (sharing.review; as c) {
+      <ng-container *ngComponentOutlet="c; inputs: { kind: 'environment', localId: r.id, onClosed: closeReview, onApproved: approveReview }" />
+    }
+  }
+
+  @if (editing(); as e) {
+    <app-environment-dialog [environment]="e === 'new' ? null : e" (closed)="editing.set(null)" />
+  }
+
+  @if (asking(); as a) {
+    <app-modal [heading]="t('environments.variablesTitle', { name: a.env.name })" (closed)="asking.set(null)">
+      <form id="vars-form" class="form" (ngSubmit)="confirmValues()">
+        @for (v of a.env.variables ?? []; track v.name) {
+          <label class="field">
+            <span>{{ v.name }}</span>
+            @if (v.choices?.length) {
+              <select [name]="v.name" [(ngModel)]="values[v.name]">
+                @for (c of v.choices; track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            } @else {
+              <input [name]="v.name" spellcheck="false" [(ngModel)]="values[v.name]" />
+            }
+          </label>
+        }
+      </form>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="asking.set(null)">{{ t('common.cancel') }}</button>
+        <button type="submit" form="vars-form" class="btn primary">{{ t('environments.start') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+
+  @if (importing()) {
+    <app-modal [heading]="t('environments.import')" (closed)="importing.set(false)">
+      <form id="import-env-form" class="form" (ngSubmit)="doImport()">
+        <label class="field">
+          <span>{{ t('environments.importLabel') }}</span>
+          <textarea name="yaml" rows="12" class="mono" spellcheck="false" [(ngModel)]="importText"></textarea>
+        </label>
+        <p class="hint">{{ t('environments.importHint') }}</p>
+      </form>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="importing.set(false)">{{ t('common.cancel') }}</button>
+        <button type="submit" form="import-env-form" class="btn primary">{{ t('environments.importSubmit') }}</button>
+      </ng-container>
+    </app-modal>
+  }
+
+  @if (deleting(); as e) {
+    <app-confirm-dialog
+      [heading]="t('environments.deleteTitle')"
+      [message]="t('environments.deleteMessage', { name: e.name })"
+      [confirmLabel]="t('hosts.actions.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</section>

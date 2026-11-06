@@ -1,0 +1,154 @@
+@if (prompt(); as p) {
+  <ng-container *transloco="let t">
+    @if (p.kind === 'password' || p.kind === 'passphrase' || p.kind === 'pin') {
+      <app-modal [heading]="t('sessions.' + p.kind + '.title')" (closed)="cancel()">
+        <form id="password-form" class="form" (ngSubmit)="submitPassword()">
+          <p class="info">
+            @if (p.kind === 'password') {
+              {{ t('sessions.password.for', { user: p.target.user, host: p.target.host, title: store.titleOf(p.sessionId) || p.target.host }) }}
+            } @else if (p.kind === 'pin') {
+              {{ t('sessions.pin.for', { token: p.key?.path, title: store.titleOf(p.sessionId) || p.target.host }) }}
+            } @else {
+              {{ t('sessions.passphrase.for', { path: p.key?.path, title: store.titleOf(p.sessionId) || p.target.host }) }}
+            }
+          </p>
+          @if (p.kind === 'passphrase' || p.kind === 'pin') {
+            <p class="hint fingerprint">{{ p.key?.fingerprint }}</p>
+          }
+          @if (p.attempt > 1) {
+            <p class="error" role="alert">{{ t('sessions.' + p.kind + '.retry') }}</p>
+          }
+          <label class="field">
+            <span>{{ t('sessions.' + p.kind + '.label') }}</span>
+            <input name="password" type="password" autocomplete="off" autofocus [(ngModel)]="password" />
+          </label>
+          @if (!vault.neverSave() && vault.state() !== null) {
+            @let state = vault.state();
+            <label class="check">
+              <input name="save" type="checkbox" [(ngModel)]="save" />
+              {{ t(state === 'notSetUp' ? 'sessions.saveCreateVault' : 'sessions.saveInVault') }}
+            </label>
+            @if (save && state === 'locked') {
+              <div class="vault-inline">
+                @if (vault.hasKeychain()) {
+                  <button type="button" class="btn small" (click)="unlockWithKeychain()">{{ t('sessions.unlockKeychain') }}</button>
+                }
+                <label class="field">
+                  <span>{{ t('sessions.unlockToSave') }}</span>
+                  <input name="master" type="password" autocomplete="current-password" [(ngModel)]="master" />
+                </label>
+              </div>
+            } @else if (save && state === 'notSetUp') {
+              <div class="vault-inline">
+                <p class="hint">{{ t('sessions.createVaultHint') }}</p>
+                <label class="field">
+                  <span>{{ t('vault.master') }}</span>
+                  <input name="master" type="password" autocomplete="new-password" [(ngModel)]="master" />
+                </label>
+                <label class="field">
+                  <span>{{ t('vault.confirm') }}</span>
+                  <input name="confirm" type="password" autocomplete="new-password" [(ngModel)]="confirm" />
+                </label>
+              </div>
+            }
+            @if (vaultError(); as e) {
+              <p class="error" role="alert">{{ e }}</p>
+            }
+          }
+        </form>
+        <ng-container modal-actions>
+          <button type="button" class="btn" (click)="cancel()">{{ t('common.cancel') }}</button>
+          <button type="submit" form="password-form" class="btn primary">{{ t('sessions.password.submit') }}</button>
+        </ng-container>
+      </app-modal>
+    } @else if (p.kind === 'vaultUnlock') {
+      <app-modal [heading]="t('sessions.vaultUnlock.title')" (closed)="cancel()">
+        <form id="unlock-form" class="form" (ngSubmit)="submitPassword()">
+          <p class="info">{{ t('sessions.vaultUnlock.intro', { title: store.titleOf(p.sessionId) || p.target.host }) }}</p>
+          @if (p.attempt > 1) {
+            <p class="error" role="alert">{{ t('errors.vault.wrongPassword') }}</p>
+          }
+          <label class="field">
+            <span>{{ t('vault.master') }}</span>
+            <input name="master" type="password" autocomplete="current-password" autofocus [(ngModel)]="password" />
+          </label>
+        </form>
+        <ng-container modal-actions>
+          <button type="button" class="btn" (click)="cancel()">{{ t('sessions.vaultUnlock.skip') }}</button>
+          <button type="submit" form="unlock-form" class="btn primary">{{ t('vault.unlock') }}</button>
+        </ng-container>
+      </app-modal>
+    } @else if (p.kind === 'challenge' && p.challenge; as c) {
+      <app-modal [heading]="t('sessions.challenge.title')" (closed)="cancel()">
+        <form id="challenge-form" class="form" (ngSubmit)="submitChallenge()">
+          <p class="info">{{ t('sessions.challenge.for', { user: p.target.user, host: p.target.host, title: store.titleOf(p.sessionId) || p.target.host }) }}</p>
+          @if (c.name) {
+            <p class="info"><strong>{{ c.name }}</strong></p>
+          }
+          @if (c.instruction) {
+            <p class="hint instruction">{{ c.instruction }}</p>
+          }
+          @if (p.attempt > 1) {
+            <p class="hint">{{ t('sessions.challenge.round', { n: p.attempt }) }}</p>
+          }
+          @for (q of c.questions ?? []; track $index; let i = $index) {
+            <label class="field">
+              <span>{{ q }}</span>
+              @if (p.autofilled?.[i]) {
+                <input [name]="'answer' + i" type="text" disabled [value]="t('sessions.challenge.autofilled')" />
+              } @else {
+                <input
+                  [name]="'answer' + i"
+                  [type]="c.echo?.[i] ? 'text' : 'password'"
+                  autocomplete="one-time-code"
+                  [autofocus]="i === firstOpen()"
+                  [(ngModel)]="answers[i]"
+                />
+              }
+            </label>
+          }
+        </form>
+        <ng-container modal-actions>
+          <button type="button" class="btn" (click)="cancel()">{{ t('common.cancel') }}</button>
+          <button type="submit" form="challenge-form" class="btn primary">{{ t('sessions.password.submit') }}</button>
+        </ng-container>
+      </app-modal>
+    } @else if (p.kind === 'agentSign' && p.sign; as sign) {
+      <app-modal [heading]="t('sessions.agentSign.title')" (closed)="decide('reject')">
+        <div class="form">
+          <p class="info">{{ sign.local ? t('sessions.agentSign.localIntro') : t('sessions.agentSign.intro', { title: store.titleOf(p.sessionId) || '?' }) }}</p>
+          <dl>
+            <dt>{{ t('sessions.agentSign.key') }}</dt>
+            <dd>{{ sign.comment || '—' }}</dd>
+            <dt>{{ t('sessions.hostKey.fingerprint') }}</dt>
+            <dd class="fingerprint">{{ sign.fingerprint }}</dd>
+          </dl>
+          <p class="hint">{{ t('sessions.agentSign.warning') }}</p>
+        </div>
+        <ng-container modal-actions>
+          <button type="button" class="btn" (click)="decide('reject')">{{ t('sessions.agentSign.reject') }}</button>
+          <button type="button" class="btn" (click)="decide('session')">{{ t(sign.local ? 'sessions.agentSign.sessionLocal' : 'sessions.agentSign.session') }}</button>
+          <button type="button" class="btn primary" (click)="decide('once')">{{ t('sessions.agentSign.once') }}</button>
+        </ng-container>
+      </app-modal>
+    } @else if (p.hostKey; as key) {
+      <app-modal [heading]="t('sessions.hostKey.title')" (closed)="decide('reject')">
+        <div class="form">
+          <p class="info">{{ t('sessions.hostKey.intro', { host: key.host, port: key.port }) }}</p>
+          <dl>
+            <dt>{{ t('sessions.hostKey.type') }}</dt>
+            <dd>{{ key.keyType }}</dd>
+            <dt>{{ t('sessions.hostKey.fingerprint') }}</dt>
+            <dd class="fingerprint">{{ key.fingerprint }}</dd>
+          </dl>
+          <p class="hint">{{ t('sessions.hostKey.verify') }}</p>
+        </div>
+        <ng-container modal-actions>
+          <button type="button" class="btn" (click)="decide('reject')">{{ t('sessions.hostKey.reject') }}</button>
+          <button type="button" class="btn" (click)="decide('once')">{{ t('sessions.hostKey.once') }}</button>
+          <button type="button" class="btn primary" (click)="decide('save')">{{ t('sessions.hostKey.save') }}</button>
+        </ng-container>
+      </app-modal>
+    }
+  </ng-container>
+}

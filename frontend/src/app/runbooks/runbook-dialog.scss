@@ -1,0 +1,75 @@
+fieldset {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  font-weight: 600;
+}
+.pick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-height: 180px;
+  overflow: auto;
+
+  h4 {
+    margin: 0 0 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  input:not([type='checkbox']) {
+    flex: 1;
+    min-width: 0;
+  }
+  select {
+    min-width: 0;
+  }
+}
+.check,
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.inline input {
+  width: 70px;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--surface);
+}
+.num {
+  width: 20px;
+  color: var(--text-muted);
+}
+.options {
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}

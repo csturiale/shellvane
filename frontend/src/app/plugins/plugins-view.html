@@ -1,0 +1,198 @@
+<div *transloco="let t" class="page">
+  <aside>
+    <header>
+      <h1><svg lucidePuzzle [size]="16" aria-hidden="true"></svg> {{ t('plugins.title') }} <app-help-link topic="plugins" /></h1>
+      <button type="button" class="icon" [attr.aria-label]="t('plugins.add')" [title]="t('plugins.add')" (click)="showCatalog()">
+        <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+      </button>
+    </header>
+    <ul>
+      @for (c of configs(); track c.id) {
+        <li>
+          <button type="button" class="config" [class.selected]="draft()?.id === c.id" (click)="edit(c)">
+            <strong>{{ c.name }}</strong>
+            <small>{{ pluginOf(c)?.name ?? c.pluginId }} · {{ c.lastSync ? t('plugins.syncedAt', { time: lastSync(c) }) : t('plugins.never') }}</small>
+          </button>
+        </li>
+      } @empty {
+        <li class="empty">{{ t('plugins.none') }}</li>
+      }
+    </ul>
+  </aside>
+
+  <section class="detail">
+    @if (draft(); as d) {
+      @let p = plugin();
+      <form class="form" (ngSubmit)="save()">
+        <h2>{{ p?.name ?? d.pluginId }}</h2>
+        <p class="hint">{{ text(p, p?.description ?? '') }}</p>
+        @if (p?.missing?.length) {
+          <p class="warning" role="alert">{{ t('plugins.missing', { tools: p!.missing!.join(', ') }) }}</p>
+        }
+        <label class="field">
+          <span>{{ t('plugins.name') }}</span>
+          <input name="name" [(ngModel)]="d.name" required />
+        </label>
+        @for (s of p?.settings ?? []; track s.key) {
+          <label class="field">
+            <span>{{ text(p, s.label) }}@if (s.required) { *}</span>
+            @if (s.secret) {
+              <input
+                type="password"
+                autocomplete="off"
+                [name]="'secret-' + s.key"
+                [(ngModel)]="d.secrets[s.key]"
+                [placeholder]="secretSet(s.key) ? t('plugins.secretSet') : t('plugins.secretHint')"
+              />
+            } @else {
+              <input spellcheck="false" class="mono" [name]="'setting-' + s.key" [(ngModel)]="d.settings[s.key]" [placeholder]="s.placeholder" />
+            }
+          </label>
+        }
+        <p class="hint">{{ t('plugins.syncHint') }}</p>
+        @if (message(); as m) {
+          <p class="ok" role="status">{{ m }}</p>
+        }
+        @if (error(); as e) {
+          <p class="error" role="alert">{{ e }}</p>
+        }
+        <div class="actions">
+          @if (saved(); as c) {
+            <button type="button" class="btn danger" (click)="deleting.set(c)">
+              <svg lucideTrash2 [size]="14" aria-hidden="true"></svg> {{ t('plugins.delete') }}
+            </button>
+          }
+          <span class="spacer"></span>
+          <button type="submit" class="btn" [disabled]="busy()">{{ t('plugins.save') }}</button>
+          @if (p?.capabilities?.includes('inventory')) {
+            <button type="button" class="btn primary" [disabled]="busy()" (click)="sync()">
+              <svg lucideRefreshCw [size]="14" aria-hidden="true"></svg> {{ t(busy() ? 'plugins.syncing' : 'plugins.sync') }}
+            </button>
+          }
+        </div>
+      </form>
+    } @else {
+      <h2>{{ t('plugins.catalog') }}</h2>
+      <p class="hint">{{ t('plugins.intro') }}</p>
+      @if (message(); as m) {
+        <p class="ok" role="status">{{ m }}</p>
+      }
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ e }}</p>
+      }
+
+      <h3>{{ t('plugins.store.builtIn') }}</h3>
+      <div class="catalog">
+        @for (p of builtIns(); track p.id) {
+          <div class="card" [class.installed]="p.installed">
+            <strong>{{ p.name }}</strong>
+            <span>{{ text(p, p.description) }}</span>
+            <small>
+              {{ (p.capabilities ?? []).map(capability).join(' · ') }}
+              @if (p.missing?.length) {
+                · <span class="missing">{{ t('plugins.missing', { tools: p.missing!.join(', ') }) }}</span>
+              }
+            </small>
+            <div class="card-actions">
+              @if (p.installed) {
+                @if (configurable(p)) {
+                  <button type="button" class="btn small primary" (click)="add(p)">{{ t('plugins.store.configure') }}</button>
+                } @else {
+                  <span class="hint">{{ t('plugins.panelOnly') }}</span>
+                }
+                <button type="button" class="btn small" [disabled]="busy()" (click)="uninstall(p)">{{ t('plugins.store.uninstall') }}</button>
+              } @else {
+                <button type="button" class="btn small primary" [disabled]="busy()" (click)="install(p)">{{ t('plugins.store.install') }}</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <h3>{{ t('plugins.store.title') }}</h3>
+      <div class="store-url">
+        <input name="storeUrl" spellcheck="false" class="mono" [attr.aria-label]="t('plugins.store.url')" [(ngModel)]="storeUrl" (keydown.enter)="loadStore()" />
+        <button type="button" class="btn small" [disabled]="storeLoading()" (click)="loadStore()">{{ t('plugins.store.load') }}</button>
+      </div>
+      @if (storeError(); as e) {
+        <p class="hint">{{ e }}</p>
+      }
+      <div class="catalog">
+        @for (s of store(); track s.id) {
+          <div class="card" [class.installed]="!!s.installedVersion">
+            <strong>{{ s.name }} <small>{{ s.version }}</small></strong>
+            <span>{{ s.description }}</span>
+            <small>
+              {{ (s.capabilities ?? []).map(capability).join(' · ') }}
+              @if (s.author) {
+                · {{ s.author }}
+              }
+              @if (s.homepage) {
+                · <a [href]="s.homepage" target="_blank" rel="noopener">{{ t('plugins.store.homepage') }}</a>
+              }
+            </small>
+            <div class="card-actions">
+              @if (s.installedVersion) {
+                @if (s.installedVersion !== s.version) {
+                  <button type="button" class="btn small primary" [disabled]="busy()" (click)="installFromStore(s.id)">{{ t('plugins.store.update', { version: s.version }) }}</button>
+                } @else {
+                  <span class="hint">{{ t('plugins.store.installed', { version: s.installedVersion }) }}</span>
+                }
+                <button type="button" class="btn small" [disabled]="busy()" (click)="uninstallId(s.id)">{{ t('plugins.store.uninstall') }}</button>
+              } @else {
+                <button type="button" class="btn small primary" [disabled]="busy()" (click)="installFromStore(s.id)">{{ t('plugins.store.install') }}</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          @if (!storeLoading() && !storeError()) {
+            <p class="hint">{{ t('plugins.store.empty') }}</p>
+          }
+        }
+      </div>
+
+      <h3>{{ t('plugins.store.external') }}</h3>
+      <div class="catalog">
+        @for (p of externals(); track p.id) {
+          <div class="card installed">
+            <strong>{{ p.name }} <small>{{ p.version }}</small></strong>
+            <span>{{ p.description }}</span>
+            <small>{{ (p.capabilities ?? []).map(capability).join(' · ') }}</small>
+            <div class="card-actions">
+              @if (configurable(p)) {
+                <button type="button" class="btn small primary" (click)="add(p)">{{ t('plugins.store.configure') }}</button>
+              }
+              <button type="button" class="btn small" [disabled]="busy()" (click)="uninstall(p)">{{ t('plugins.store.uninstall') }}</button>
+            </div>
+          </div>
+        }
+      </div>
+      <form class="store-url" (ngSubmit)="installFile()">
+        <input name="file" spellcheck="false" class="mono" [placeholder]="t('plugins.store.filePlaceholder')" [attr.aria-label]="t('plugins.store.file')" [(ngModel)]="filePath" />
+        <button type="submit" class="btn small" [disabled]="busy() || !filePath.trim()">{{ t('plugins.store.installFile') }}</button>
+      </form>
+      <p class="hint">{{ t('plugins.store.trust') }}</p>
+    }
+  </section>
+
+  @if (removing(); as p) {
+    <app-confirm-dialog
+      [heading]="t('plugins.store.uninstallTitle')"
+      [message]="t(p.builtIn ? 'plugins.store.uninstallBuiltIn' : 'plugins.store.uninstallExternal', { name: p.name })"
+      [confirmLabel]="t('plugins.store.uninstall')"
+      [danger]="true"
+      (confirmed)="confirmUninstall()"
+      (cancelled)="removing.set(null)"
+    />
+  }
+  @if (deleting(); as c) {
+    <app-confirm-dialog
+      [heading]="t('plugins.deleteTitle')"
+      [message]="t('plugins.deleteMessage', { name: c.name })"
+      [confirmLabel]="t('plugins.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="deleting.set(null)"
+    />
+  }
+</div>

@@ -1,0 +1,112 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t(runbook() ? 'runbooks.editTitle' : 'runbooks.new')" (closed)="closed.emit()">
+    <form id="runbook-form" class="form" (ngSubmit)="save()">
+      <label class="field">
+        <span>{{ t('runbooks.name') }}</span>
+        <input name="name" autofocus [(ngModel)]="model.name" placeholder="Patch web servers" />
+      </label>
+      <label class="field">
+        <span>{{ t('runbooks.description') }}</span>
+        <input name="description" [(ngModel)]="model.description" />
+      </label>
+
+      <fieldset>
+        <legend>{{ t('runbooks.targets') }} <app-help-link topic="runbooks" anchor="targets" /></legend>
+        <div class="pick">
+          <div>
+            <h4>{{ t('runbooks.groups') }}</h4>
+            @for (g of groups(); track g.id) {
+              <label class="check">
+                <input type="checkbox" [name]="'g-' + g.id" [ngModel]="model.targets.groupIds?.includes(g.id)" (ngModelChange)="toggle('groupIds', g.id, $event)" />
+                {{ g.path }}
+              </label>
+            }
+          </div>
+          <div>
+            <h4>{{ t('runbooks.hosts') }}</h4>
+            @for (h of hostList(); track h.id) {
+              <label class="check">
+                <input type="checkbox" [name]="'h-' + h.id" [ngModel]="model.targets.hostIds?.includes(h.id)" (ngModelChange)="toggle('hostIds', h.id, $event)" />
+                {{ h.name }}
+              </label>
+            }
+          </div>
+        </div>
+        <label class="field">
+          <span>{{ t('runbooks.tags') }}</span>
+          <input name="tags" spellcheck="false" [(ngModel)]="tags" placeholder="prod, web" />
+        </label>
+        <div class="row">
+          <label class="check">
+            <input name="parallel" type="checkbox" [(ngModel)]="model.parallel" />
+            {{ t('runbooks.parallel') }}
+          </label>
+          @if (model.parallel) {
+            <label class="inline">
+              {{ t('runbooks.concurrency') }}
+              <input name="concurrency" type="number" min="0" max="64" [(ngModel)]="model.concurrency" />
+            </label>
+          } @else {
+            <label class="check">
+              <input name="stopOnHostFailure" type="checkbox" [(ngModel)]="model.stopOnHostFailure" />
+              {{ t('runbooks.stopOnHostFailure') }}
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ t('runbooks.variables') }}</legend>
+        @for (v of variables; track $index; let i = $index) {
+          <div class="row">
+            <input [name]="'vn' + i" class="mono" spellcheck="false" [(ngModel)]="v.name" [placeholder]="t('environments.varName')" [attr.aria-label]="t('environments.varName')" />
+            <input [name]="'vd' + i" spellcheck="false" [(ngModel)]="v.default" [placeholder]="t('environments.varDefault')" [attr.aria-label]="t('environments.varDefault')" />
+            <input [name]="'vc' + i" spellcheck="false" [(ngModel)]="v.choices" [placeholder]="t('environments.varChoices')" [attr.aria-label]="t('environments.varChoices')" />
+            <button type="button" class="btn small" [attr.aria-label]="t('environments.removeVar')" (click)="variables.splice(i, 1)">✕</button>
+          </div>
+        }
+        <button type="button" class="btn small add" (click)="variables.push({ name: '', default: '', choices: '' })">{{ t('environments.addVar') }}</button>
+        <p class="hint">{{ hint.fill(t('runbooks.variablesHint', hint.params)) }}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ t('runbooks.steps') }} <app-help-link topic="runbooks" anchor="steps" /></legend>
+        @for (s of model.steps; track trackStep($index, s); let i = $index) {
+          <div class="step">
+            <div class="row">
+              <span class="num">{{ i + 1 }}.</span>
+              <input [name]="'sn' + i" class="mono" spellcheck="false" [(ngModel)]="s.name" [placeholder]="t('runbooks.stepName')" [attr.aria-label]="t('runbooks.stepName')" />
+              <select [name]="'sw' + i" [(ngModel)]="s.when" [attr.aria-label]="t('runbooks.when')">
+                <option value="">{{ t('runbooks.whens.always') }}</option>
+                <option value="success">{{ t('runbooks.whens.success') }}</option>
+                <option value="failure">{{ t('runbooks.whens.failure') }}</option>
+                <option value="matches">{{ t('runbooks.whens.matches') }}</option>
+              </select>
+              <button type="button" class="btn small" [attr.aria-label]="t('runbooks.up')" [disabled]="i === 0" (click)="move(i, -1)">↑</button>
+              <button type="button" class="btn small" [attr.aria-label]="t('runbooks.down')" [disabled]="i === model.steps.length - 1" (click)="move(i, 1)">↓</button>
+              <button type="button" class="btn small" [attr.aria-label]="t('runbooks.removeStep')" [disabled]="model.steps.length === 1" (click)="model.steps.splice(i, 1)">✕</button>
+            </div>
+            @if (s.when === 'matches') {
+              <input [name]="'sp' + i" class="mono" spellcheck="false" [(ngModel)]="s.pattern" [placeholder]="t('runbooks.pattern')" [attr.aria-label]="t('runbooks.pattern')" />
+            }
+            <textarea [name]="'sc' + i" rows="2" class="mono" spellcheck="false" [(ngModel)]="s.command" [placeholder]="t('runbooks.commandPlaceholder')" [attr.aria-label]="t('runbooks.command')"></textarea>
+            <div class="row options">
+              <label class="check"><input type="checkbox" [name]="'se' + i" [(ngModel)]="s.continueOnError" /> {{ t('runbooks.continueOnError') }}</label>
+              <label class="check"><input type="checkbox" [name]="'sf' + i" [(ngModel)]="s.confirm" /> {{ t('runbooks.confirm') }}</label>
+              <label class="inline">{{ t('runbooks.timeout') }} <input type="number" min="0" [name]="'st' + i" [(ngModel)]="s.timeoutSec" /></label>
+            </div>
+          </div>
+        }
+        <button type="button" class="btn small add" (click)="addStep()">{{ t('runbooks.addStep') }}</button>
+      </fieldset>
+
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="runbook-form" class="btn primary" [disabled]="saving()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

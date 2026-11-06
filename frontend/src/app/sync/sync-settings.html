@@ -1,0 +1,150 @@
+<section *transloco="let t">
+  <h2>{{ t('sync.title') }} <app-help-link topic="sync" /></h2>
+  <div class="card">
+    @if (status(); as s) {
+      @if (!s.configured) {
+        <p class="intro">{{ t('sync.intro') }}</p>
+        @if (vault.state() !== 'unlocked') {
+          <p class="hint">{{ t('sync.needVault') }}</p>
+        } @else {
+          <form class="form" (ngSubmit)="setup()">
+            <label class="field">
+              <span>{{ t('sync.kind') }}</span>
+              <select name="kind" [(ngModel)]="kind">
+                <option value="folder">{{ t('sync.kinds.folder') }}</option>
+                <option value="webdav">{{ t('sync.kinds.webdav') }}</option>
+                <option value="git">{{ t('sync.kinds.git') }}</option>
+                <option value="s3">{{ t('sync.kinds.s3') }}</option>
+              </select>
+            </label>
+            @switch (kind) {
+              @case ('folder') {
+                @if (clouds().length > 0) {
+                  <div class="field">
+                    <span>{{ t('sync.found') }}</span>
+                    <div class="clouds">
+                      @for (c of clouds(); track c.path) {
+                        <button type="button" class="btn small" [class.primary]="folder === c.path" [title]="c.path" (click)="folder = c.path">
+                          {{ t('sync.services.' + c.service) }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+                <label class="field">
+                  <span>{{ t('sync.folder') }}</span>
+                  <input name="folder" class="mono" spellcheck="false" [(ngModel)]="folder" [placeholder]="t('sync.folderPlaceholder')" />
+                </label>
+              }
+              @case ('webdav') {
+                <label class="field">
+                  <span>{{ t('sync.webdavUrl') }}</span>
+                  <input name="url" class="mono" spellcheck="false" [(ngModel)]="url" placeholder="https://cloud.example.org/remote.php/dav/files/me/Shellvane-sync/" />
+                </label>
+                <div class="row">
+                  <label class="field">
+                    <span>{{ t('sync.user') }}</span>
+                    <input name="user" autocomplete="username" spellcheck="false" [(ngModel)]="user" />
+                  </label>
+                  <label class="field">
+                    <span>{{ t('sync.password') }}</span>
+                    <input name="password" type="password" autocomplete="current-password" [(ngModel)]="password" />
+                  </label>
+                </div>
+                <p class="hint">{{ t('sync.webdavHint') }}</p>
+              }
+              @case ('s3') {
+                <label class="field">
+                  <span>{{ t('sync.s3Endpoint') }}</span>
+                  <input name="url" class="mono" spellcheck="false" [(ngModel)]="url" placeholder="https://s3.eu-west-1.amazonaws.com" />
+                </label>
+                <div class="row">
+                  <label class="field">
+                    <span>{{ t('sync.s3Bucket') }}</span>
+                    <input name="bucket" class="mono" spellcheck="false" [(ngModel)]="bucket" />
+                  </label>
+                  <label class="field">
+                    <span>{{ t('sync.s3Region') }}</span>
+                    <input name="region" class="mono" spellcheck="false" [(ngModel)]="region" placeholder="eu-west-1" />
+                  </label>
+                </div>
+                <div class="row">
+                  <label class="field">
+                    <span>{{ t('sync.s3AccessKey') }}</span>
+                    <input name="user" class="mono" autocomplete="off" spellcheck="false" [(ngModel)]="user" />
+                  </label>
+                  <label class="field">
+                    <span>{{ t('sync.s3SecretKey') }}</span>
+                    <input name="password" type="password" autocomplete="off" [(ngModel)]="password" />
+                  </label>
+                </div>
+                <p class="hint">{{ t('sync.s3Hint') }}</p>
+              }
+              @case ('git') {
+                <label class="field">
+                  <span>{{ t('sync.gitUrl') }}</span>
+                  <input name="url" class="mono" spellcheck="false" [(ngModel)]="url" placeholder="git@github.com:me/shellvane-sync.git" />
+                </label>
+                <p class="hint">{{ t('sync.gitHint') }}</p>
+              }
+            }
+            <div class="row">
+              <label class="field">
+                <span>{{ t('sync.passphrase') }}</span>
+                <input name="passphrase" type="password" autocomplete="new-password" [(ngModel)]="passphrase" />
+              </label>
+              <label class="field">
+                <span>{{ t('vault.confirm') }}</span>
+                <input name="confirm" type="password" autocomplete="new-password" [(ngModel)]="confirm" />
+              </label>
+            </div>
+            <p class="hint">{{ t('sync.passphraseHint') }}</p>
+            <div class="actions">
+              <button type="submit" class="btn primary" [disabled]="busy() || !ready()">{{ t('sync.start') }}</button>
+            </div>
+          </form>
+        }
+      } @else {
+        <div class="status-row">
+          <span>
+            <span class="badge">{{ t('sync.kinds.' + s.kind) }}</span> <strong class="mono">{{ s.folder }}</strong><br />
+            <small>{{ s.lastSync ? t('sync.last', { when: when(s.lastSync) }) : t('sync.never') }}</small>
+          </span>
+          <button type="button" class="btn" [disabled]="busy() || vault.state() !== 'unlocked'" (click)="syncNow()">{{ t(busy() ? 'sync.syncing' : 'sync.now') }}</button>
+        </div>
+        @if (vault.state() !== 'unlocked') {
+          <p class="hint">{{ t('sync.lockedHint') }}</p>
+        }
+        <label class="check">
+          <input type="checkbox" [checked]="s.auto" (change)="setAuto($any($event.target).checked)" />
+          {{ t('sync.auto') }}
+        </label>
+        <div>
+          <strong>{{ t('sync.devices') }}</strong>
+          <ul class="devices">
+            @for (d of s.devices; track d.id) {
+              <li>{{ d.name || d.id }} <small>{{ t('sync.written', { when: when(d.written) }) }}</small></li>
+            } @empty {
+              <li class="hint">{{ t('sync.noDevices') }}</li>
+            }
+          </ul>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn small" [disabled]="busy()" (click)="disable()">{{ t('sync.disable') }}</button>
+        </div>
+      }
+      @if (report(); as r) {
+        <p class="hint" role="status">{{ t('sync.report', { updated: r.updated, deleted: r.deleted, devices: r.devices }) }}</p>
+        @if ((r.conflicts ?? []).length > 0) {
+          <p class="hint">{{ t('sync.conflicts', { list: (r.conflicts ?? []).join(', ') }) }}</p>
+        }
+      }
+      @if (s.lastError && !error()) {
+        <p class="error" role="alert">{{ t('errors.' + s.lastError.code, s.lastError.params ?? {}) }}</p>
+      }
+    }
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+    }
+  </div>
+</section>

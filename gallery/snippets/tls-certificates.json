@@ -1,0 +1,13 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "TLS and certificates", "name": "Certificate of a server", "body": "echo | openssl s_client -connect {{host}}:{{port:443|8443|636|993}} -servername {{host}} 2>/dev/null | openssl x509 -noout -subject -issuer -dates -ext subjectAltName", "run": true},
+    {"folder": "TLS and certificates", "name": "Days until a server's certificate expires", "body": "echo | openssl s_client -connect {{host}}:443 -servername {{host}} 2>/dev/null | openssl x509 -noout -enddate", "run": true},
+    {"folder": "TLS and certificates", "name": "Read a certificate file", "body": "openssl x509 -in {{file}} -noout -text | less", "run": true},
+    {"folder": "TLS and certificates", "name": "Does the key match the certificate?", "body": "diff <(openssl x509 -in {{cert}} -noout -pubkey) <(openssl pkey -in {{key}} -pubout) && echo match", "run": true},
+    {"folder": "TLS and certificates", "name": "New key and signing request", "body": "openssl req -new -newkey rsa:3072 -nodes -keyout {{name}}.key -out {{name}}.csr -subj '/CN={{name}}'", "run": false},
+    {"folder": "TLS and certificates", "name": "Self-signed certificate for tests", "body": "openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 30 -keyout test.key -out test.crt -subj '/CN=localhost'", "run": false},
+    {"folder": "TLS and certificates", "name": "SSH host key fingerprints", "body": "for f in /etc/ssh/ssh_host_*_key.pub; do ssh-keygen -lf \"$f\"; done", "run": true}
+  ]
+}

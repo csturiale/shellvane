@@ -1,0 +1,150 @@
+// Theme tokens. "system" follows the OS; data-theme forces light or dark.
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --surface: #f4f4f5;
+  --border: #e4e4e7;
+  --text: #18181b;
+  --text-muted: #71717a;
+  --accent: #2563eb;
+  --terminal-bg: #fafafa;
+  --hover: rgb(0 0 0 / 6%);
+  --on-accent: #ffffff;
+  --broadcast: #ea580c;
+  --broadcast-bg: rgb(234 88 12 / 10%);
+  --danger: #dc2626;
+  --danger-bg: rgb(220 38 38 / 10%);
+  --drop: rgb(37 99 235 / 12%);
+  --group-gray: #71717a;
+  --group-red: #dc2626;
+  --group-orange: #ea580c;
+  --group-yellow: #ca8a04;
+  --group-green: #16a34a;
+  --group-teal: #0d9488;
+  --group-blue: #2563eb;
+  --group-purple: #9333ea;
+  --group-pink: #db2777;
+}
+
+@mixin dark {
+  --bg: #18181b;
+  --surface: #202023;
+  --border: #2e2e33;
+  --text: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --accent: #60a5fa;
+  --terminal-bg: #111113;
+  --hover: rgb(255 255 255 / 8%);
+  --on-accent: #0b1220;
+  --broadcast: #fb923c;
+  --broadcast-bg: rgb(251 146 60 / 14%);
+  --danger: #f87171;
+  --danger-bg: rgb(248 113 113 / 12%);
+  --drop: rgb(96 165 250 / 15%);
+  --group-gray: #a1a1aa;
+  --group-red: #f87171;
+  --group-orange: #fb923c;
+  --group-yellow: #facc15;
+  --group-green: #4ade80;
+  --group-teal: #2dd4bf;
+  --group-blue: #60a5fa;
+  --group-purple: #c084fc;
+  --group-pink: #f472b6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button.btn {
+  font: inherit;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--hover);
+  }
+
+  &.primary {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  &.small {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  &.danger {
+    border-color: var(--danger);
+    background: var(--danger);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}

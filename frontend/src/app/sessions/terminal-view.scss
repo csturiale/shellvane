@@ -1,0 +1,326 @@
+:host {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+// Identifies the connection: with several panes the user must always see
+// which host each one is attached to.
+.pane-header {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 4px 0 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-block-end: 1px solid var(--border);
+  border-inline-start: 3px solid var(--pane-color, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: grab;
+
+  &.focused {
+    color: var(--text);
+  }
+
+  &.broadcasting {
+    background: var(--broadcast-bg);
+    border-block-end-color: var(--broadcast);
+  }
+}
+.receive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--broadcast);
+  cursor: pointer;
+}
+:host:has(.pane-header.broadcasting) {
+  box-shadow: inset 0 0 0 2px var(--broadcast);
+}
+.title {
+  font-weight: 600;
+  color: var(--text);
+}
+.address {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+.via {
+  font-size: 11px;
+}
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* The connection details shrink (ellipsis, full text in the tooltip) so the
+   buttons on the right stay visible in narrow panes. */
+.title,
+.address,
+.via,
+.group,
+.state {
+  flex: 0 100 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.title {
+  flex-shrink: 1;
+  min-width: 3ch;
+}
+.spacer {
+  flex: 1 1 0;
+}
+.pane-header > :not(span) {
+  flex: none;
+}
+:host(.narrow) {
+  .state,
+  .via,
+  .optional {
+    display: none;
+  }
+}
+:host(.tiny) {
+  .pane-header {
+    gap: 4px;
+  }
+  .title {
+    min-width: 0;
+  }
+  :is(app-monitor-menu, app-ports-menu, app-kube-picker, .badge, .maximize) {
+    display: none;
+  }
+}
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+
+  &.connected {
+    background: var(--group-green);
+  }
+  &.connecting {
+    background: var(--group-yellow);
+  }
+  &.failed {
+    background: var(--danger);
+  }
+}
+button.icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+    background: var(--hover);
+  }
+}
+.terminal-area {
+  position: absolute;
+  inset: 26px 0 0;
+}
+.terminal {
+  position: absolute;
+  inset: 32px 0 0 12px;
+}
+.overlay {
+  position: absolute;
+  /* Above xterm's layers: the WebGL renderer's link canvas would take the
+     clicks. Its own compositing layer keeps WebKit from painting or hit-testing
+     the terminal's canvases over it. */
+  z-index: 6;
+  isolation: isolate;
+  transform: translateZ(0);
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border-block-start: 1px solid var(--border);
+}
+.overlay p {
+  margin: 0;
+}
+.error {
+  color: var(--danger);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+}
+button.env {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 5px;
+  border: 1px solid var(--group-green);
+  border-radius: 4px;
+  background: transparent;
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &.starting {
+    border-color: var(--group-yellow);
+  }
+  &.stopped,
+  &.failed,
+  &.expired {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .env-state {
+    font-weight: 600;
+  }
+}
+.badge {
+  flex: none;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.overlay .hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.search-bar {
+  position: absolute;
+  z-index: 5;
+  inset-block-start: 30px;
+  inset-inline-end: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+
+  input {
+    width: 200px;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    background: var(--surface);
+  }
+  .count {
+    min-width: 48px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .toggle {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 4px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: none;
+    cursor: pointer;
+
+    &.on {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    &:hover {
+      background: var(--hover);
+    }
+  }
+}
+
+.rec {
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--danger);
+}
+button.icon.on {
+  color: var(--accent);
+}
+button.icon.recording {
+  color: var(--danger);
+}
+.notice {
+  position: absolute;
+  z-index: 4;
+  inset-block-start: 30px;
+  inset-inline-start: 12px;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg);
+  word-break: break-all;
+
+  .link {
+    margin-inline-start: 6px;
+    border: 0;
+    color: var(--accent);
+    background: none;
+    cursor: pointer;
+  }
+}
+
+.port-toast {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 20%);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.bench-result {
+  position: absolute;
+  inset-inline: 16px;
+  inset-block-start: 48px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}

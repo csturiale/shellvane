@@ -1,0 +1,18 @@
+{
+  "kind": "shellvane-snippets",
+  "version": 1,
+  "snippets": [
+    {"folder": "Docker", "name": "Running containers", "body": "docker ps --format 'table {{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}'", "run": true},
+    {"folder": "Docker", "name": "All containers", "body": "docker ps -a", "run": true},
+    {"folder": "Docker", "name": "Resource usage", "body": "docker stats --no-stream", "run": true},
+    {"folder": "Docker", "name": "Follow a container's logs", "body": "docker logs -f --tail=200 {{container}}", "run": true},
+    {"folder": "Docker", "name": "Shell in a container", "body": "docker exec -it {{container}} sh", "run": true},
+    {"folder": "Docker", "name": "Inspect a container", "body": "docker inspect {{container}} | less", "run": true},
+    {"folder": "Docker", "name": "Disk used by Docker", "body": "docker system df", "run": true},
+    {"folder": "Docker", "name": "Remove stopped containers and dangling images", "body": "docker system prune", "run": false},
+    {"folder": "Docker", "name": "Compose: status", "body": "docker compose ps", "run": true},
+    {"folder": "Docker", "name": "Compose: start in background", "body": "docker compose up -d", "run": false},
+    {"folder": "Docker", "name": "Compose: follow logs", "body": "docker compose logs -f --tail=100 {{service}}", "run": true},
+    {"folder": "Docker", "name": "Compose: rebuild and restart", "body": "docker compose up -d --build {{service}}", "run": false}
+  ]
+}

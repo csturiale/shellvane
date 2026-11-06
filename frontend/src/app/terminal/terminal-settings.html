@@ -1,0 +1,115 @@
+<section *transloco="let t">
+  <h2>{{ t('terminal.title') }}</h2>
+  <div class="card">
+    <div class="row">
+      <label for="scheme">{{ t('terminal.scheme') }}</label>
+      <select id="scheme" (change)="onScheme($event)">
+        <option [value]="auto" [selected]="prefs.scheme() === auto">{{ t('terminal.auto') }}</option>
+        @for (s of schemes(); track s.id) {
+          <option [value]="s.id" [selected]="prefs.scheme() === s.id">{{ s.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="row">
+      <span class="label-text">{{ t('themes.custom') }} <app-help-link topic="terminal" anchor="themes" /></span>
+      <span class="buttons">
+        <button type="button" class="btn small" (click)="newTheme()">{{ t('themes.new') }}</button>
+        <button type="button" class="btn small" (click)="galleryOpen.set(true)">{{ t('gallery.open') }}</button>
+        <button type="button" class="btn small" (click)="duplicate()">{{ t('themes.duplicate') }}</button>
+        @if (current(); as c) {
+          <button type="button" class="btn small" (click)="editing.set(c)">{{ t('themes.edit') }}</button>
+          <button type="button" class="btn small" (click)="exportTheme(c)">{{ t('themes.export') }}</button>
+          <button type="button" class="btn small" (click)="deleting.set(c)">{{ t('themes.delete') }}</button>
+        }
+        <label class="btn small file">
+          {{ t('themes.import') }}
+          <input type="file" multiple accept=".itermcolors,.json,.yaml,.yml,.toml,.conf,*" (change)="importFiles($event)" />
+        </label>
+      </span>
+    </div>
+    @if (message(); as m) {
+      <p class="message" role="status">{{ m }}</p>
+    }
+    <div class="row">
+      <label for="match-app">{{ t('themes.matchApp') }}</label>
+      <input id="match-app" type="checkbox" [checked]="prefs.matchApp()" (change)="prefs.set('matchApp', $any($event.target).checked)" />
+    </div>
+    <div class="row">
+      <label for="font-size">{{ t('terminal.fontSize') }}</label>
+      <select id="font-size" (change)="onSize($event)">
+        @for (n of sizes; track n) {
+          <option [value]="n" [selected]="prefs.fontSize() === n">{{ n }}</option>
+        }
+      </select>
+    </div>
+    <div class="row">
+      <label for="builtin-highlights">{{ t('terminal.builtinHighlights') }}</label>
+      <input id="builtin-highlights" type="checkbox" [checked]="prefs.builtinHighlights()" (change)="prefs.setBuiltinHighlights($any($event.target).checked)" />
+    </div>
+    <div class="row">
+      <label for="cursor">{{ t('terminal.cursor') }}</label>
+      <span class="pair">
+        <select id="cursor" (change)="prefs.set('cursorStyle', $any($event.target).value)">
+          @for (c of cursors; track c) {
+            <option [value]="c" [selected]="prefs.cursorStyle() === c">{{ t('terminal.cursors.' + c) }}</option>
+          }
+        </select>
+        <label class="inline"><input type="checkbox" [checked]="prefs.cursorBlink()" (change)="prefs.set('cursorBlink', $any($event.target).checked)" /> {{ t('terminal.blink') }}</label>
+      </span>
+    </div>
+    <div class="row">
+      <label for="command-notify" [title]="t('terminal.commandNotifyHint')">{{ t('terminal.commandNotify') }} <app-help-link topic="terminal" anchor="notifications" /></label>
+      <select id="command-notify" (change)="prefs.set('commandNotifySeconds', +$any($event.target).value)">
+        @for (n of [0, 5, 10, 30, 60]; track n) {
+          <option [value]="n" [selected]="prefs.commandNotifySeconds() === n">{{ n === 0 ? t('terminal.never') : t('terminal.afterSeconds', { count: n }) }}</option>
+        }
+      </select>
+    </div>
+    <div class="row">
+      <label for="scrollback">{{ t('terminal.scrollback') }}</label>
+      <select id="scrollback" (change)="prefs.set('scrollback', +$any($event.target).value)">
+        @for (n of scrollbacks; track n) {
+          <option [value]="n" [selected]="prefs.scrollback() === n">{{ n }}</option>
+        }
+      </select>
+    </div>
+    <div class="row">
+      <label for="log-format">{{ t('terminal.logFormat') }}</label>
+      <select id="log-format" (change)="prefs.set('logFormat', $any($event.target).value)">
+        @for (f of logFormats; track f) {
+          <option [value]="f" [selected]="prefs.logFormat() === f">{{ t('logs.formats.' + f) }}</option>
+        }
+      </select>
+    </div>
+    @for (o of toggles; track o) {
+      <div class="row">
+        <label [for]="'t-' + o">{{ t('terminal.toggles.' + o) }}</label>
+        <input [id]="'t-' + o" type="checkbox" [checked]="prefs[o]()" (change)="prefs.set(o, $any($event.target).checked)" />
+      </div>
+    }
+    @let p = preview().colors;
+    <pre class="preview" [style.background]="p.background" [style.color]="p.foreground" [style.font-size.px]="prefs.fontSize()"><span [style.color]="p.green">deploy&#64;web-1</span>:<span [style.color]="p.blue">~/app</span>$ git status
+<span [style.color]="p.red">modified:   config.yml</span>
+<span [style.color]="p.yellow">warning:</span> 2 files changed, <span [style.color]="p.cyan">ok</span> <span [style.color]="p.magenta">v1.4.2</span></pre>
+    <p class="hint">{{ t('terminal.hint') }}</p>
+  </div>
+</section>
+@if (editing(); as e) {
+  <app-theme-editor [theme]="e" (closed)="editing.set(null)" (saved)="onSaved($event)" />
+}
+@if (deleting(); as d) {
+  <ng-container *transloco="let t">
+    <app-confirm-dialog
+      [heading]="t('themes.deleteTitle')"
+      [message]="t('themes.deleteMessage', { name: d.name })"
+      [confirmLabel]="t('themes.delete')"
+      [danger]="true"
+      (confirmed)="confirmDelete(d)"
+      (cancelled)="deleting.set(null)"
+    />
+  </ng-container>
+}
+
+@if (galleryOpen()) {
+  <app-gallery-dialog start="themes" (closed)="galleryOpen.set(false)" (installed)="themes.load()" />
+}

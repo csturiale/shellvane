@@ -1,0 +1,13 @@
+.task
+bin
+frontend/dist
+frontend/node_modules
+frontend/.angular
+build/linux/appimage/build
+build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
+.DS_Store
+test/integration/.keys
+build/linux/appimage/shellvane
+build/linux/appimage/shellvane.png
+/dist/
+/shellvane
