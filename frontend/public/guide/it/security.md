@@ -2,7 +2,7 @@
 
 ## Cosa resta su questo computer {#local}
 
-Host, impostazioni, host conosciuti, regole e log di audit sono in un database locale; i segreti sono nella [cassaforte](shellvane:topic/vault) cifrata. Shellvane non invia nulla da nessuna parte, a parte le connessioni che apri tu, il controllo degli aggiornamenti (una volta al giorno se non lo disattivi: scarica da termoraplus.com il manifest firmato indicando solo la versione di Shellvane e il sistema, ad esempio `Shellvane/1.2.0 (darwin/arm64)`, e nulla su di te; vedi [Aggiornamenti](shellvane:topic/integration#updates)) e, se la configuri, i file cifrati inviati alla cartella, al server WebDAV, al repository Git o al bucket S3 di [sincronizzazione](shellvane:topic/sync). Telnet non è cifrato: usalo solo su reti di cui ti fidi. Un gruppo esportato non contiene mai chiavi, password o note.
+Host, impostazioni, host conosciuti, regole e log di audit sono in un database locale; i segreti sono nella [cassaforte](shellvane:topic/vault) cifrata. Shellvane non invia nulla da nessuna parte, a parte le connessioni che apri tu, il controllo degli aggiornamenti (una volta al giorno se non lo disattivi: scarica dalle release GitHub pubbliche del progetto il manifest firmato indicando solo la versione di Shellvane e il sistema, ad esempio `Shellvane/1.2.0 (darwin/arm64)`, e nulla su di te; vedi [Aggiornamenti](shellvane:topic/integration#updates)) e, se la configuri, i file cifrati inviati alla cartella, al server WebDAV, al repository Git o al bucket S3 di [sincronizzazione](shellvane:topic/sync). Telnet non è cifrato: usalo solo su reti di cui ti fidi. Un gruppo esportato non contiene mai chiavi, password o note.
 
 ## Conferme {#confirm}
 

@@ -2,7 +2,7 @@
 
 ## What stays on this computer {#local}
 
-Hosts, settings, known hosts, rules and the audit log are in a local database; secrets are in the encrypted [vault](shellvane:topic/vault). Shellvane sends nothing anywhere except the connections you open, the update check (once a day unless you turn it off, a download of the signed release manifest from termoraplus.com that tells only Shellvane's version and your system, such as `Shellvane/1.2.0 (darwin/arm64)`, and nothing about you; see [Updates](shellvane:topic/integration#updates)) and, if you set it up, the encrypted files sent to your [sync](shellvane:topic/sync) folder, WebDAV server, Git repository or S3 bucket. Telnet is not encrypted: use it only on networks you trust. An exported group never holds keys, passwords or notes.
+Hosts, settings, known hosts, rules and the audit log are in a local database; secrets are in the encrypted [vault](shellvane:topic/vault). Shellvane sends nothing anywhere except the connections you open, the update check (once a day unless you turn it off, a download of the signed release manifest from the project's public GitHub releases that tells only Shellvane's version and your system, such as `Shellvane/1.2.0 (darwin/arm64)`, and nothing about you; see [Updates](shellvane:topic/integration#updates)) and, if you set it up, the encrypted files sent to your [sync](shellvane:topic/sync) folder, WebDAV server, Git repository or S3 bucket. Telnet is not encrypted: use it only on networks you trust. An exported group never holds keys, passwords or notes.
 
 ## Confirmations {#confirm}
 

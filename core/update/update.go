@@ -54,10 +54,11 @@ var releaseKey string
 // PublicKey verifies manifests.
 var PublicKey = strings.TrimSpace(releaseKey)
 
-// ManifestURL is where the latest manifest is published (the website,
-// since the releases of a private repository cannot be downloaded); the
-// signature is at ManifestURL + ".sig".
-var ManifestURL = version.SiteURL + "/downloads/manifest.json"
+// ManifestURL is the manifest of the latest full release of the public
+// repository ("latest" never points at a pre-release); the signature is at
+// ManifestURL + ".sig". Withdrawing a release on GitHub (or marking an
+// earlier one as latest) makes the apps see the previous one again.
+var ManifestURL = "https://github.com/" + version.PublicRepo + "/releases/latest/download/manifest.json"
 
 // maxManifest and maxPackage bound downloads.
 const (
