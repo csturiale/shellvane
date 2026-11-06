@@ -8,6 +8,19 @@ workflows. Built with Go, [Wails v3](https://v3.wails.io) and Angular.
 - Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
 - License: [GNU AGPL-3.0](LICENSE)
 
+## Install
+
+Download the app for Windows, macOS (Apple silicon) or Linux from the
+[latest release](https://github.com/csturiale/shellvane/releases/latest).
+It updates itself afterwards.
+
+On a Mac with [Homebrew](https://brew.sh), the app and the command-line
+companion:
+
+```sh
+brew tap csturiale/shellvane && brew install --cask shellvane && brew install shellvane-cli
+```
+
 ## Layout
 
 | Path | Contents |
