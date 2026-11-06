@@ -12,6 +12,7 @@ import { ThemesStore, toTheme } from '../themes/themes.store';
 import { ThemeService } from '../core/theme/theme.service';
 import { AUTO_SCHEME, allSchemes, findScheme } from './schemes';
 import { CursorStyle, FONT_SIZES, SCROLLBACK_SIZES, TerminalPrefs } from './terminal-prefs';
+import { CommandHistory } from './suggest';
 import { GalleryDialog } from '../gallery/gallery-dialog';
 
 /** Terminal section of the settings page, with a live preview. */
@@ -23,6 +24,7 @@ import { GalleryDialog } from '../gallery/gallery-dialog';
 })
 export class TerminalSettings {
   protected readonly prefs = inject(TerminalPrefs);
+  protected readonly history = inject(CommandHistory);
   private readonly theme = inject(ThemeService);
   protected readonly schemes = allSchemes;
   protected readonly themes = inject(ThemesStore);

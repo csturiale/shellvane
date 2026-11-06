@@ -7,6 +7,12 @@
 - Trascina il divisore per ridimensionare. **Alt+frecce** spostano il focus tra i pannelli.
 - **Chiudi pannello**: [[W]].
 
+## Suggerimenti dei comandi {#suggestions}
+
+Attiva **Impostazioni › Terminale › Suggerisci i comandi mentre scrivi** e, mentre digiti un comando, il resto di uno già eseguito compare in grigio dopo il cursore: premi **→** per prenderlo, o continua a scrivere per ignorarlo. I suggerimenti vengono prima dai comandi eseguiti sulla stessa connessione, poi sulle altre, poi dai tuoi snippet senza variabili. Il completamento della shell (**Tab**) e la sua cronologia (**↑**, **Ctrl+R**) continuano a funzionare come sempre.
+
+Viene ricordato solo ciò che digiti al prompt della shell, e solo se è comparso sullo schermo: ciò che scrivi quando viene chiesta una password, nei programmi a schermo intero (vim, less, top) o in broadcast non viene mai conservato, e nemmeno i comandi che iniziano con uno spazio o che sembrano contenere una password, un token o una chiave. La cronologia resta su questo computer; **Cancella la cronologia** nelle stesse impostazioni la elimina. I suggerimenti seguono una riga solo mentre la scrivi carattere per carattere: dopo il completamento con Tab, le frecce o le scorciatoie con Ctrl aspettano il comando successivo.
+
 ## Inviare e ricevere file nel terminale (ZMODEM) {#zmodem}
 
 Con `lrzsz` installato sul server, i file passano attraverso il terminale stesso, anche dietro jump host e dentro tmux o screen:
