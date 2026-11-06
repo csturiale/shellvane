@@ -215,6 +215,7 @@ export class CommandPalette {
         run: () => this.language.set(l),
       })),
       { group: 'action', label: t('palette.shortcuts'), detail: '', run: () => this.cheatsheet.emit() },
+      { group: 'action', label: t('gallery.open'), detail: 'gallery snippets themes', run: () => this.nav.gallery.set('snippets') },
       { group: 'action', label: t('logs.title'), detail: 'recordings asciinema logs', run: go('recordings') },
     ];
     if (this.vault.state() === 'unlocked') {

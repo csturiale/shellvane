@@ -11,3 +11,4 @@ build/linux/appimage/shellvane
 build/linux/appimage/shellvane.png
 /dist/
 /shellvane
+__pycache__/

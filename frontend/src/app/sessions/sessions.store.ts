@@ -16,7 +16,7 @@ export type PaneSource =
   | { kind: 'local'; program: string }
   | { kind: 'mosh'; hostId: string }
   /** Measures the terminal: generated output, timed until drawn. */
-  | { kind: 'benchmark'; megabytes: number };
+  | { kind: 'benchmark'; megabytes: number; transportOnly?: boolean };
 
 /** One terminal bound to one SSH session. */
 export interface Pane {
@@ -254,8 +254,8 @@ export class SessionsStore {
 
   /** Opens a shell of this computer ('' = the preferred one); returns the pane key. */
   /** Opens a tab that measures how fast the terminal shows output. */
-  async openBenchmark(megabytes = 8): Promise<number> {
-    const pane = await this.createPane({ kind: 'benchmark', megabytes }, 'benchmark');
+  async openBenchmark(megabytes = 8, transportOnly = false): Promise<number> {
+    const pane = await this.createPane({ kind: 'benchmark', megabytes, transportOnly }, 'benchmark');
     this.addTab(pane.key);
     return pane.key;
   }

@@ -124,4 +124,4 @@ L'icona del battito nell'intestazione del pannello di un host mostra uso della C
 
 ## Misurare le prestazioni {#benchmark}
 
-**Impostazioni › Diagnostica › Prestazioni del terminale › Misura** apre una scheda che stampa 8 MB di righe numerate e le cronometra dal primo byte all'ultimo disegnato, poi mostra la velocità con il renderer (WebGL o DOM), il motore web e il sistema. Usa **Copia** per segnalarla: l'obiettivo è 20 MB/s o più.
+**Impostazioni › Diagnostica › Prestazioni del terminale › Misura** apre una scheda che stampa 8 MB di righe numerate e le cronometra dal primo byte all'ultimo disegnato, poi mostra la velocità con il renderer (WebGL o DOM), il motore web e il sistema. Indica anche quando è arrivato l'ultimo byte e quante volte l'app ha messo in pausa l'output per permettere al terminale di recuperare. **Solo trasporto** invia gli stessi 8 MB senza disegnarli: se è molto più veloce di **Misura**, il limite è il disegno, non il flusso. Usa **Copia** per segnalare i risultati: l'obiettivo è 20 MB/s o più.

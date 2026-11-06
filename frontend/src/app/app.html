@@ -40,6 +40,8 @@
     [hasPanel]="!fullView()"
     (select)="onSelect($event)"
     (togglePanel)="togglePanel()"
+    [galleryOpen]="nav.gallery() !== null"
+    (gallery)="nav.gallery.set('snippets')"
   />
   }
 
@@ -151,6 +153,11 @@
   @if (paletteOpen()) {
     @defer (on immediate) {
       <app-command-palette (closed)="paletteOpen.set(false)" (cheatsheet)="cheatsheetOpen.set(true)" />
+    }
+  }
+  @if (nav.gallery(); as tab) {
+    @defer (on immediate) {
+      <app-gallery-dialog [start]="tab" (closed)="nav.gallery.set(null)" (installed)="galleryInstalled($event)" />
     }
   }
   @if (cheatsheetOpen()) {

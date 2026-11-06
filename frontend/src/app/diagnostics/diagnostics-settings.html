@@ -69,6 +69,9 @@
       <strong>{{ t('benchmark.title') }}</strong>
       <small>{{ t('benchmark.hint') }}</small>
     </div>
-    <button type="button" class="btn small" (click)="runBenchmark()">{{ t('benchmark.run') }}</button>
+    <span class="bench-actions">
+      <button type="button" class="btn small" (click)="runBenchmark()">{{ t('benchmark.run') }}</button>
+      <button type="button" class="btn small" [title]="t('benchmark.transportHint')" (click)="runBenchmark(true)">{{ t('benchmark.transport') }}</button>
+    </span>
   </div>
 </section>

@@ -25,9 +25,9 @@ export class DiagnosticsSettings {
   private readonly nav = inject(Navigation);
 
   /** Opens a tab that measures the terminal on this system. */
-  protected async runBenchmark(): Promise<void> {
+  protected async runBenchmark(transportOnly = false): Promise<void> {
     this.nav.view.set('hosts');
-    await this.sessions.openBenchmark(8);
+    await this.sessions.openBenchmark(8, transportOnly);
   }
   private readonly language = inject(LanguageService);
   private readonly transloco = inject(TranslocoService);

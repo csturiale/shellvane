@@ -12,6 +12,7 @@ import {
   LucideServer,
   LucideSettings,
   LucideSquareCode,
+  LucideStore,
   LucideZap,
 } from '@lucide/angular';
 import { combo } from '../sessions/shortcuts';
@@ -36,6 +37,7 @@ import { NgComponentOutlet } from '@angular/common';
     LucideKeyRound,
     LucideZap,
     LucidePuzzle,
+    LucideStore,
   ],
   templateUrl: './activity-bar.html',
   styleUrl: './activity-bar.scss',
@@ -51,6 +53,9 @@ export class ActivityBar {
   /** False on full-page views, which have no side panel. */
   readonly hasPanel = input(true);
   readonly togglePanel = output<void>();
+  /** The community gallery dialog is open. */
+  readonly galleryOpen = input(false);
+  readonly gallery = output<void>();
 
   protected readonly sections = SECTIONS;
   protected readonly extensionViews = EXTENSION_VIEWS;

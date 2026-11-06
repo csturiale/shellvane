@@ -25,6 +25,7 @@ export const GUIDE_TOPICS = [
   'import',
   'shortcuts',
   'security',
+  'contribute',
   'whats-new',
 ] as const;
 export type GuideTopic = (typeof GUIDE_TOPICS)[number];

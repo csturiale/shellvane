@@ -3,8 +3,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { toTranslatableError } from '../core/backend/errors';
 import { GalleryApi, GalleryIndex } from '../core/backend/gallery-api';
-import { openUrl } from '../core/browser';
-import { SITE_URL } from '../core/site';
+import { Navigation } from '../layout/navigation';
 import { Modal } from '../shared/modal';
 
 /**
@@ -26,6 +25,7 @@ export class GalleryDialog implements OnInit {
   readonly installed = output<'snippets' | 'themes'>();
   private readonly api = inject(GalleryApi);
   private readonly transloco = inject(TranslocoService);
+  private readonly nav = inject(Navigation);
   protected readonly tab = signal<'snippets' | 'themes'>('snippets');
   protected readonly index = signal<GalleryIndex | null>(null);
   protected readonly error = signal<string | null>(null);
@@ -57,8 +57,10 @@ export class GalleryDialog implements OnInit {
     }
   }
 
+  /** The guide's Contribute topic, on the open tab's section. */
   protected propose(): void {
-    void openUrl(`${SITE_URL}/gallery/#share`);
+    this.nav.openGuide('contribute', this.tab());
+    this.closed.emit();
   }
 
   private fail(err: unknown): void {
