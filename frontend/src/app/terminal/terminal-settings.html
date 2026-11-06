@@ -58,6 +58,13 @@
       </span>
     </div>
     <div class="row">
+      <label for="suggestions" [title]="t('terminal.suggestionsHint')">{{ t('terminal.suggestions') }} <app-help-link topic="terminal" anchor="suggestions" /></label>
+      <span class="pair">
+        <input id="suggestions" type="checkbox" [checked]="prefs.suggestions()" (change)="prefs.set('suggestions', $any($event.target).checked)" />
+        <button type="button" class="btn small" [disabled]="history.size() === 0" (click)="history.clear()">{{ t('terminal.clearHistory', { count: history.size() }) }}</button>
+      </span>
+    </div>
+    <div class="row">
       <label for="command-notify" [title]="t('terminal.commandNotifyHint')">{{ t('terminal.commandNotify') }} <app-help-link topic="terminal" anchor="notifications" /></label>
       <select id="command-notify" (change)="prefs.set('commandNotifySeconds', +$any($event.target).value)">
         @for (n of [0, 5, 10, 30, 60]; track n) {

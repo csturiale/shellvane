@@ -1248,7 +1248,10 @@
     "never": "Mai",
     "afterSeconds": "{count, plural, other {Dopo # s}}",
     "commandDone": "Comando terminato in {{seconds}} s.",
-    "commandFailed": "Comando fallito (uscita {{code}}) dopo {{seconds}} s."
+    "commandFailed": "Comando fallito (uscita {{code}}) dopo {{seconds}} s.",
+    "suggestions": "Suggerisci i comandi mentre scrivi",
+    "suggestionsHint": "Dai comandi già eseguiti su questo computer e dai tuoi snippet; → accetta il suggerimento. Conservati solo su questo computer.",
+    "clearHistory": "Cancella la cronologia ({{count}})"
   },
   "workspaces": {
     "title": "Workspace",

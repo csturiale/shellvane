@@ -7,6 +7,12 @@
 - Drag the divider to resize. **Alt+arrows** move the focus between panes.
 - **Close pane**: [[W]].
 
+## Command suggestions {#suggestions}
+
+Turn on **Settings › Terminal › Suggest commands as you type** and, while you type a command, the rest of one you already ran appears in grey after the cursor: press **→** to take it, or keep typing to ignore it. Suggestions come first from the commands run on the same connection, then on the others, then from your snippets without variables. The shell's own completion (**Tab**) and history (**↑**, **Ctrl+R**) keep working as usual.
+
+Only what you type at the shell's prompt is remembered, and only if it appeared on screen: what you type at a password prompt, in full-screen programs (vim, less, top) or in broadcast is never kept, nor commands that start with a space or look like they contain a password, token or key. The history stays on this computer; **Clear history** in the same settings deletes it. Suggestions follow a line only while you type it character by character: after Tab completion, arrow keys or Ctrl shortcuts they wait for the next command.
+
 ## Send and receive files in the terminal (ZMODEM) {#zmodem}
 
 With `lrzsz` installed on the server, files move through the terminal itself, also across jump hosts and inside tmux or screen:

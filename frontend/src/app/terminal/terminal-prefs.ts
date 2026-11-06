@@ -43,6 +43,8 @@ export class TerminalPrefs {
   readonly commandNotifySeconds = signal(Number(readPreference('terminal.commandNotifySeconds') ?? 10));
   /** The app's colors follow the terminal scheme. */
   readonly matchApp = signal(bool('terminal.matchApp', false));
+  /** Suggests commands as you type, from history and snippets (off by default). */
+  readonly suggestions = signal(bool('terminal.suggestions', false));
 
   setScheme(id: string): void {
     this.scheme.set(id);
@@ -59,7 +61,7 @@ export class TerminalPrefs {
   }
 
   /** Changes and remembers one of the simple preferences. */
-  set<K extends keyof TerminalPrefs & ('cursorStyle' | 'cursorBlink' | 'scrollback' | 'copyOnSelect' | 'confirmPaste' | 'confirmClose' | 'altIsMeta' | 'backspaceCtrlH' | 'screenReader' | 'bellNotify' | 'builtinHighlights' | 'logFormat' | 'matchApp' | 'commandNotifySeconds')>(
+  set<K extends keyof TerminalPrefs & ('cursorStyle' | 'cursorBlink' | 'scrollback' | 'copyOnSelect' | 'confirmPaste' | 'confirmClose' | 'altIsMeta' | 'backspaceCtrlH' | 'screenReader' | 'bellNotify' | 'builtinHighlights' | 'logFormat' | 'matchApp' | 'commandNotifySeconds' | 'suggestions')>(
     key: K,
     value: ReturnType<TerminalPrefs[K]>,
   ): void {

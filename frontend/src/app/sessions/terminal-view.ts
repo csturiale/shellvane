@@ -28,6 +28,8 @@ import { colorVar } from '../hosts/colors';
 import { BUILTIN_HIGHLIGHTS, Highlighter } from '../terminal/highlighter';
 import { findScheme } from '../terminal/schemes';
 import { CommandTracker, OscNotification, parseOsc777, parseOsc9 } from '../terminal/osc';
+import { CommandHistory, LineTracker } from '../terminal/suggest';
+import { SnippetsStore } from '../snippets/snippets.store';
 import { TerminalPrefs } from '../terminal/terminal-prefs';
 import { Navigation } from '../layout/navigation';
 import { KubePicker } from './kube-picker';
@@ -179,6 +181,13 @@ export class TerminalView {
     }
   }
   private readonly prefs = inject(TerminalPrefs);
+  private readonly history = inject(CommandHistory);
+  private readonly snippetsStore = inject(SnippetsStore);
+  /** The command line being typed, for suggestions and history. */
+  private readonly line = new LineTracker();
+  /** The suggested rest of the command, drawn after the cursor. */
+  private ghost: { el: HTMLElement; suffix: string } | null = null;
+  private ghostFrame = 0;
   /** Per-pane zoom, in points added to the font size. */
   protected readonly zoom = signal(0);
   protected readonly appearance = computed(() => ({
@@ -334,6 +343,7 @@ export class TerminalView {
 
     destroyRef.onDestroy(() => {
       this.destroyed = true;
+      cancelAnimationFrame(this.ghostFrame);
       clearTimeout(this.reattachTimer);
       this.highlighter?.dispose();
       this.unregister?.();
@@ -382,6 +392,10 @@ export class TerminalView {
 
     // App shortcuts (split, focus moves) must not reach the remote shell.
     term.attachCustomKeyEventHandler((ev) => {
+      if (ev.type === 'keydown' && ev.key === 'ArrowRight' && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && this.ghost?.suffix) {
+        this.acceptSuggestion();
+        return false;
+      }
       if (ev.type === 'keydown' && this.paneShortcut(ev)) {
         ev.preventDefault();
         return false;
@@ -405,6 +419,14 @@ export class TerminalView {
     term.onData((data) => {
       this.send(encoder.encode(data));
       this.store.typed(this.pane().key, data);
+      this.followLine(data);
+    });
+    // The suggestion follows the echo of what was typed.
+    term.onCursorMove(() => this.scheduleGhost());
+    term.onScroll(() => this.scheduleGhost());
+    term.buffer.onBufferChange(() => {
+      this.line.reset();
+      this.scheduleGhost();
     });
     this.unregister = this.store.registerSender(this.pane().key, (data) => this.send(encoder.encode(data)));
     term.onBinary((data) => this.send(Uint8Array.from(data, (c) => c.charCodeAt(0))));
@@ -445,6 +467,9 @@ export class TerminalView {
     term.parser.registerOscHandler(777, (data) => notifyFromOsc(parseOsc777(data)));
     const commands = new CommandTracker();
     term.parser.registerOscHandler(133, (data) => {
+      if (data.startsWith('A')) {
+        this.line.reset(); // a new prompt
+      }
       const done = commands.feed(data);
       const after = this.prefs.commandNotifySeconds() * 1000;
       if (done && after > 0 && done.ms >= after) {
@@ -479,6 +504,119 @@ export class TerminalView {
   }
 
   /** The pane's context menu (header and terminal area). */
+  /** Where this pane's commands are remembered, or null (no history). */
+  private historyScope(): string | null {
+    const s = this.pane().source;
+    switch (s.kind) {
+      case 'host':
+        return `host:${s.hostId}`;
+      case 'mosh':
+        return `host:${s.hostId}`;
+      case 'target':
+        return `target:${s.spec}`;
+      case 'local':
+        return 'local';
+      default:
+        return null;
+    }
+  }
+
+  /** Follows typed data: remembers finished commands, updates the suggestion. */
+  private followLine(data: string): void {
+    const term = this.term;
+    const scope = this.historyScope();
+    if (!term || !scope || !this.prefs.suggestions()) {
+      return;
+    }
+    // The line on screen before Enter: a command is kept only if it was
+    // echoed there (never what is typed at a password prompt), and only in
+    // the shell's normal screen (not in vim, less or top).
+    const buf = term.buffer.active;
+    const shown = buf.getLine(buf.baseY + buf.cursorY)?.translateToString(true) ?? '';
+    const normal = buf.type === 'normal';
+    for (const cmd of this.line.feed(data)) {
+      if (normal && !this.broadcasting() && shown.includes(cmd)) {
+        this.history.remember(scope, cmd);
+      }
+    }
+    this.scheduleGhost();
+  }
+
+  private scheduleGhost(): void {
+    if (!this.ghostFrame) {
+      this.ghostFrame = requestAnimationFrame(() => {
+        this.ghostFrame = 0;
+        this.drawGhost();
+      });
+    }
+  }
+
+  /** Shows the rest of the best matching command after the cursor, or nothing. */
+  private drawGhost(): void {
+    const term = this.term;
+    const scope = this.historyScope();
+    const typed = this.line.line;
+    const buf = term?.buffer.active;
+    let suffix = '';
+    if (term && buf && scope && this.prefs.suggestions() && !this.broadcasting() && this.line.clean && typed.trim() && buf.type === 'normal' && buf.viewportY === buf.baseY) {
+      const before = (buf.getLine(buf.baseY + buf.cursorY)?.translateToString(false) ?? '').slice(0, buf.cursorX);
+      if (before.endsWith(typed)) {
+        if (!this.snippetsStore.snippets().length) {
+          void this.snippetsStore.load().catch(() => undefined);
+        }
+        const snippets = this.snippetsStore.snippets().map((s) => s.body).filter((b) => !b.includes('{{') && !b.includes('\n'));
+        const full = this.history.suggest(scope, typed, snippets);
+        suffix = full.slice(typed.length, typed.length + Math.max(0, term.cols - buf.cursorX - 1));
+      }
+    }
+    if (!suffix) {
+      if (this.ghost) {
+        this.ghost.el.style.display = 'none';
+        this.ghost.suffix = '';
+      }
+      return;
+    }
+    const screen = term!.element?.querySelector<HTMLElement>('.xterm-screen');
+    if (!screen) {
+      return;
+    }
+    if (!this.ghost) {
+      const el = document.createElement('span');
+      el.setAttribute('aria-hidden', 'true');
+      Object.assign(el.style, { position: 'absolute', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '5', opacity: '0.45' });
+      screen.parentElement!.appendChild(el);
+      this.ghost = { el, suffix: '' };
+    }
+    const core = (term as unknown as { _core?: { _renderService?: { dimensions?: { css?: { cell?: { width: number; height: number } } } } } })._core;
+    const cell = core?._renderService?.dimensions?.css?.cell ?? { width: screen.clientWidth / term!.cols, height: screen.clientHeight / term!.rows };
+    const el = this.ghost.el;
+    Object.assign(el.style, {
+      display: 'block',
+      left: `${screen.offsetLeft + buf!.cursorX * cell.width}px`,
+      top: `${screen.offsetTop + buf!.cursorY * cell.height}px`,
+      height: `${cell.height}px`,
+      lineHeight: `${cell.height}px`,
+      fontFamily: term!.options.fontFamily ?? 'monospace',
+      fontSize: `${term!.options.fontSize}px`,
+      letterSpacing: '0px',
+      color: this.appearance().scheme.colors.foreground ?? '#888',
+    });
+    el.textContent = suffix;
+    this.ghost.suffix = suffix;
+  }
+
+  /** → takes the suggestion: its text is typed as if by the person. */
+  private acceptSuggestion(): void {
+    const suffix = this.ghost?.suffix ?? '';
+    if (!suffix) {
+      return;
+    }
+    this.send(encoder.encode(suffix));
+    this.store.typed(this.pane().key, suffix);
+    this.line.feed(suffix);
+    this.scheduleGhost();
+  }
+
   /** The environment badge: starts it again when it is not ready, else opens one more terminal. */
   protected envAction(): void {
     const env = this.pane().env;
