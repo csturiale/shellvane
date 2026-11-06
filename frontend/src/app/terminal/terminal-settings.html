@@ -61,6 +61,7 @@
       <label for="suggestions" [title]="t('terminal.suggestionsHint')">{{ t('terminal.suggestions') }} <app-help-link topic="terminal" anchor="suggestions" /></label>
       <span class="pair">
         <input id="suggestions" type="checkbox" [checked]="prefs.suggestions()" (change)="prefs.set('suggestions', $any($event.target).checked)" />
+        <label class="inline"><input type="checkbox" [disabled]="!prefs.suggestions()" [checked]="prefs.suggestionsTab()" (change)="prefs.set('suggestionsTab', $any($event.target).checked)" /> {{ t('terminal.suggestionsTab') }}</label>
         <button type="button" class="btn small" [disabled]="history.size() === 0" (click)="history.clear()">{{ t('terminal.clearHistory', { count: history.size() }) }}</button>
       </span>
     </div>

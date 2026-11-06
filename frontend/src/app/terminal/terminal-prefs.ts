@@ -45,6 +45,8 @@ export class TerminalPrefs {
   readonly matchApp = signal(bool('terminal.matchApp', false));
   /** Suggests commands as you type, from history and snippets (off by default). */
   readonly suggestions = signal(bool('terminal.suggestions', false));
+  /** Tab also accepts a suggestion (off: Tab always reaches the shell). */
+  readonly suggestionsTab = signal(bool('terminal.suggestionsTab', false));
 
   setScheme(id: string): void {
     this.scheme.set(id);
@@ -61,7 +63,7 @@ export class TerminalPrefs {
   }
 
   /** Changes and remembers one of the simple preferences. */
-  set<K extends keyof TerminalPrefs & ('cursorStyle' | 'cursorBlink' | 'scrollback' | 'copyOnSelect' | 'confirmPaste' | 'confirmClose' | 'altIsMeta' | 'backspaceCtrlH' | 'screenReader' | 'bellNotify' | 'builtinHighlights' | 'logFormat' | 'matchApp' | 'commandNotifySeconds' | 'suggestions')>(
+  set<K extends keyof TerminalPrefs & ('cursorStyle' | 'cursorBlink' | 'scrollback' | 'copyOnSelect' | 'confirmPaste' | 'confirmClose' | 'altIsMeta' | 'backspaceCtrlH' | 'screenReader' | 'bellNotify' | 'builtinHighlights' | 'logFormat' | 'matchApp' | 'commandNotifySeconds' | 'suggestions' | 'suggestionsTab')>(
     key: K,
     value: ReturnType<TerminalPrefs[K]>,
   ): void {
