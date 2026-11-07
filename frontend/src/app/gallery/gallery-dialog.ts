@@ -1,9 +1,11 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { toTranslatableError } from '../core/backend/errors';
 import { GalleryApi, GalleryIndex } from '../core/backend/gallery-api';
 import { Navigation } from '../layout/navigation';
+import { SnippetsStore } from '../snippets/snippets.store';
+import { ThemesStore } from '../themes/themes.store';
 import { Modal } from '../shared/modal';
 
 /**
@@ -31,10 +33,39 @@ export class GalleryDialog implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
   protected readonly busy = signal<string | null>(null);
-  protected readonly done = signal<Set<string>>(new Set());
+  private readonly snippetsStore = inject(SnippetsStore);
+  private readonly themesStore = inject(ThemesStore);
+
+  /**
+   * Files already in the app: a color scheme whose name is among the
+   * user's schemes, a collection whose snippets are all in its folder.
+   */
+  protected readonly done = computed(() => {
+    const idx = this.index();
+    const out = new Set<string>();
+    if (!idx) {
+      return out;
+    }
+    const themes = new Set(this.themesStore.themes().map((t) => t.name));
+    for (const th of idx.themes ?? []) {
+      if (themes.has(th.name)) {
+        out.add(th.file);
+      }
+    }
+    const snippets = new Set(this.snippetsStore.snippets().map((s) => `${s.folder}\u0000${s.name}`));
+    for (const s of idx.snippets ?? []) {
+      const names = s.names ?? [];
+      if (names.length > 0 && names.every((n) => snippets.has(`${s.name}\u0000${n}`))) {
+        out.add(s.file);
+      }
+    }
+    return out;
+  });
 
   async ngOnInit(): Promise<void> {
     this.tab.set(this.start());
+    void this.snippetsStore.load().catch(() => undefined);
+    void this.themesStore.load().catch(() => undefined);
     try {
       this.index.set(await this.api.gallery());
     } catch (err) {
@@ -47,7 +78,7 @@ export class GalleryDialog implements OnInit {
     this.error.set(null);
     try {
       const r = await this.api.install(kind, file);
-      this.done.update((s) => new Set(s).add(file));
+      await (kind === 'snippets' ? this.snippetsStore.load() : this.themesStore.load()).catch(() => undefined);
       this.message.set(this.transloco.translate(kind === 'snippets' ? 'gallery.installedSnippets' : 'gallery.installedTheme', { name, count: r.added }));
       this.installed.emit(kind);
     } catch (err) {

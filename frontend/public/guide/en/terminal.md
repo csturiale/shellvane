@@ -76,7 +76,7 @@ Settings › Appearance › **Interface size** makes the text and controls of th
 
 ## Highlights {#highlights}
 
-Log levels, IP addresses, HTTP status codes and UUIDs are colored (the bytes are not changed). Turn the built-in set off in Settings › Terminal, and add your own with [highlight rules](shellvane:topic/automation#rules).
+Log levels, IP addresses, HTTP status codes and UUIDs are colored (the bytes are not changed). Turn the built-in set off in Settings › Terminal, and add your own with [highlight rules](shellvane:topic/automation#rules). When a command prints more than a thousand lines at once (the `cat` of a big file), only the last thousand are colored, so highlighting never slows the output down.
 
 ## Copy and paste {#clipboard}
 

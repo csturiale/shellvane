@@ -15,6 +15,10 @@
       <label for="auto-update">{{ t('updates.auto') }}</label>
       <input id="auto-update" type="checkbox" [checked]="store.auto()" (change)="store.setAuto($any($event.target).checked)" />
     </div>
+    <div class="row">
+      <label for="update-notify">{{ t('updates.notify') }}</label>
+      <input id="update-notify" type="checkbox" [checked]="store.notify()" (change)="store.setNotify($any($event.target).checked)" />
+    </div>
     @if (store.info(); as i) {
       @if (!i.enabled) {
         <p class="hint">{{ t('updates.disabled') }}</p>
