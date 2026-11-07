@@ -1,7 +1,7 @@
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { LucidePlus } from '@lucide/angular';
+import { LucideColumns2, LucidePlus, LucideRows2 } from '@lucide/angular';
 
 import { Host } from '../core/backend/host-api';
 import { HostsStore } from '../hosts/hosts.store';
@@ -10,7 +10,7 @@ import { SessionsStore } from './sessions.store';
 
 /** An entry of the menu. */
 export interface NewTabEntry {
-  kind: 'local' | 'target' | 'host';
+  kind: 'same' | 'local' | 'target' | 'host';
   label: string;
   detail: string;
   /** Section heading shown above the entry (favorites, recent, results). */
@@ -30,11 +30,13 @@ export function looksLikeTarget(text: string): boolean {
 
 /**
  * The "+" after the tabs: a new tab with a local terminal, a saved host
- * (favorites and recent first, or a search) or an address typed in.
+ * (favorites and recent first, or a search) or an address typed in. With
+ * split set, the same menu opens the choice next to the focused pane
+ * (split right or down), the focused pane's host first.
  */
 @Component({
   selector: 'app-new-tab-menu',
-  imports: [TranslocoDirective, FormsModule, LucidePlus],
+  imports: [TranslocoDirective, FormsModule, LucidePlus, LucideColumns2, LucideRows2],
   host: { '(document:pointerdown)': 'outside($event)' },
   templateUrl: './new-tab-menu.html',
   styleUrl: './new-tab-menu.scss',
@@ -44,6 +46,10 @@ export class NewTabMenu {
   private readonly hosts = inject(HostsStore);
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly search = viewChild<ElementRef<HTMLInputElement>>('search');
+  /** Split the focused pane instead of opening a tab: 'row' right, 'column' down. */
+  readonly split = input<'row' | 'column' | null>(null);
+  /** Shortcut shown in the button's tooltip. */
+  readonly shortcut = input('');
 
   protected readonly open = signal(false);
   protected readonly pos = signal({ top: 0, left: 0 });
@@ -60,7 +66,12 @@ export class NewTabMenu {
       section,
       host: h,
     });
-    const out: NewTabEntry[] = [{ kind: 'local', label: 'local', detail: '' }];
+    const out: NewTabEntry[] = [];
+    const focused = this.split() ? this.sessions.focused() : null;
+    if (focused) {
+      out.push({ kind: 'same', label: focused.title, detail: '' });
+    }
+    out.push({ kind: 'local', label: 'local', detail: '' });
     if (q && looksLikeTarget(q)) {
       out.push({ kind: 'target', label: q, detail: '' });
     }
@@ -107,8 +118,9 @@ export class NewTabMenu {
 
   protected setQuery(q: string): void {
     this.query.set(q);
-    // A typed address goes first after "local", a search to its results.
-    this.active.set(q.trim() ? 1 : 0);
+    // A typed address goes first after "same host" and "local", a search to its results.
+    const fixed = this.entries().filter((e) => e.kind === 'same' || e.kind === 'local').length;
+    this.active.set(q.trim() ? fixed : 0);
     if (this.active() >= this.entries().length) {
       this.active.set(0);
     }
@@ -116,6 +128,19 @@ export class NewTabMenu {
 
   protected choose(e: NewTabEntry): void {
     this.open.set(false);
+    const dir = this.split();
+    if (dir) {
+      const other =
+        e.kind === 'local'
+          ? { source: this.sessions.localSource(), title: '' }
+          : e.kind === 'target'
+            ? { source: { kind: 'target' as const, spec: e.label }, title: e.label }
+            : e.kind === 'host'
+              ? { source: { kind: 'host' as const, hostId: e.host!.id }, title: e.host!.name }
+              : undefined;
+      void this.sessions.splitWith(dir, other);
+      return;
+    }
     switch (e.kind) {
       case 'local':
         void this.sessions.openLocal();

@@ -193,9 +193,9 @@
         <button
           type="button"
           class="vault"
-          [attr.aria-label]="t(v === 'unlocked' ? 'vault.lockNow' : 'vault.openSettings')"
-          [title]="t(v === 'unlocked' ? 'vault.lockNow' : 'vault.openSettings')"
-          (click)="v === 'unlocked' ? vault.lock() : view.set('settings')"
+          [attr.aria-label]="t(v === 'unlocked' ? 'vault.lockNow' : 'vault.gate.title')"
+          [title]="t(v === 'unlocked' ? 'vault.lockNow' : 'vault.gate.title')"
+          (click)="v === 'unlocked' ? vault.lock() : vaultGate.ensureUnlocked()"
         >
           @if (v === 'unlocked') {
             <svg lucideLockOpen [size]="13" aria-hidden="true"></svg>
@@ -212,6 +212,11 @@
       <span>{{ t('status.browserMode') }}</span>
     }
   </footer>
+  }
+  @if (vaultGate.asking()) {
+    @defer {
+      <app-vault-unlock-dialog />
+    }
   }
   @for (root of extensionRoots; track $index) {
     <ng-container *ngComponentOutlet="root" />

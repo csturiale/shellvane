@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 
 const PANE_MIME = 'application/x-shellvane-pane';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { LucideArrowLeftToLine, LucideColumns2, LucideExternalLink, LucideRadioTower, LucideRows2, LucideSquareTerminal, LucideX } from '@lucide/angular';
+import { LucideArrowLeftToLine, LucideExternalLink, LucideRadioTower, LucideSquareTerminal, LucideX } from '@lucide/angular';
 
 import { Divider, DropZone, Rect, arrange, dropZone, panesOf } from './layout';
 import { colorVar } from '../hosts/colors';
@@ -22,7 +22,7 @@ import { detachedToken } from './detached';
 /** Tab bar plus the panes of every tab. Hidden tabs stay mounted. */
 @Component({
   selector: 'app-workspace',
-  imports: [BroadcastBar, TranslocoDirective, FormsModule, ConfirmDialog, TerminalView, WorkspaceMenu, NewTabMenu, LucideSquareTerminal, LucideX, LucideExternalLink, LucideArrowLeftToLine, LucideColumns2, LucideRows2, LucideRadioTower],
+  imports: [BroadcastBar, TranslocoDirective, FormsModule, ConfirmDialog, TerminalView, WorkspaceMenu, NewTabMenu, LucideSquareTerminal, LucideX, LucideExternalLink, LucideArrowLeftToLine, LucideRadioTower],
   host: { '(document:keydown)': 'onKeydown($event)' },
   templateUrl: './workspace.html',
   styleUrl: './workspace.scss',

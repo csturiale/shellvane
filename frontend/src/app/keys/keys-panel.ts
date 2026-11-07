@@ -13,6 +13,7 @@ import { VaultStore } from '../vault/vault.store';
 import { KeysStore } from './keys.store';
 import { HelpLink } from '../guide/help-link';
 import { TokenDialog } from './token-dialog';
+import { VaultUnlockButton } from '../vault/vault-unlock-button';
 
 type Dialog =
   | { kind: 'generate' }
@@ -21,7 +22,7 @@ type Dialog =
 
 @Component({
   selector: 'app-keys-panel',
-  imports: [HelpLink, FormsModule, TranslocoDirective, Modal, ConfirmDialog, LucidePlus, LucideKeyRound, LucideCopy, LucideTrash2, LucideUpload, LucideBadgeCheck, LucideNetwork, LucideFileKey, LucideUsb, TokenDialog],
+  imports: [VaultUnlockButton, HelpLink, FormsModule, TranslocoDirective, Modal, ConfirmDialog, LucidePlus, LucideKeyRound, LucideCopy, LucideTrash2, LucideUpload, LucideBadgeCheck, LucideNetwork, LucideFileKey, LucideUsb, TokenDialog],
   templateUrl: './keys-panel.html',
   styleUrls: ['../shared/form.scss', './keys-panel.scss'],
 })

@@ -41,7 +41,7 @@ Servers that ask for a verification code (Google Authenticator, Duo…) show the
 
 - **Attach a certificate** to a key in Keys (the `-cert.pub` file signed by your CA): it is offered instead of the bare key while it is valid.
 - **Certificate command** (Advanced) asks your CA for a short-lived certificate at every login: the public key is in `$SHELLVANE_PUBLIC_KEY` and in the file `$SHELLVANE_PUBLIC_KEY_FILE`; the command prints the certificate. Presets: Vault SSH secrets engine, smallstep step-ca.
-- **Credentials from a plugin** (Advanced): HashiCorp Vault, Teleport or Boundary give the whole login, without their CLIs' scripts: see [Plugins](shellvane:topic/plugins#credentials).
+- **Credentials from a plugin** (Advanced): HashiCorp Vault, CyberArk, Conjur, Teleport or Boundary give the whole login, without their CLIs' scripts: see [Plugins](shellvane:topic/plugins#credentials).
 
 ## Agent forwarding {#forwarding}
 

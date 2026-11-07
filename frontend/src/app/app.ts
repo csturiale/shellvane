@@ -40,6 +40,8 @@ import { UsageConsent } from './core/usage/usage-consent';
 import { UsageStore } from './core/usage/usage.store';
 import { SnippetsStore } from './snippets/snippets.store';
 import { combo, shortcutAction } from './sessions/shortcuts';
+import { VaultGate } from './vault/vault-gate';
+import { VaultUnlockDialog } from './vault/vault-unlock-dialog';
 import { VaultStore } from './vault/vault.store';
 import { HostsStore } from './hosts/hosts.store';
 import { closeWindow, detachedToken } from './sessions/detached';
@@ -56,6 +58,7 @@ const HOUR = 60 * 60 * 1000;
   selector: 'app-root',
   imports: [
     NgComponentOutlet,
+    VaultUnlockDialog,
     TranslocoDirective,
     ContextMenu,
     LucideSearch,
@@ -106,6 +109,7 @@ export class App {
   private readonly sessionApi = inject(SessionApi);
   protected readonly label = labelOf;
   protected readonly vault = inject(VaultStore);
+  protected readonly vaultGate = inject(VaultGate);
   protected readonly tunnels = inject(TunnelsStore);
   private readonly injector = inject(Injector);
   /** Loaded after startup; shows a notice when an update is available. */
@@ -280,11 +284,11 @@ export class App {
           this.updates.set(store);
           // A window left open for days still learns about new versions.
           setInterval(() => {
-            void store.checkDaily();
+            void store.checkIfDue();
             void this.usage.sendIfDue().catch(() => undefined);
           }, HOUR);
           void this.usage.sendIfDue().catch(() => undefined);
-          return store.checkDaily();
+          return store.checkIfDue(m.UpdatesStore.STARTUP_AGE);
         });
         // Environments' panes come back as plain shells: start their environments again.
         void this.workspaces.start().then(() => this.environments.resumeRestored()).catch(() => undefined);

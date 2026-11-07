@@ -154,6 +154,8 @@ func main() {
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
+			// Pages of other sites (the sign-in window) cannot call the app.
+			Middleware: app.RejectForeignOrigins,
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,

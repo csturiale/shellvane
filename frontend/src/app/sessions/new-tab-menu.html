@@ -1,9 +1,28 @@
 <ng-container *transloco="let t">
-  <button type="button" class="plus" [attr.aria-label]="t('newTab.title')" [title]="t('newTab.title')" [attr.aria-expanded]="open()" (click)="toggle($event)">
-    <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+  @let title = t(split() === 'row' ? 'sessions.splitRight' : split() === 'column' ? 'sessions.splitDown' : 'newTab.title');
+  <button
+    type="button"
+    [class.plus]="!split()"
+    [class.icon]="!!split()"
+    [attr.aria-label]="title"
+    [title]="title + (shortcut() ? ' (' + shortcut() + ': ' + t('newTab.sameHost') + ')' : '')"
+    [attr.aria-expanded]="open()"
+    (click)="toggle($event)"
+  >
+    @switch (split()) {
+      @case ('row') {
+        <svg lucideColumns2 [size]="16" aria-hidden="true"></svg>
+      }
+      @case ('column') {
+        <svg lucideRows2 [size]="16" aria-hidden="true"></svg>
+      }
+      @default {
+        <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+      }
+    }
   </button>
   @if (open()) {
-    <div class="menu" role="dialog" [attr.aria-label]="t('newTab.title')" [style.top.px]="pos().top" [style.left.px]="pos().left">
+    <div class="menu" role="dialog" [attr.aria-label]="title" [style.top.px]="pos().top" [style.left.px]="pos().left">
       <input
         #search
         type="search"
@@ -22,6 +41,10 @@
           }
           <button type="button" role="option" class="entry" [class.active]="i === active()" [attr.aria-selected]="i === active()" (mouseenter)="active.set(i)" (click)="choose(e)">
             @switch (e.kind) {
+              @case ('same') {
+                <span class="label">{{ t('newTab.sameHost') }}</span>
+                <span class="detail">{{ e.label }}</span>
+              }
               @case ('local') {
                 <span class="label">{{ t('newTab.local') }}</span>
               }
@@ -35,7 +58,7 @@
             }
           </button>
         }
-        @if (query().trim() && entries().length <= 2) {
+        @if (query().trim() && entries().length <= (split() ? 3 : 2)) {
           <p class="hint">{{ t('newTab.none') }}</p>
         }
       </div>

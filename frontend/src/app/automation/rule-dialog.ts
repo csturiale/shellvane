@@ -13,11 +13,12 @@ import { HIGHLIGHT_COLORS, compileRules, findSpans } from '../terminal/highlight
 import { VaultStore } from '../vault/vault.store';
 import { AutomationStore } from './automation.store';
 import { HelpLink } from '../guide/help-link';
+import { VaultUnlockButton } from '../vault/vault-unlock-button';
 
 /** Creates or edits an output rule, with a live test of the pattern. */
 @Component({
   selector: 'app-rule-dialog',
-  imports: [NgComponentOutlet, HelpLink, FormsModule, TranslocoDirective, Modal],
+  imports: [VaultUnlockButton, NgComponentOutlet, HelpLink, FormsModule, TranslocoDirective, Modal],
   templateUrl: './rule-dialog.html',
   styleUrls: ['../shared/form.scss', './rule-dialog.scss'],
 })

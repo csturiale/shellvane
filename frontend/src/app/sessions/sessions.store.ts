@@ -303,15 +303,35 @@ export class SessionsStore {
   }
 
   /** Opens a new session to the focused pane's host next to it. */
-  async split(dir: SplitDir): Promise<void> {
+  split(dir: SplitDir): Promise<void> {
+    return this.splitWith(dir);
+  }
+
+  /**
+   * Opens a session next to the focused pane: to the same host, or to
+   * another source (a saved host, an address, a local terminal). Without
+   * a tab open it opens in a new tab.
+   */
+  async splitWith(dir: SplitDir, other?: { source: PaneSource; title: string }): Promise<void> {
     this.usage.count('pane.split');
     const tab = this.active();
     const from = tab && this.pane(tab.focus);
-    if (!tab || !from) {
+    const source = other?.source ?? from?.source;
+    if (!source) {
       return;
     }
-    const pane = await this.createPane(from.source, from.title);
-    this.updateTab(tab.key, (t) => ({ ...t, layout: split(t.layout, t.focus, pane.key, dir), focus: pane.key }));
+    const pane = await this.createPane(source, other?.title ?? from?.title ?? '');
+    const current = this.active();
+    if (!current || !this.pane(current.focus)) {
+      this.addTab(pane.key);
+      return;
+    }
+    this.updateTab(current.key, (t) => ({ ...t, layout: split(t.layout, t.focus, pane.key, dir), focus: pane.key }));
+  }
+
+  /** The default local shell, for a split with a local terminal. */
+  localSource(): PaneSource {
+    return { kind: 'local', program: this.prefs.localShell() };
   }
 
   focusPane(tabKey: number, paneKey: number): void {

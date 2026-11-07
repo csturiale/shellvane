@@ -34,7 +34,7 @@
 - Un **vault di team**: accessi e note condivisi cifrati end-to-end tramite una cartella condivisa, WebDAV, Git o S3, usati direttamente dagli host, e **gruppi di host condivisi** sempre aggiornati sui computer di tutti i membri (nell'app di shellvane.com)
 
 **Plugin**
-- **Host da AWS, Google Cloud, Azure, Kubernetes, Ansible, Terraform, Proxmox e NetBox**, aggiornati in un gruppo, token nel vault; pannelli **Docker, systemd e log** sugli host connessi; installa solo ciò che serve, dallo **store** o da file, o scrivine uno tuo; accessi da **HashiCorp Vault, Teleport e Boundary**: [Plugin](shellvane:topic/plugins)
+- **Host da AWS, Google Cloud, Azure, Kubernetes, Ansible, Terraform, Proxmox e NetBox**, aggiornati in un gruppo, token nel vault; pannelli **Docker, systemd e log** sugli host connessi; installa solo ciò che serve, dallo **store** o da file, o scrivine uno tuo; accessi da **HashiCorp Vault, CyberArk, Conjur, Teleport e Boundary**: [Plugin](shellvane:topic/plugins)
 
 **File e tunnel**
 - **Anteprima** dei file, **confronto e sincronizzazione di cartelle**, ripresa dei trasferimenti, modifica su questo computer: [File](shellvane:topic/files)

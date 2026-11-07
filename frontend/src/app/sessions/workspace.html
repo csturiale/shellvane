@@ -109,12 +109,8 @@
         <svg lucideSquareTerminal [size]="16" aria-hidden="true"></svg>
       </button>
       <app-workspace-menu />
-      <button type="button" class="icon" [attr.aria-label]="t('sessions.splitRight')" [title]="t('sessions.splitRight') + ' (' + keys.splitRight + ')'" (click)="store.split('row')">
-        <svg lucideColumns2 [size]="16" aria-hidden="true"></svg>
-      </button>
-      <button type="button" class="icon" [attr.aria-label]="t('sessions.splitDown')" [title]="t('sessions.splitDown') + ' (' + keys.splitDown + ')'" (click)="store.split('column')">
-        <svg lucideRows2 [size]="16" aria-hidden="true"></svg>
-      </button>
+      <app-new-tab-menu split="row" [shortcut]="keys.splitRight" />
+      <app-new-tab-menu split="column" [shortcut]="keys.splitDown" />
     </div>
   </div>
 

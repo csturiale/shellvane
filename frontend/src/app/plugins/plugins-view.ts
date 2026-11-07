@@ -11,6 +11,7 @@ import { Navigation } from '../layout/navigation';
 import { HostsStore } from '../hosts/hosts.store';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { UsageStore } from '../core/usage/usage.store';
+import { VaultGate } from '../vault/vault-gate';
 
 /** What the form edits: a configuration of one plugin. */
 interface Draft {
@@ -32,6 +33,7 @@ interface Draft {
   styleUrl: './plugins-view.scss',
 })
 export class PluginsView {
+  private readonly vaultGate = inject(VaultGate);
   private readonly usage = inject(UsageStore);
   private readonly api = inject(PluginApi);
   private readonly hosts = inject(HostsStore);
@@ -98,7 +100,7 @@ export class PluginsView {
     this.clear();
     this.busy.set(true);
     try {
-      await work();
+      await this.vaultGate.run(work);
       await this.reload();
       if (this.store().length > 0) {
         await this.loadStore();
@@ -220,7 +222,7 @@ export class PluginsView {
     this.clear();
     this.busy.set(true);
     try {
-      const saved = await this.api.save({ id: d.id, pluginId: d.pluginId, name: d.name, settings: d.settings, groupId: '', lastSync: '' }, d.secrets);
+      const saved = await this.vaultGate.run(() => this.api.save({ id: d.id, pluginId: d.pluginId, name: d.name, settings: d.settings, groupId: '', lastSync: '' }, d.secrets));
       this.configs.set(await this.api.configs());
       this.draft.set({ ...d, id: saved.id, secrets: {} });
       this.message.set(this.transloco.translate('plugins.saved'));
@@ -242,7 +244,7 @@ export class PluginsView {
     this.clear();
     this.busy.set(true);
     try {
-      const r = await this.api.sync(saved.id);
+      const r = await this.vaultGate.run(() => this.api.sync(saved.id));
       this.message.set(this.transloco.translate('plugins.result', { ...r }));
       this.configs.set(await this.api.configs());
       await this.hosts.load();

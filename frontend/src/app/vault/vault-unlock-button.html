@@ -1,0 +1,3 @@
+@if (vault.state() === 'locked') {
+  <button *transloco="let t" type="button" class="btn small" (click)="open()">{{ t('vault.gate.title') }}</button>
+}

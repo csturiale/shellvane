@@ -41,7 +41,7 @@ I server che chiedono un codice di verifica (Google Authenticator, Duo…) mostr
 
 - **Associa un certificato** a una chiave in Chiavi (il file `-cert.pub` firmato dalla tua CA): viene offerto al posto della chiave semplice finché è valido.
 - **Comando certificato** (Avanzate) chiede alla tua CA un certificato a breve durata a ogni login: la chiave pubblica è in `$SHELLVANE_PUBLIC_KEY` e nel file `$SHELLVANE_PUBLIC_KEY_FILE`; il comando stampa il certificato. Preset: motore SSH di Vault, smallstep step-ca.
-- **Credenziali da un plugin** (Avanzate): HashiCorp Vault, Teleport o Boundary forniscono l'intero accesso, senza script: vedi [Plugin](shellvane:topic/plugins#credentials).
+- **Credenziali da un plugin** (Avanzate): HashiCorp Vault, CyberArk, Conjur, Teleport o Boundary forniscono l'intero accesso, senza script: vedi [Plugin](shellvane:topic/plugins#credentials).
 
 ## Inoltro dell'agent {#forwarding}
 

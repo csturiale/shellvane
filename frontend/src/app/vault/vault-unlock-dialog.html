@@ -1,0 +1,21 @@
+<app-modal *transloco="let t" [heading]="t('vault.gate.title')" (closed)="cancel()">
+  <form id="vault-gate-form" class="form" (ngSubmit)="unlock()">
+    <p class="intro">{{ gate.asking()?.reason ?? t('vault.gate.intro') }}</p>
+    <label class="field">
+      <span>{{ t('vault.master') }}</span>
+      <input name="password" type="password" autocomplete="current-password" autofocus [(ngModel)]="password" />
+    </label>
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+    }
+  </form>
+  <ng-container modal-actions>
+    <button type="button" class="btn" (click)="cancel()">{{ t('common.cancel') }}</button>
+    @if (vault.hasKeychain()) {
+      <button type="button" class="btn" [disabled]="busy()" (click)="unlockWithKeychain()">
+        {{ t(vault.biometric()?.required && vault.biometric()?.kind ? 'vault.gate.' + vault.biometric()!.kind : 'vault.keychainUnlock') }}
+      </button>
+    }
+    <button type="submit" form="vault-gate-form" class="btn primary" [disabled]="busy() || !password">{{ t('vault.unlock') }}</button>
+  </ng-container>
+</app-modal>

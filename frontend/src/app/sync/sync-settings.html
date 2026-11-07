@@ -5,7 +5,7 @@
       @if (!s.configured) {
         <p class="intro">{{ t('sync.intro') }}</p>
         @if (vault.state() !== 'unlocked') {
-          <p class="hint">{{ t('sync.needVault') }}</p>
+          <p class="hint">{{ t('sync.needVault') }} <app-vault-unlock-button /></p>
         } @else {
           <form class="form" (ngSubmit)="setup()">
             <label class="field">
@@ -110,10 +110,10 @@
             <span class="badge">{{ t('sync.kinds.' + s.kind) }}</span> <strong class="mono">{{ s.folder }}</strong><br />
             <small>{{ s.lastSync ? t('sync.last', { when: when(s.lastSync) }) : t('sync.never') }}</small>
           </span>
-          <button type="button" class="btn" [disabled]="busy() || vault.state() !== 'unlocked'" (click)="syncNow()">{{ t(busy() ? 'sync.syncing' : 'sync.now') }}</button>
+          <button type="button" class="btn" [disabled]="busy()" (click)="syncNow()">{{ t(busy() ? 'sync.syncing' : 'sync.now') }}</button>
         </div>
         @if (vault.state() !== 'unlocked') {
-          <p class="hint">{{ t('sync.lockedHint') }}</p>
+          <p class="hint">{{ t('sync.lockedHint') }} <app-vault-unlock-button /></p>
         }
         <label class="check">
           <input type="checkbox" [checked]="s.auto" (change)="setAuto($any($event.target).checked)" />

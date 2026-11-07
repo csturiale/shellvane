@@ -22,6 +22,25 @@
     color: var(--text);
   }
 }
+/* The split buttons, styled like the toolbar's icons. */
+.icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    color: var(--text);
+    background: var(--hover);
+  }
+}
 .menu {
   position: fixed;
   z-index: 40;
