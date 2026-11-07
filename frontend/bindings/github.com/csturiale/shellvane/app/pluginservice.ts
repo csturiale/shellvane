@@ -20,6 +20,15 @@ import * as plugins$0 from "../core/plugins/models.js";
 import * as $models from "./models.js";
 
 /**
+ * ChooseFile asks for a plugin's .zip with the system's file chooser (a
+ * plugin folder, for development, is typed as a path: Windows' chooser
+ * cannot offer files and folders together). It returns "" when cancelled.
+ */
+export function ChooseFile(title: string): $CancellablePromise<string> {
+    return $Call.ByID(2706003740, title);
+}
+
+/**
  * Configs lists the configurations.
  */
 export function Configs(): $CancellablePromise<$models.PluginConfig[] | null> {

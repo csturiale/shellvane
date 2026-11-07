@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LucidePlus, LucidePuzzle, LucideRefreshCw, LucideTrash2 } from '@lucide/angular';
@@ -38,6 +38,7 @@ export class PluginsView {
   private readonly transloco = inject(TranslocoService);
   private readonly nav = inject(Navigation);
 
+  private readonly storeHeading = viewChild<ElementRef<HTMLElement>>('storeHeading');
   protected readonly plugins = signal<PluginInfo[]>([]);
   protected readonly configs = signal<PluginConfig[]>([]);
   /** The configuration being edited; null shows the catalog. */
@@ -189,9 +190,26 @@ export class PluginsView {
     this.draft.set({ id: c.id, pluginId: c.pluginId, name: c.name, settings: { ...(c.settings ?? {}) } as Record<string, string>, secrets: {} });
   }
 
+  /** The + button: back to the catalog, scrolled to the store. */
   protected showCatalog(): void {
     this.clear();
     this.draft.set(null);
+    if (this.store().length === 0 && !this.storeLoading()) {
+      void this.loadStore();
+    }
+    setTimeout(() => this.storeHeading()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  /** Picks a plugin's .zip with the system's chooser and installs it. */
+  protected async chooseFile(): Promise<void> {
+    const path = await this.api.chooseFile(this.transloco.translate('plugins.store.chooseTitle')).catch((err) => {
+      this.showError(err);
+      return '';
+    });
+    if (path) {
+      this.filePath = path;
+      await this.installFile();
+    }
   }
 
   protected async save(): Promise<PluginConfig | null> {

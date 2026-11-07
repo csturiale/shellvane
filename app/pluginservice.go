@@ -18,6 +18,7 @@ import (
 	"github.com/csturiale/shellvane/core/hosts"
 	"github.com/csturiale/shellvane/core/plugins"
 	"github.com/csturiale/shellvane/core/vault"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // PluginInfo is a plugin as the UI lists it.
@@ -499,4 +500,23 @@ func (b *syncLimitedBuffer) String() string {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.buf.String()
+}
+
+// ChooseFile asks for a plugin's .zip with the system's file chooser (a
+// plugin folder, for development, is typed as a path: Windows' chooser
+// cannot offer files and folders together). It returns "" when cancelled.
+func (s *PluginService) ChooseFile(title string) (string, error) {
+	a := application.Get()
+	if a == nil {
+		return "", errs.New(plugins.ErrUnsupported, nil)
+	}
+	path, err := a.Dialog.OpenFile().
+		SetTitle(title).
+		CanChooseFiles(true).
+		AddFilter("Shellvane plugin (*.zip)", "*.zip").
+		PromptForSingleSelection()
+	if err != nil {
+		return "", nil // cancelled
+	}
+	return path, nil
 }

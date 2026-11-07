@@ -8,6 +8,10 @@ export class SnippetsStore {
   readonly snippets = signal<Snippet[]>([]);
   readonly folders = computed(() => [...new Set(this.snippets().map((s) => s.folder).filter(Boolean))].sort());
 
+  /** A snippet the command palette asked to run: the Snippets panel asks
+   * for its variables (or confirmation), then runs it. */
+  readonly pendingRun = signal<string | null>(null);
+
   async load(): Promise<void> {
     this.snippets.set(await this.api.list());
   }

@@ -10,7 +10,9 @@ Niente gira finché non lo installi. La vista Plugin elenca:
 
 - i plugin **inclusi in Shellvane**: **Installa** ne abilita uno, **Disinstalla** lo disabilita di nuovo (prima elimina le sue configurazioni);
 - lo **store**: plugin pubblicati a un indirizzo (per default `https://shellvane.com/plugins/index.json`; si può impostare qualsiasi altro store). **Installa** scarica il pacchetto, ne verifica lo SHA-256 con quello dello store e lo installa; **Aggiorna** compare quando lo store ha una versione più recente;
-- **Installa da file**: una cartella o un `.zip` di plugin con un `plugin.json`, ad esempio uno scritto da te.
+- **Scegli uno .zip…** installa lo `.zip` di un plugin (con un `plugin.json`) scelto con il selettore di file, ad esempio uno condiviso da qualcuno o scritto da te; **Installa da file** accetta un percorso scritto a mano, anche di una cartella di plugin mentre lo scrivi.
+
+Il **+** accanto al titolo riporta a questo catalogo, all'altezza dello store.
 
 I plugin esterni girano su questo computer con i tuoi permessi, come i tuoi script: installa solo quelli di cui ti fidi.
 

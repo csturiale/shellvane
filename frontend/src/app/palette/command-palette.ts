@@ -140,7 +140,9 @@ export class CommandPalette {
           userVariables(s.body).length > 0 ||
           (this.sessions.receivers(focused.key).length > 1 && this.danger.test(text));
         if (needsDialog) {
-          this.nav.view.set('snippets'); // variables and confirmations live there
+          // Variables and confirmations live in the Snippets panel.
+          this.snippets.pendingRun.set(s.id);
+          this.nav.view.set('snippets');
         } else {
           this.sessions.sendToFocused(toTerminalInput(text, s.run));
         }

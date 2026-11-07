@@ -1,6 +1,6 @@
 import { NgComponentOutlet } from '@angular/common';
 import { Sharing } from '../extensions/sharing';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LucideStore, LucideDownload, LucideListChecks, LucidePencil, LucidePlay, LucidePlus, LucideSearch, LucideSquareCode, LucideTrash2, LucideUpload } from '@lucide/angular';
 
@@ -71,6 +71,18 @@ export class SnippetsPanel {
 
   constructor() {
     void this.store.load().catch((err) => this.showError(err));
+    // A snippet chosen in the command palette that needs its variables or
+    // a confirmation: run it from here, once the list has it.
+    effect(() => {
+      const id = this.store.pendingRun();
+      const snippet = id ? this.store.snippets().find((s) => s.id === id) : undefined;
+      if (snippet) {
+        untracked(() => {
+          this.store.pendingRun.set(null);
+          this.run(snippet);
+        });
+      }
+    });
   }
 
   protected onFilter(ev: Event): void {
