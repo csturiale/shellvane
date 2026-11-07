@@ -19,7 +19,7 @@
   </header>
 
   @if (vault.state() !== 'unlocked') {
-    <p class="message">{{ t(vault.state() === 'notSetUp' ? 'keys.needVault' : 'keys.unlockVault') }}</p>
+    <p class="message">{{ t(vault.state() === 'notSetUp' ? 'keys.needVault' : 'keys.unlockVault') }} <app-vault-unlock-button /></p>
   }
   @if (message(); as m) {
     <p class="message" role="status">{{ m }}</p>

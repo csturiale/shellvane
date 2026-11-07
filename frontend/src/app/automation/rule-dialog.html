@@ -86,7 +86,7 @@
               }
             </select>
             @if (vault.state() !== 'unlocked') {
-              <p class="hint">{{ t('automation.secretNeedsVault') }}</p>
+              <p class="hint">{{ t('automation.secretNeedsVault') }} <app-vault-unlock-button /></p>
             }
           </label>
           <label class="check">

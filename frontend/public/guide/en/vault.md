@@ -10,6 +10,7 @@ The master password is turned into a key with Argon2id; that key unlocks a rando
 
 - The lock icon in the title bar locks or unlocks it; it also locks by itself after a period of inactivity.
 - When a connection needs a saved secret while the vault is locked, Shellvane opens it with the system keychain (Touch ID, Windows Hello) when that is enabled, otherwise it asks for the master password (or you can skip and type the password).
+- Everything else that needs the vault while it is locked (saving a plugin's token, Sync now, a team action, adding a key, the assistant's settings) opens it the same way — the system keychain first, after Touch ID or Windows Hello when they are on, the master password only if that is not set up or is cancelled — and then carries on; messages about the locked vault have an **Unlock the vault** button, and so does the vault status at the bottom of the window.
 - When a login asks for a password, passphrase or PIN, **Save in vault** works even if the vault is locked or not created yet: the dialog asks for the master password there (or creates the vault), then saves the secret after a successful login.
 
 ## What is saved {#content}

@@ -188,6 +188,16 @@ describe('SessionsStore', () => {
     expect(store.active()!.focus).toBe(first);
   });
 
+  it('splits the focused pane with a session to another host or address', async () => {
+    await store.openHost('h1', 'web-1');
+    await store.splitWith('row', { source: { kind: 'host', hostId: 'h2' }, title: 'db-1' });
+    await store.splitWith('column', { source: { kind: 'target', spec: 'me@10.0.0.9' }, title: 'me@10.0.0.9' });
+
+    expect(api.opened).toEqual(['host:h1', 'host:h2', 'target:me@10.0.0.9']);
+    expect(store.tabs()).toHaveLength(1);
+    expect(panesOf(store.active()!.layout)).toHaveLength(3);
+  });
+
   it('moves a tab to another window without closing its sessions', async () => {
     await store.openHost('h1', 'web-1');
     await store.split('row');

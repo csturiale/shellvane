@@ -8,15 +8,18 @@ import { LanguageService } from '../core/i18n/language.service';
 import { HelpLink } from '../guide/help-link';
 import { VaultStore } from '../vault/vault.store';
 import { UsageStore } from '../core/usage/usage.store';
+import { VaultGate } from '../vault/vault-gate';
+import { VaultUnlockButton } from '../vault/vault-unlock-button';
 
 /** Sync section of the settings page. */
 @Component({
   selector: 'app-sync-settings',
-  imports: [FormsModule, TranslocoDirective, HelpLink],
+  imports: [VaultUnlockButton, FormsModule, TranslocoDirective, HelpLink],
   templateUrl: './sync-settings.html',
   styleUrls: ['../shared/form.scss', './sync-settings.scss'],
 })
 export class SyncSettings {
+  private readonly vaultGate = inject(VaultGate);
   private readonly usage = inject(UsageStore);
   private readonly api = inject(SyncApi);
   private readonly language = inject(LanguageService);
@@ -112,7 +115,7 @@ export class SyncSettings {
     this.busy.set(true);
     this.error.set(null);
     try {
-      await action();
+      await this.vaultGate.run(action);
     } catch (err) {
       this.error.set(toTranslatableError(err));
     } finally {

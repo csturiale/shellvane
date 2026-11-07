@@ -16,12 +16,13 @@ import { allSchemes } from '../terminal/schemes';
 import { HostsStore } from './hosts.store';
 import { groupPaths } from './tree';
 import { HelpLink } from '../guide/help-link';
+import { VaultUnlockButton } from '../vault/vault-unlock-button';
 
 export type HostDialogTarget = { mode: 'create'; groupId: string } | { mode: 'edit'; host: Host };
 
 @Component({
   selector: 'app-host-dialog',
-  imports: [NgComponentOutlet, HelpLink, FormsModule, TranslocoDirective, Modal, ConnectionOptions],
+  imports: [VaultUnlockButton, NgComponentOutlet, HelpLink, FormsModule, TranslocoDirective, Modal, ConnectionOptions],
   templateUrl: './host-dialog.html',
   styleUrls: ['../shared/form.scss', './host-dialog.scss'],
 })

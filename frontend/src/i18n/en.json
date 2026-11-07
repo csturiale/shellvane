@@ -587,7 +587,7 @@
     "credentialPlugin": "Credentials from a plugin or a team",
     "credentialPluginNone": "None (or inherited from the group)",
     "credentialPluginMissing": "A plugin configuration that no longer exists",
-    "credentialPluginHint": "HashiCorp Vault, Teleport or Boundary give the login at every connection (a short-lived certificate, a password, the broker’s user and proxy). Set them up in Plugins.",
+    "credentialPluginHint": "HashiCorp Vault, CyberArk, Conjur, Teleport or Boundary give the login at every connection (a short-lived certificate, a password, the broker’s user and proxy). Set them up in Plugins.",
     "cloud": {
       "transport": "Access through",
       "direct": "Direct connection (or jump hosts, proxy)",
@@ -755,6 +755,12 @@
     "lock": "Lock now",
     "lockNow": "Lock the vault",
     "openSettings": "Open vault settings",
+    "gate": {
+      "touchid": "Use Touch ID",
+      "hello": "Use Windows Hello",
+      "title": "Unlock the vault",
+      "intro": "This needs a secret from the vault. Enter the master password to continue."
+    },
     "isLockedShort": "Vault locked",
     "isUnlockedShort": "Vault open",
     "changePassword": "Change master password",
@@ -1683,7 +1689,7 @@
     "current": "Version {{version}}",
     "check": "Check now",
     "checking": "Checking…",
-    "auto": "Check for updates once a day",
+    "auto": "Check for updates at startup and every few hours",
     "disabled": "This build does not update itself.",
     "upToDate": "Shellvane is up to date.",
     "available": "Version {{version}} is available",
@@ -1911,7 +1917,26 @@
       "teleportProxy": "Teleport proxy",
       "teleportCluster": "Cluster",
       "boundaryTarget": "Target ID",
-      "boundaryAddr": "Boundary address"
+      "boundaryAddr": "Boundary address",
+      "cyberarkSafe": "Safe",
+      "cyberarkAppId": "Application ID (Credential Provider)",
+      "cyberarkObject": "Account name (Object)",
+      "clientCert": "Client certificate (PEM file)",
+      "clientKey": "Client key (PEM file)",
+      "cyberarkUser": "CyberArk user (PVWA)",
+      "cyberarkPassword": "CyberArk password (PVWA)",
+      "cyberarkAuth": "Authentication (CyberArk, LDAP, RADIUS, Windows, SAML, OIDC)",
+      "cyberarkReason": "Reason for the request",
+      "conjurAccount": "Account",
+      "conjurLogin": "Login (host/… or user)",
+      "conjurApiKey": "API key",
+      "conjurAuthenticator": "Authenticator",
+      "conjurPassword": "Password variable",
+      "conjurKey": "Private key variable",
+      "conjurUser": "User variable",
+      "cyberarkOtpMode": "Code (RADIUS): challenge, or append to the password",
+      "cyberarkOtpDelimiter": "Separator for append mode",
+      "cyberarkWebLogin": "Sign-in page (SAML/OIDC, optional)"
     },
     "panel": {
       "open": "Docker, services and logs",
@@ -1994,12 +2019,19 @@
     },
     "boundary": {
       "description": "Connect through a HashiCorp Boundary target with the credentials it brokers (boundary connect)."
+    },
+    "cyberark": {
+      "description": "Logins from CyberArk PAM: an account's password or SSH key through the Central Credential Provider (application ID, client certificate) or the PVWA with your CyberArk login."
+    },
+    "conjur": {
+      "description": "Logins from CyberArk Conjur: the password, SSH key and user of a host read from Conjur variables with an API key."
     }
   },
   "newTab": {
     "title": "New tab",
     "search": "Search hosts, or type user@host:port",
     "local": "New local terminal",
+    "sameHost": "Same host",
     "connectTo": "Connect to {{target}}",
     "none": "No saved host matches.",
     "sections": {

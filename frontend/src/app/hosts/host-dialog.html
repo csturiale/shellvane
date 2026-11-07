@@ -84,7 +84,7 @@
       <div class="field">
         <span>{{ t('hosts.totp.label') }} <app-help-link topic="auth" anchor="totp" /></span>
         @if (vault.state() !== 'unlocked') {
-          <p class="hint">{{ t('hosts.totp.needsVault') }}</p>
+          <p class="hint">{{ t('hosts.totp.needsVault') }} <app-vault-unlock-button /></p>
         } @else if (hasTotp() && !replaceTotp) {
           <div class="jump">
             <span class="totp-set">{{ t('hosts.totp.configured') }}</span>

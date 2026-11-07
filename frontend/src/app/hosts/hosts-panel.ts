@@ -46,6 +46,7 @@ import { ContextMenuService } from '../shared/context-menu.service';
 import { Sharing } from '../extensions/sharing';
 import { NgComponentOutlet } from '@angular/common';
 import { Modal } from '../shared/modal';
+import { VaultGate } from '../vault/vault-gate';
 
 type DragItem = { kind: 'group' | 'host'; id: string };
 type PendingDelete = { kind: 'group'; group: Group; message: string } | { kind: 'host'; host: Host; message: string };
@@ -95,6 +96,7 @@ const RECENT_COUNT = 5;
   styleUrl: './hosts-panel.scss',
 })
 export class HostsPanel {
+  private readonly vaultGate = inject(VaultGate);
   protected readonly store = inject(HostsStore);
   private readonly sessions = inject(SessionsStore);
   protected readonly nav = inject(Navigation);
@@ -396,7 +398,7 @@ export class HostsPanel {
   private async run(action: () => Promise<unknown>): Promise<void> {
     this.error.set(null);
     try {
-      await action();
+      await this.vaultGate.run(action);
     } catch (err) {
       const e = toTranslatableError(err);
       this.error.set(this.transloco.translate(e.key, e.params));

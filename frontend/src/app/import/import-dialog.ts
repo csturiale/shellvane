@@ -9,6 +9,7 @@ import { TunnelsStore } from '../tunnels/tunnels.store';
 import { Modal } from '../shared/modal';
 import { ImportRow, importRows, withDefaultUser } from './import-tree';
 import { UsageStore } from '../core/usage/usage.store';
+import { VaultGate } from '../vault/vault-gate';
 
 type Step = 'source' | 'preview' | 'done';
 
@@ -20,6 +21,7 @@ type Step = 'source' | 'preview' | 'done';
   styleUrls: ['../shared/form.scss', './import-dialog.scss'],
 })
 export class ImportDialog {
+  private readonly vaultGate = inject(VaultGate);
   private readonly usage = inject(UsageStore);
   readonly closed = output<void>();
 
@@ -141,7 +143,7 @@ export class ImportDialog {
     this.busy.set(true);
     this.error.set(null);
     try {
-      await action();
+      await this.vaultGate.run(action);
     } catch (err) {
       this.error.set(toTranslatableError(err));
     } finally {

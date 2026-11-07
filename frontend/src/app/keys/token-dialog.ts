@@ -6,6 +6,7 @@ import { TranslatableError, toTranslatableError } from '../core/backend/errors';
 import { KeyApi, Token, TokenKey } from '../core/backend/key-api';
 import { HelpLink } from '../guide/help-link';
 import { Modal } from '../shared/modal';
+import { VaultGate } from '../vault/vault-gate';
 
 /** Adds a key that lives on a hardware token (YubiKey, smart card) through its PKCS#11 module. */
 @Component({
@@ -15,6 +16,7 @@ import { Modal } from '../shared/modal';
   styleUrls: ['../shared/form.scss', './token-dialog.scss'],
 })
 export class TokenDialog {
+  private readonly vaultGate = inject(VaultGate);
   /** Emits the new key's name, or null when cancelled. */
   readonly closed = output<string | null>();
 
@@ -82,7 +84,7 @@ export class TokenDialog {
     this.busy.set(true);
     this.error.set(null);
     try {
-      await action();
+      await this.vaultGate.run(action);
     } catch (err) {
       this.error.set(toTranslatableError(err));
     } finally {

@@ -82,6 +82,6 @@ func All() []plugins.Plugin {
 		Kubernetes{Cmd: System}, Ansible{Cmd: System}, Terraform{Cmd: System},
 		Proxmox{}, NetBox{},
 		Docker{}, Systemd{}, Logs{},
-		HashiCorpVault{}, Teleport{Cmd: System}, Boundary{Cmd: System},
+		HashiCorpVault{}, CyberArk{}, Conjur{}, Teleport{Cmd: System}, Boundary{Cmd: System},
 	}
 }

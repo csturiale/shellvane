@@ -4,11 +4,16 @@ import { TranslatableError, toTranslatableError } from '../core/backend/errors';
 import { UpdateApi, UpdateInfo } from '../core/backend/update-api';
 import { readPreference, writePreference } from '../core/preferences';
 
-const DAY = 24 * 60 * 60 * 1000;
+const MINUTE = 60 * 1000;
+const HOURS_6 = 6 * 60 * MINUTE;
+const DAY = 24 * 60 * MINUTE;
 
-/** Update checks: on demand, and once a day when allowed. */
+/** Update checks: on demand, at every start and every 6 hours when allowed. */
 @Injectable({ providedIn: 'root' })
 export class UpdatesStore {
+  /** How old the last check may be at startup. */
+  static readonly STARTUP_AGE = 10 * MINUTE;
+
   private readonly api = inject(UpdateApi);
   readonly info = signal<UpdateInfo | null>(null);
   readonly checking = signal(false);
@@ -70,10 +75,12 @@ export class UpdatesStore {
     writePreference('updates.auto', String(on));
   }
 
-  /** At startup: checks when allowed and the last check is a day old. */
-  async checkDaily(): Promise<void> {
+  /** Checks when allowed and the last check is older than maxAge: at
+   * startup (10 minutes, so quick restarts do not ask again) and from a
+   * timer while the app stays open (6 hours). */
+  async checkIfDue(maxAge = HOURS_6): Promise<void> {
     const last = Number(readPreference('updates.lastCheck') ?? 0);
-    if (this.auto() && Date.now() - last > DAY) {
+    if (this.auto() && Date.now() - last > maxAge) {
       await this.check().catch(() => undefined);
     }
   }

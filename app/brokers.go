@@ -8,6 +8,7 @@ import (
 
 	"github.com/csturiale/shellvane/core/errs"
 	"github.com/csturiale/shellvane/core/plugins"
+	"github.com/csturiale/shellvane/core/sshengine"
 	"github.com/csturiale/shellvane/core/vault"
 )
 
@@ -38,6 +39,21 @@ func (s *SessionService) applyBrokers(ctx context.Context, ht *resolvedHost, own
 		return errs.New(plugins.ErrUnsupported, nil)
 	}
 	t := plugins.Target{HostID: ht.id, Name: ht.name, Hostname: ht.target.Host, Port: ht.target.Port, User: ht.target.User}
+	// A plugin may need the user, e.g. for a one-time code: it is asked
+	// like a keyboard-interactive question of the connection.
+	ctx = plugins.WithAsker(ctx, func(ctx context.Context, title, question string, secret bool) (string, error) {
+		a, err := s.ask(ctx, Prompt{SessionID: owner, Kind: "challenge", Target: ht.target, Attempt: 1,
+			Challenge: &sshengine.Challenge{Name: title, Questions: []string{question}, Echo: []bool{!secret}, Round: 1}, Autofilled: []bool{false}})
+		if err != nil {
+			return "", err
+		}
+		if len(a.Answers) == 0 {
+			return "", errs.New(sshengine.ErrCancelled, nil)
+		}
+		return a.Answers[0], nil
+	})
+	// Or a sign-in in a browser window (SAML, OpenID Connect).
+	ctx = plugins.WithWebLogin(ctx, WebLoginWindow)
 	cred, err := broker(ctx, ht.credentialPlugin, t)
 	if errs.CodeOf(err) == vault.ErrLocked && s.vault != nil {
 		// The plugin's token is in the vault: open it (keychain, Touch ID
