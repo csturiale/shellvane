@@ -10,7 +10,9 @@ Nothing runs until you install it. The Plugins view lists:
 
 - the plugins **included with Shellvane**: **Install** enables one, **Uninstall** disables it again (delete its configurations first);
 - the **store**: plugins published at an address (by default `https://shellvane.com/plugins/index.json`; any other store can be set). **Install** downloads the package, checks its SHA-256 against the store's and installs it; **Update** appears when the store has a newer version;
-- **Install from file**: a plugin folder or `.zip` with a `plugin.json`, e.g. one you wrote.
+- **Choose a .zip…** installs a plugin's `.zip` (with a `plugin.json`) picked with the file chooser, e.g. one someone shared or one you wrote; **Install from file** takes a typed path, also of a plugin folder while you write one.
+
+The **+** next to the title brings back this catalog, at the store.
 
 External plugins run on this computer with your permissions, like your own scripts: install only those you trust.
 

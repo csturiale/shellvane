@@ -1976,6 +1976,8 @@
       "file": "Cartella o .zip del plugin",
       "filePlaceholder": "Cartella o .zip di un plugin (con plugin.json)",
       "installFile": "Installa da file",
+      "choose": "Scegli uno .zip…",
+      "chooseTitle": "Installa un plugin",
       "trust": "I plugin girano su questo computer con i tuoi permessi, come i tuoi script: installa solo quelli di cui ti fidi. I pacchetti dello store vengono verificati con il loro SHA-256.",
       "done": "{{name}} installato.",
       "removed": "{{name}} disinstallato.",

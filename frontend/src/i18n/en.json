@@ -1976,6 +1976,8 @@
       "file": "Plugin folder or .zip",
       "filePlaceholder": "Folder or .zip of a plugin (with plugin.json)",
       "installFile": "Install from file",
+      "choose": "Choose a .zip…",
+      "chooseTitle": "Install a plugin",
       "trust": "Plugins run on this computer with your permissions, like your own scripts: install only those you trust. Packages from the store are checked against their SHA-256.",
       "done": "{{name}} installed.",
       "removed": "{{name}} uninstalled.",

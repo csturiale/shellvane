@@ -46,6 +46,10 @@ export class PluginApi {
   uninstall(id: string): Promise<void> {
     return PluginService.Uninstall(id);
   }
+  /** The system's file chooser for a plugin's .zip; "" when cancelled. */
+  chooseFile(title: string): Promise<string> {
+    return PluginService.ChooseFile(title);
+  }
   installFile(path: string): Promise<PluginInfo> {
     return PluginService.InstallFile(path);
   }

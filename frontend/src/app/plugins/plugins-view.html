@@ -109,7 +109,7 @@
         }
       </div>
 
-      <h3>{{ t('plugins.store.title') }}</h3>
+      <h3 #storeHeading>{{ t('plugins.store.title') }}</h3>
       <div class="store-url">
         <input name="storeUrl" spellcheck="false" class="mono" [attr.aria-label]="t('plugins.store.url')" [(ngModel)]="storeUrl" (keydown.enter)="loadStore()" />
         <button type="button" class="btn small" [disabled]="storeLoading()" (click)="loadStore()">{{ t('plugins.store.load') }}</button>
@@ -171,6 +171,7 @@
       <form class="store-url" (ngSubmit)="installFile()">
         <input name="file" spellcheck="false" class="mono" [placeholder]="t('plugins.store.filePlaceholder')" [attr.aria-label]="t('plugins.store.file')" [(ngModel)]="filePath" />
         <button type="submit" class="btn small" [disabled]="busy() || !filePath.trim()">{{ t('plugins.store.installFile') }}</button>
+        <button type="button" class="btn small" [disabled]="busy()" (click)="chooseFile()">{{ t('plugins.store.choose') }}</button>
       </form>
       <p class="hint">{{ t('plugins.store.trust') }}</p>
     }

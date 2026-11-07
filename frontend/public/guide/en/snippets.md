@@ -10,7 +10,7 @@ Snippets are saved commands, organized in folders, sent to the focused pane (and
 
 ## Send {#send}
 
-Click **Send** in the Snippets panel, or find the snippet in the command palette (`#` searches snippets only). **Run** presses Enter after the text; without it the command is only typed, for you to review.
+Click **Send** in the Snippets panel, or find the snippet in the command palette (`#` searches snippets only); a snippet with variables opens the Snippets panel and asks for them. **Run** presses Enter after the text; without it the command is only typed, for you to review.
 
 ## Example {#example}
 

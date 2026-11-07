@@ -10,7 +10,7 @@ Gli snippet sono comandi salvati, organizzati in cartelle, inviati al pannello a
 
 ## Invia {#send}
 
-Clicca **Invia** nel pannello Snippet, oppure trova lo snippet nella palette dei comandi (`#` cerca solo gli snippet). **Esegui** preme Invio dopo il testo; senza, il comando viene solo scritto, per poterlo controllare.
+Clicca **Invia** nel pannello Snippet, oppure trova lo snippet nella palette dei comandi (`#` cerca solo gli snippet); uno snippet con variabili apre il pannello Snippet e le chiede. **Esegui** preme Invio dopo il testo; senza, il comando viene solo scritto, per poterlo controllare.
 
 ## Esempio {#example}
 
