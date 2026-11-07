@@ -8,6 +8,7 @@ import { HostsStore } from '../hosts/hosts.store';
 import { TunnelsStore } from '../tunnels/tunnels.store';
 import { Modal } from '../shared/modal';
 import { ImportRow, importRows, withDefaultUser } from './import-tree';
+import { UsageStore } from '../core/usage/usage.store';
 
 type Step = 'source' | 'preview' | 'done';
 
@@ -19,6 +20,7 @@ type Step = 'source' | 'preview' | 'done';
   styleUrls: ['../shared/form.scss', './import-dialog.scss'],
 })
 export class ImportDialog {
+  private readonly usage = inject(UsageStore);
   readonly closed = output<void>();
 
   private readonly api = inject(ImportApi);
@@ -118,6 +120,7 @@ export class ImportDialog {
   }
 
   protected async import(): Promise<void> {
+    this.usage.count('import');
     const hosts = withDefaultUser(
       (this.preview()?.hosts ?? []).filter((_, i) => this.chosen()[i]),
       this.defaultUser,

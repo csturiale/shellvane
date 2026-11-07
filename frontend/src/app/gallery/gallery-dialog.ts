@@ -4,13 +4,14 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { toTranslatableError } from '../core/backend/errors';
 import { GalleryApi, GalleryIndex } from '../core/backend/gallery-api';
 import { Navigation } from '../layout/navigation';
+import { UsageStore } from '../core/usage/usage.store';
 import { SnippetsStore } from '../snippets/snippets.store';
 import { ThemesStore } from '../themes/themes.store';
 import { Modal } from '../shared/modal';
 
 /**
  * The community gallery: snippet collections and terminal color schemes
- * shared on termoraplus.com, installed in one click. The index is signed
+ * shared on shellvane.com, installed in one click. The index is signed
  * by the project and each file checked against it.
  */
 @Component({
@@ -28,6 +29,7 @@ export class GalleryDialog implements OnInit {
   private readonly api = inject(GalleryApi);
   private readonly transloco = inject(TranslocoService);
   private readonly nav = inject(Navigation);
+  private readonly usage = inject(UsageStore);
   protected readonly tab = signal<'snippets' | 'themes'>('snippets');
   protected readonly index = signal<GalleryIndex | null>(null);
   protected readonly error = signal<string | null>(null);
@@ -78,6 +80,7 @@ export class GalleryDialog implements OnInit {
     this.error.set(null);
     try {
       const r = await this.api.install(kind, file);
+      this.usage.count('gallery.install');
       await (kind === 'snippets' ? this.snippetsStore.load() : this.themesStore.load()).catch(() => undefined);
       this.message.set(this.transloco.translate(kind === 'snippets' ? 'gallery.installedSnippets' : 'gallery.installedTheme', { name, count: r.added }));
       this.installed.emit(kind);

@@ -35,4 +35,4 @@ L'icona nella tray elenca gli host recenti (clicca per aprirne uno), i tunnel sa
 
 ## Installazione {#install}
 
-Ogni release è su [termoraplus.com/download](https://termoraplus.com/download/) e contiene: un installer per Windows (e il solo `shellvane-windows-amd64.exe`), l'app macOS per Mac Apple silicon (M1 o successivi; i Mac Intel non sono supportati) come immagine disco (`.dmg`: trascina Shellvane in Applicazioni) e in uno zip e, per Linux, un `.deb`, un `.rpm` e un AppImage (che si aggiorna da solo). Anche `shellvane-cli` viene pubblicato per ogni sistema. Le release con un suffisso nella versione (`v1.2.0-rc1`) sono pre-release.
+Ogni release è su [shellvane.com/download](https://shellvane.com/download/) e contiene: un installer per Windows (e il solo `shellvane-windows-amd64.exe`), l'app macOS per Mac Apple silicon (M1 o successivi; i Mac Intel non sono supportati) come immagine disco (`.dmg`: trascina Shellvane in Applicazioni) e in uno zip e, per Linux, un `.deb`, un `.rpm` e un AppImage (che si aggiorna da solo). Anche `shellvane-cli` viene pubblicato per ogni sistema. Le release con un suffisso nella versione (`v1.2.0-rc1`) sono pre-release.

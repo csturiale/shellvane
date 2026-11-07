@@ -136,6 +136,7 @@ func main() {
 			application.NewServiceWithOptions(app.NewMonitorService(sessions), serviceOptions),
 			application.NewServiceWithOptions(themeService, serviceOptions),
 			application.NewServiceWithOptions(app.NewGalleryService(snippetService, themeService), serviceOptions),
+			application.NewServiceWithOptions(app.NewUsageService(), serviceOptions),
 			application.NewServiceWithOptions(app.NewDiagnosticsService(sessions, repo, filepath.Dir(dbPath)), serviceOptions),
 			application.NewServiceWithOptions(app.NewImportService(db, repo, tunnel.NewRepo(db), filepath.Join(filepath.Dir(dbPath), "backups")), serviceOptions),
 			application.NewServiceWithOptions(app.NewDownloadsService(os.Getenv("SHELLVANE_DOWNLOADS")), serviceOptions),

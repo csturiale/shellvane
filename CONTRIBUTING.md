@@ -10,7 +10,7 @@ gallery, and code are all welcome.
 - Security problems: do not open an issue, see [docs/SECURITY.md](docs/SECURITY.md).
 - Color schemes, snippet collections and third-party plugins for the store:
   the in-app guide, topic **Contribute**
-  (termoraplus.com/docs/contribute/), explains each step; no Git needed.
+  (shellvane.com/docs/contribute/), explains each step; no Git needed.
 
 ## Contribution terms
 

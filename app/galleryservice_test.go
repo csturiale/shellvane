@@ -49,7 +49,7 @@ func TestGalleryInstallsVerifiedItems(t *testing.T) {
 	defer srv.Close()
 	GalleryURL = srv.URL + "/gallery/index.json"
 	galleryVerify = func(data, sig []byte) bool { return string(sig) == "signed" && string(data) == string(index) }
-	defer func() { GalleryURL, galleryVerify = "https://termoraplus.com/gallery/index.json", update.Verify }()
+	defer func() { GalleryURL, galleryVerify = "https://shellvane.com/gallery/index.json", update.Verify }()
 
 	g := NewGalleryService(NewSnippetService(snippets.New(db)), NewThemeService(themes.NewRepo(db)))
 	if got, err := g.Gallery(ctx); err != nil || len(got.Snippets) != 1 || len(got.Themes) != 1 {

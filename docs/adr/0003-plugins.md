@@ -20,7 +20,7 @@ that speaks JSON-RPC 2.0, one message per line, on its stdin and stdout.
 
 - **Location**: `<data dir>/plugins/<id>/plugin.json`. Plugins are installed
   from a folder or a .zip, or from a store: an index JSON served over HTTPS
-  (default `https://termoraplus.com/plugins/index.json`) whose packages carry
+  (default `https://shellvane.com/plugins/index.json`) whose packages carry
   a SHA-256 that the download must match. Nothing is downloaded or run
   without the user installing it; built-in plugins are installed (enabled)
   one by one too.

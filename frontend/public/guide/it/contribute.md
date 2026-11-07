@@ -6,7 +6,7 @@ Schemi colore, raccolte di snippet e plugin creati dagli utenti arrivano a tutti
 
 1. In **Impostazioni › Terminale** seleziona lo schema e usa **Esporta**: ottieni un file JSON nel formato di Windows Terminal. Dai allo schema un `name` chiaro, è il titolo mostrato nella galleria.
 2. Apri il repository su GitHub, vai nella cartella `gallery/themes/` e usa **Add file › Upload files**. GitHub crea una tua copia del repository (un fork) e propone di aprire una pull request: descrivi lo schema in una riga.
-3. Il progetto controlla che si importi e che il testo sia leggibile; una volta accettato compare su termoraplus.com/gallery e nella [galleria della comunità](shellvane:topic/snippets#gallery) dell'app al successivo aggiornamento del sito.
+3. Il progetto controlla che si importi e che il testo sia leggibile; una volta accettato compare su shellvane.com/gallery e nella [galleria della comunità](shellvane:topic/snippets#gallery) dell'app al successivo aggiornamento del sito.
 
 Uno schema per file, con un nome in minuscolo come `solarized-warm.json`.
 

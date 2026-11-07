@@ -1,10 +1,10 @@
 # Third-party plugins in the store
 
 Each `<id>.json` here lists a plugin published by its author: the store at
-termoraplus.com/plugins includes it, and the app installs the package only
+shellvane.com/plugins includes it, and the app installs the package only
 if its SHA-256 matches the one in this file. How to propose one: the in-app
 guide, topic Contribute › Publish a plugin in the store
-(termoraplus.com/docs/contribute/#plugins).
+(shellvane.com/docs/contribute/#plugins).
 
 ```json
 {

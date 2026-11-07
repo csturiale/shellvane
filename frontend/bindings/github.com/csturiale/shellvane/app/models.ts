@@ -792,6 +792,30 @@ export interface UpdateInfo {
 }
 
 /**
+ * UsagePayload is the report as it goes on the wire.
+ */
+export interface UsagePayload {
+    "v": number;
+    "version": string;
+    "os": string;
+    "arch": string;
+    "days": number;
+    "features": { [_ in string]?: number } | null;
+    "tools": { [_ in string]?: number } | null;
+}
+
+/**
+ * UsageReport is what an opted-in app sends once a week: how many times
+ * features and well-known command-line tools were used in that period,
+ * plus the version and the system. No identifier, host, path or argument.
+ */
+export interface UsageReport {
+    "days": number;
+    "features": { [_ in string]?: number } | null;
+    "tools": { [_ in string]?: number } | null;
+}
+
+/**
  * VaultStatus is the payload of EventVaultState.
  */
 export interface VaultStatus {

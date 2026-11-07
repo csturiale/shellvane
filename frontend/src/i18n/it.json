@@ -352,6 +352,9 @@
       "unavailable": "La galleria non è leggibile ({{detail}}).",
       "signature": "La galleria non è firmata dal progetto Shellvane (o è stata modificata): non viene aggiunto nulla.",
       "item": "Questo elemento non è nella galleria firmata, o il suo file è stato modificato."
+    },
+    "usage": {
+      "failed": "Non è stato possibile inviare le statistiche d'uso ({{detail}})."
     }
   },
   "common": {
@@ -2013,7 +2016,7 @@
     "added": "Aggiunto",
     "empty": "Ancora niente qui.",
     "loading": "Caricamento della galleria…",
-    "hint": "Condivisi dalla comunità di Shellvane su termoraplus.com. Gli snippet vengono scritti solo quando li esegui: leggili prima. Tutto viene verificato con la firma del progetto prima di essere aggiunto.",
+    "hint": "Condivisi dalla comunità di Shellvane su shellvane.com. Gli snippet vengono scritti solo quando li esegui: leggili prima. Tutto viene verificato con la firma del progetto prima di essere aggiunto.",
     "propose": "Proponi il tuo",
     "installedSnippets": "{{name}}: {{count}} snippet aggiunti.",
     "installedTheme": "Schema colore {{name}} aggiunto: sceglilo nell'elenco."
@@ -2027,5 +2030,21 @@
     "transport": "Solo trasporto",
     "transportHint": "Gli stessi 8 MB, contati ma non disegnati: la velocità del flusso dall'app al terminale, senza xterm.js.",
     "resultTransport": "Solo trasporto: {{mb}} MB in {{seconds}} s = {{rate}} MB/s · {{engine}} · {{os}}"
+  },
+  "usage": {
+    "title": "Privacy",
+    "setting": "Condividi statistiche d'uso anonime",
+    "settingHint": "Una volta a settimana: quante volte è stata usata ogni funzionalità e quali strumenti da riga di comando noti (kubectl, docker, git…) sono stati eseguiti, solo per nome. Nessun identificativo, host, utente, percorso, argomento o file. Aiuta a decidere cosa sviluppare.",
+    "show": "Mostra cosa viene inviato",
+    "privacyLink": "Informativa privacy",
+    "lastSent": "Ultimo invio: {{when}}",
+    "consentTitle": "Vuoi aiutare a migliorare Shellvane?",
+    "consentIntro": "Shellvane può inviare al progetto statistiche d'uso anonime una volta a settimana. È disattivato finché non accetti.",
+    "consentWhat": "Cosa: quante volte è stata usata ogni funzionalità (split, SFTP, tunnel, ambienti…) e quanto spesso sono stati eseguiti strumenti noti come kubectl, docker o git, solo per nome; più la versione dell'app e il sistema.",
+    "consentNot": "Mai: host, indirizzi, utenti, percorsi, argomenti, nomi di file, ciò che scrivi o vedi, né alcun identificativo tuo o di questo computer.",
+    "consentWhere": "Dove: a shellvane.com, conservate senza il tuo indirizzo IP, mai condivise né vendute.",
+    "consentChange": "Puoi vedere esattamente cosa viene inviato e cambiare idea in Impostazioni › Privacy.",
+    "yes": "Condividi le statistiche",
+    "no": "No, grazie"
   }
 }

@@ -1,9 +1,11 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { RemotePort, TunnelApi, TunnelInput, TunnelProfile, TunnelStatus, TunnelView } from '../core/backend/tunnel-api';
+import { UsageStore } from '../core/usage/usage.store';
 
 @Injectable({ providedIn: 'root' })
 export class TunnelsStore {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(TunnelApi);
   readonly tunnels = signal<TunnelView[]>([]);
   readonly activeCount = computed(() => this.tunnels().filter((t) => t.status.state === 'running').length);
@@ -41,6 +43,7 @@ export class TunnelsStore {
   }
 
   start(id: string): Promise<void> {
+    this.usage.count('tunnel.start');
     return this.api.start(id);
   }
 

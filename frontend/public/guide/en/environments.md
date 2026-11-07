@@ -64,7 +64,7 @@ Starting it logs in when needed, writes the context, opens the tunnel and opens 
 
 ## Share {#share}
 
-In the app from termoraplus.com, the team button next to the environment shares it: members get it with its tunnels, kept up to date, and approve its commands before it runs on their computer.
+In the app from shellvane.com, the team button next to the environment shares it: members get it with its tunnels, kept up to date, and approve its commands before it runs on their computer.
 
 
 The copy icon puts the environment on the clipboard as YAML, with host, tunnel and workspace **names** instead of internal IDs and without secrets. **Import** reads it back and links the names to your own hosts, tunnels and workspaces; several environments can be pasted at once, separated by lines with `---`. Tunnels imported from an OpenSSH config are named after their host and ports (`bastion SOCKS 1080`, `bastion L 8080 → db:5432`), so environments can refer to them.

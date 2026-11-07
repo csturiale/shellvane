@@ -22,6 +22,7 @@ import * as SyncService from "./syncservice.js";
 import * as ThemeService from "./themeservice.js";
 import * as TunnelService from "./tunnelservice.js";
 import * as UpdateService from "./updateservice.js";
+import * as UsageService from "./usageservice.js";
 import * as VaultService from "./vaultservice.js";
 import * as WorkspaceService from "./workspaceservice.js";
 export {
@@ -46,6 +47,7 @@ export {
     ThemeService,
     TunnelService,
     UpdateService,
+    UsageService,
     VaultService,
     WorkspaceService
 };
@@ -94,5 +96,7 @@ export type {
     TunnelStatus,
     TunnelView,
     UpdateInfo,
+    UsagePayload,
+    UsageReport,
     VaultStatus
 } from "./models.js";

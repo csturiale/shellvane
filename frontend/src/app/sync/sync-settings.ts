@@ -7,6 +7,7 @@ import { CloudFolder, SyncApi, SyncReport, SyncStatus } from '../core/backend/sy
 import { LanguageService } from '../core/i18n/language.service';
 import { HelpLink } from '../guide/help-link';
 import { VaultStore } from '../vault/vault.store';
+import { UsageStore } from '../core/usage/usage.store';
 
 /** Sync section of the settings page. */
 @Component({
@@ -16,6 +17,7 @@ import { VaultStore } from '../vault/vault.store';
   styleUrls: ['../shared/form.scss', './sync-settings.scss'],
 })
 export class SyncSettings {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(SyncApi);
   private readonly language = inject(LanguageService);
   protected readonly vault = inject(VaultStore);
@@ -91,6 +93,7 @@ export class SyncSettings {
   }
 
   protected syncNow(): Promise<void> {
+    this.usage.count('sync');
     return this.run(async () => this.report.set(await this.api.syncNow()));
   }
 

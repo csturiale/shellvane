@@ -155,6 +155,11 @@
       <app-command-palette (closed)="paletteOpen.set(false)" (cheatsheet)="cheatsheetOpen.set(true)" />
     }
   }
+  @if (!detached && !showTour() && usage.consent() === '') {
+    @defer (on immediate) {
+      <app-usage-consent />
+    }
+  }
   @if (updates()?.prompt()) {
     @defer (on immediate) {
       <app-update-prompt />

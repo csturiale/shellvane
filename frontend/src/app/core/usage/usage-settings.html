@@ -1,0 +1,24 @@
+<section *transloco="let t; read: 'usage'">
+  <h2>{{ t('title') }}</h2>
+  <div class="card">
+    <div class="row">
+      <label for="usage-consent">{{ t('setting') }}</label>
+      <input id="usage-consent" type="checkbox" [checked]="usage.consent() === 'yes'" (change)="toggle($any($event.target).checked)" />
+    </div>
+    <p class="hint">{{ t('settingHint') }}</p>
+    <div class="row">
+      <span class="hint">
+        @if (usage.lastSent()) {
+          {{ t('lastSent', { when: when(usage.lastSent()) }) }}
+        }
+      </span>
+      <span class="buttons">
+        <button type="button" class="btn small" (click)="show()">{{ t('show') }}</button>
+        <button type="button" class="btn small" (click)="privacy()">{{ t('privacyLink') }}</button>
+      </span>
+    </div>
+    @if (preview(); as p) {
+      <pre class="preview">{{ p }}</pre>
+    }
+  </div>
+</section>

@@ -3,6 +3,7 @@ import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { Workspace, WorkspaceApi } from '../core/backend/workspace-api';
 import { SessionPrefs } from './session-prefs';
 import { SavedWorkspace, SessionsStore } from './sessions.store';
+import { UsageStore } from '../core/usage/usage.store';
 
 /** The open tabs are saved this long after the last change. */
 const AUTOSAVE_MS = 1000;
@@ -10,6 +11,7 @@ const AUTOSAVE_MS = 1000;
 /** Named workspaces, and the open tabs restored at the next start. */
 @Injectable({ providedIn: 'root' })
 export class WorkspacesStore {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(WorkspaceApi);
   private readonly sessions = inject(SessionsStore);
   private readonly prefs = inject(SessionPrefs);
@@ -58,6 +60,7 @@ export class WorkspacesStore {
   }
 
   async open(w: Workspace): Promise<boolean> {
+    this.usage.count('workspace.open');
     const ws = parse(w.layout);
     if (ws) {
       await this.sessions.restore(ws);
