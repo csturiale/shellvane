@@ -30,6 +30,7 @@ import { findScheme } from '../terminal/schemes';
 import { CommandTracker, OscNotification, parseOsc777, parseOsc9 } from '../terminal/osc';
 import { CommandHistory, LineTracker } from '../terminal/suggest';
 import { BackendService } from '../core/backend/backend.service';
+import { UsageStore } from '../core/usage/usage.store';
 import { SnippetsStore } from '../snippets/snippets.store';
 import { TerminalPrefs } from '../terminal/terminal-prefs';
 import { Navigation } from '../layout/navigation';
@@ -253,6 +254,7 @@ export class TerminalView {
   private readonly nav = inject(Navigation);
   private readonly transloco = inject(TranslocoService);
   private readonly backend = inject(BackendService);
+  private readonly usage = inject(UsageStore);
   private readonly theme = inject(ThemeService);
   private readonly zone = inject(NgZone);
   private readonly hostEl = viewChild.required<ElementRef<HTMLElement>>('host');
@@ -532,7 +534,16 @@ export class TerminalView {
   private followLine(data: string): void {
     const term = this.term;
     const scope = this.historyScope();
-    if (!term || !scope || !this.prefs.suggestions()) {
+    if (!term || !scope) {
+      return;
+    }
+    if (!this.prefs.suggestions()) {
+      // Only the usage statistics (with consent) follow the line then.
+      if (this.usage.consent() === 'yes' && !this.broadcasting()) {
+        for (const cmd of this.line.feed(data)) {
+          this.usage.command(cmd);
+        }
+      }
       return;
     }
     // The line on screen before Enter: a command is kept only if it was
@@ -544,6 +555,7 @@ export class TerminalView {
     for (const cmd of this.line.feed(data)) {
       if (normal && !this.broadcasting() && shown.includes(cmd)) {
         this.history.remember(scope, cmd);
+        this.usage.command(cmd);
       }
     }
     this.scheduleGhost();
@@ -618,6 +630,7 @@ export class TerminalView {
     if (!suffix) {
       return;
     }
+    this.usage.count('suggestion.accept');
     this.send(encoder.encode(suffix));
     this.store.typed(this.pane().key, suffix);
     this.line.feed(suffix);

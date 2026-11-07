@@ -4,6 +4,7 @@ import { Theme, ThemeApi } from '../core/backend/theme-api';
 import { ThemeService } from '../core/theme/theme.service';
 import { Scheme, customSchemes, findScheme } from '../terminal/schemes';
 import { TerminalPrefs } from '../terminal/terminal-prefs';
+import { UsageStore } from '../core/usage/usage.store';
 
 /** Color keys of a scheme, in the editor's order. */
 export const COLOR_KEYS = [
@@ -51,6 +52,7 @@ export function appColors(s: Scheme): Record<string, string> {
 /** Custom schemes, and app colors that can follow the terminal scheme. */
 @Injectable({ providedIn: 'root' })
 export class ThemesStore {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(ThemeApi);
   private readonly prefs = inject(TerminalPrefs);
   private readonly appTheme = inject(ThemeService);
@@ -85,6 +87,7 @@ export class ThemesStore {
   }
 
   async import(fileName: string, content: string): Promise<Theme[]> {
+    this.usage.count('theme.import');
     const out = await this.api.import(fileName, content);
     await this.load();
     return out;

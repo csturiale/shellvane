@@ -352,6 +352,9 @@
       "unavailable": "The gallery cannot be read ({{detail}}).",
       "signature": "The gallery is not signed by the Shellvane project (or was changed): nothing is added from it.",
       "item": "This item is not in the signed gallery, or its file was changed."
+    },
+    "usage": {
+      "failed": "The usage statistics could not be sent ({{detail}})."
     }
   },
   "common": {
@@ -2013,7 +2016,7 @@
     "added": "Added",
     "empty": "Nothing here yet.",
     "loading": "Loading the gallery…",
-    "hint": "Shared by the Shellvane community on termoraplus.com. Snippets are only typed when you run them: read them first. Everything is checked against the project's signature before it is added.",
+    "hint": "Shared by the Shellvane community on shellvane.com. Snippets are only typed when you run them: read them first. Everything is checked against the project's signature before it is added.",
     "propose": "Propose yours",
     "installedSnippets": "{{name}}: {{count}} snippets added.",
     "installedTheme": "Color scheme {{name}} added: choose it in the list."
@@ -2027,5 +2030,21 @@
     "transport": "Transport only",
     "transportHint": "The same 8 MB, counted but not drawn: the speed of the stream from the app to the terminal, without xterm.js.",
     "resultTransport": "Transport only: {{mb}} MB in {{seconds}} s = {{rate}} MB/s · {{engine}} · {{os}}"
+  },
+  "usage": {
+    "title": "Privacy",
+    "setting": "Share anonymous usage statistics",
+    "settingHint": "Once a week: how often each feature was used and which well-known command-line tools (kubectl, docker, git…) ran, by name only. No identifier, host, user, path, argument or file. It helps decide what to build next.",
+    "show": "Show what is sent",
+    "privacyLink": "Privacy policy",
+    "lastSent": "Last sent {{when}}",
+    "consentTitle": "Help improve Shellvane?",
+    "consentIntro": "Shellvane can send the project anonymous usage statistics once a week. It is off unless you agree.",
+    "consentWhat": "What: how many times each feature was used (splits, SFTP, tunnels, environments…) and how often well-known tools like kubectl, docker or git ran, by name only; plus the app version and the system.",
+    "consentNot": "Never: hosts, addresses, users, paths, arguments, file names, what you type or see, or any identifier of you or this computer.",
+    "consentWhere": "Where: to shellvane.com, stored without your IP address, never shared or sold.",
+    "consentChange": "You can see exactly what is sent and change your mind in Settings › Privacy.",
+    "yes": "Share statistics",
+    "no": "No thanks"
   }
 }

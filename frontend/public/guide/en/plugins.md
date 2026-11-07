@@ -9,7 +9,7 @@ Plugins bring in hosts from the systems that already know them: clouds, Kubernet
 Nothing runs until you install it. The Plugins view lists:
 
 - the plugins **included with Shellvane**: **Install** enables one, **Uninstall** disables it again (delete its configurations first);
-- the **store**: plugins published at an address (by default `https://termoraplus.com/plugins/index.json`; any other store can be set). **Install** downloads the package, checks its SHA-256 against the store's and installs it; **Update** appears when the store has a newer version;
+- the **store**: plugins published at an address (by default `https://shellvane.com/plugins/index.json`; any other store can be set). **Install** downloads the package, checks its SHA-256 against the store's and installs it; **Update** appears when the store has a newer version;
 - **Install from file**: a plugin folder or `.zip` with a `plugin.json`, e.g. one you wrote.
 
 External plugins run on this computer with your permissions, like your own scripts: install only those you trust.

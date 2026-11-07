@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 
 import { Cell, Runbook, RunbookApi, RunbookCell, RunbookHost } from '../core/backend/runbook-api';
+import { UsageStore } from '../core/usage/usage.store';
 
 /** A run shown in the results grid. */
 export interface RunView {
@@ -48,6 +49,7 @@ export function applyCell(r: RunView, c: RunbookCell): RunView {
 
 @Injectable({ providedIn: 'root' })
 export class RunbooksStore {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(RunbookApi);
   readonly list = signal<Runbook[]>([]);
   readonly runs = signal<RunView[]>([]);
@@ -108,6 +110,7 @@ export class RunbooksStore {
 
   /** Starts a run; it appears first in the list of runs. */
   async start(rb: Runbook, values: Record<string, string>): Promise<RunView> {
+    this.usage.count('runbook.run');
     const r = await this.api.start(rb, values);
     const cells: Record<string, Cell[]> = {};
     for (const h of r.hosts) {

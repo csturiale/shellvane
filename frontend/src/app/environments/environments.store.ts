@@ -8,6 +8,7 @@ import { PaneEnv, SessionsStore } from '../sessions/sessions.store';
 import { WorkspacesStore } from '../sessions/workspaces.store';
 import { TunnelsStore } from '../tunnels/tunnels.store';
 import { Sharing } from '../extensions/sharing';
+import { UsageStore } from '../core/usage/usage.store';
 
 export type StepId = 'login' | 'remote' | 'tunnels' | 'localKube' | 'workspace';
 export type StepState = 'pending' | 'running' | 'done' | 'failed' | 'skipped';
@@ -100,6 +101,7 @@ export function routeFor(kind: string, addr: string): KubeSelection['route'] {
 
 @Injectable({ providedIn: 'root' })
 export class EnvironmentsStore {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(EnvironmentApi);
   private readonly sessions = inject(SessionsStore);
   private readonly tunnels = inject(TunnelsStore);
@@ -165,6 +167,7 @@ export class EnvironmentsStore {
    * stays open, so the user can see why). {{variables}} are expanded.
    */
   async start(env: Environment, values: Record<string, string>, from: StepId = 'login', opts: StartOptions = {}): Promise<void> {
+    this.usage.count('environment.start');
     const adopt = opts.adopt ?? [];
     const previous = this.runOf(env.id);
     const panes = [...new Set([...(previous?.panes ?? []), ...adopt])].filter((k) => !!this.sessions.pane(k));

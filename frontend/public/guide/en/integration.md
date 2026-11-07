@@ -35,4 +35,4 @@ The tray icon lists the recent hosts (click to open one), the saved tunnels with
 
 ## Installing {#install}
 
-Every release is on [termoraplus.com/download](https://termoraplus.com/download/) and has: a Windows installer (and the bare `shellvane-windows-amd64.exe`), the macOS app for Apple silicon Macs (M1 or later; Intel Macs are not supported) as a disk image (`.dmg`: drag Shellvane to Applications) and in a zip, and for Linux a `.deb`, an `.rpm` and an AppImage (which updates itself in place). `shellvane-cli` is published for each system too. Releases whose version has a suffix (`v1.2.0-rc1`) are pre-releases.
+Every release is on [shellvane.com/download](https://shellvane.com/download/) and has: a Windows installer (and the bare `shellvane-windows-amd64.exe`), the macOS app for Apple silicon Macs (M1 or later; Intel Macs are not supported) as a disk image (`.dmg`: drag Shellvane to Applications) and in a zip, and for Linux a `.deb`, an `.rpm` and an AppImage (which updates itself in place). `shellvane-cli` is published for each system too. Releases whose version has a suffix (`v1.2.0-rc1`) are pre-releases.

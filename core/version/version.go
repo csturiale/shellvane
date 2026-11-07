@@ -23,7 +23,7 @@ var Date = ""
 
 // SiteURL is the project's website: update manifest, gallery and plugin
 // store. Change it here (and in frontend/src/app/core/site.ts) to move.
-const SiteURL = "https://termoraplus.com"
+const SiteURL = "https://shellvane.com"
 
 // PublicRepo is the open-source repository on GitHub, whose releases carry
 // the official packages and the signed update manifest.

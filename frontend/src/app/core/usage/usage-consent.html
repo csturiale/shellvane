@@ -1,0 +1,16 @@
+<ng-container *transloco="let t; read: 'usage'">
+  <!-- Closing without choosing counts as "No": nothing is shared until a yes. -->
+  <app-modal [heading]="t('consentTitle')" (closed)="usage.setConsent(false)">
+    <p>{{ t('consentIntro') }}</p>
+    <ul>
+      <li>{{ t('consentWhat') }}</li>
+      <li>{{ t('consentNot') }}</li>
+      <li>{{ t('consentWhere') }}</li>
+    </ul>
+    <p class="hint">{{ t('consentChange') }} <button type="button" class="link" (click)="privacy()">{{ t('privacyLink') }}</button></p>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="usage.setConsent(false)">{{ t('no') }}</button>
+      <button type="button" class="btn primary" (click)="usage.setConsent(true)">{{ t('yes') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

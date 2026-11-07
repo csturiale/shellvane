@@ -20,10 +20,10 @@ A store is a JSON file served over HTTPS:
       "version": "1.0.0",
       "description": "Filesystems of the host and their largest folders.",
       "author": "Shellvane",
-      "homepage": "https://termoraplus.com/plugins/disk-usage",
+      "homepage": "https://shellvane.com/plugins/disk-usage",
       "capabilities": ["panel", "actions"],
       "requires": ["python3"],
-      "url": "https://termoraplus.com/plugins/disk-usage-1.0.0.zip",
+      "url": "https://shellvane.com/plugins/disk-usage-1.0.0.zip",
       "sha256": "<sha256 of the zip>"
     }
   ]
@@ -31,4 +31,4 @@ A store is a JSON file served over HTTPS:
 ```
 
 `scripts/plugin-index.sh` packages every folder here and writes such an
-index, ready to publish under https://termoraplus.com/plugins/.
+index, ready to publish under https://shellvane.com/plugins/.

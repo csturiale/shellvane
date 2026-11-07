@@ -6,7 +6,7 @@
 ## Context
 
 Shellvane is open source under the GNU AGPL-3.0. The official builds published
-on termoraplus.com also include some features that are developed and
+on shellvane.com also include some features that are developed and
 licensed separately, free as well (for example an assistant that explains commands and
 errors). The open-source code must stay complete and useful on its own, and
 must not contain dead code, license checks or hidden switches for features it

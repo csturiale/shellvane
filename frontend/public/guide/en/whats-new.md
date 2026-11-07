@@ -31,7 +31,7 @@
 - **Runbooks**: steps on many hosts with conditions, confirmations and a results grid: [Runbooks](shellvane:topic/runbooks)
 
 **Team**
-- A **team vault**: logins and notes shared end-to-end encrypted through a shared folder, WebDAV, Git or S3, used by hosts directly, and **shared host groups** kept up to date on every member's computer (in the app from termoraplus.com)
+- A **team vault**: logins and notes shared end-to-end encrypted through a shared folder, WebDAV, Git or S3, used by hosts directly, and **shared host groups** kept up to date on every member's computer (in the app from shellvane.com)
 
 **Plugins**
 - **Hosts from AWS, Google Cloud, Azure, Kubernetes, Ansible, Terraform, Proxmox and NetBox**, refreshed into a group, tokens in the vault; **Docker, systemd and logs** panels on connected hosts; install only what you need, from the **store** or a file, or write your own; logins from **HashiCorp Vault, Teleport and Boundary**: [Plugins](shellvane:topic/plugins)

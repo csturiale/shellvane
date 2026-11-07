@@ -47,10 +47,10 @@ in-app guide documents every feature in detail.
   (inventories for clouds, Kubernetes, Ansible, Terraform, Proxmox, NetBox;
   panels for Docker, systemd, logs; external JSON-RPC plugins), community
   gallery of snippets and themes.
-- **The app on termoraplus.com** also includes, free like everything else, an
+- **The app on shellvane.com** also includes, free like everything else, an
   assistant that explains commands and errors and a team vault with shared
   groups, environments, snippets, workspaces and rules. Shellvane is funded by
-  donations: [termoraplus.com/support](https://termoraplus.com/support/).
+  donations: [shellvane.com/support](https://shellvane.com/support/).
 
 ## Next
 

@@ -1,0 +1,23 @@
+p {
+  margin: 0 0 10px;
+}
+ul {
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+li {
+  margin: 4px 0;
+}
+.hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

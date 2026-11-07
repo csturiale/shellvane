@@ -17,6 +17,7 @@ import { Navigation } from '../layout/navigation';
 import { RunbooksStore, newRunbook } from '../runbooks/runbooks.store';
 import { DangerousCommands } from '../broadcast/dangerous-commands';
 import { GalleryDialog } from '../gallery/gallery-dialog';
+import { UsageStore } from '../core/usage/usage.store';
 
 type Pending = { snippet: Snippet; text: string; message: string };
 
@@ -27,6 +28,7 @@ type Pending = { snippet: Snippet; text: string; message: string };
   styleUrl: './snippets-panel.scss',
 })
 export class SnippetsPanel {
+  private readonly usage = inject(UsageStore);
   protected readonly sharing = inject(Sharing);
   protected readonly store = inject(SnippetsStore);
   protected readonly sessions = inject(SessionsStore);
@@ -77,6 +79,7 @@ export class SnippetsPanel {
 
   /** Runs a snippet in the focused pane (and its broadcast group). */
   protected run(snippet: Snippet): void {
+    this.usage.count('snippet.run');
     if (!this.sessions.focused()) {
       this.message.set(this.transloco.translate('snippets.noTerminal'));
       return;

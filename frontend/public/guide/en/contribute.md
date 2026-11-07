@@ -6,7 +6,7 @@ Color schemes, snippet collections and plugins made by users reach everyone thro
 
 1. In **Settings › Terminal**, select the scheme and use **Export**: you get a JSON file in Windows Terminal format. Give the scheme a clear `name`, it is the title shown in the gallery.
 2. Open the repository on GitHub, go to the `gallery/themes/` folder and use **Add file › Upload files**. GitHub makes a copy of the repository for you (a fork) and offers to open a pull request: describe the scheme in a line.
-3. The project checks that it imports and that the text is readable; once accepted it appears on termoraplus.com/gallery and in the app's [community gallery](shellvane:topic/snippets#gallery) with the next update of the website.
+3. The project checks that it imports and that the text is readable; once accepted it appears on shellvane.com/gallery and in the app's [community gallery](shellvane:topic/snippets#gallery) with the next update of the website.
 
 One scheme per file, with a lowercase file name such as `solarized-warm.json`.
 

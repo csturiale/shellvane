@@ -1,10 +1,12 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 
 import { View } from './views';
+import { UsageStore } from '../core/usage/usage.store';
 
 /** Which view the shell shows; shared so any panel can switch it. */
 @Injectable({ providedIn: 'root' })
 export class Navigation {
+  private readonly usage = inject(UsageStore);
   readonly view = signal<View>('hosts');
   /** Host to open in the file browser next time it is shown. */
   readonly filesHost = signal<string | null>(null);
@@ -43,6 +45,7 @@ export class Navigation {
   }
 
   openFiles(hostId: string, path = ''): void {
+    this.usage.count('files');
     this.filesPath.set(path);
     this.filesHost.set(hostId);
     this.view.set('files');

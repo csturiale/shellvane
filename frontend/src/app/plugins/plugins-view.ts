@@ -10,6 +10,7 @@ import { HelpLink } from '../guide/help-link';
 import { Navigation } from '../layout/navigation';
 import { HostsStore } from '../hosts/hosts.store';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { UsageStore } from '../core/usage/usage.store';
 
 /** What the form edits: a configuration of one plugin. */
 interface Draft {
@@ -31,6 +32,7 @@ interface Draft {
   styleUrl: './plugins-view.scss',
 })
 export class PluginsView {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(PluginApi);
   private readonly hosts = inject(HostsStore);
   private readonly transloco = inject(TranslocoService);
@@ -109,6 +111,7 @@ export class PluginsView {
   }
 
   protected install(p: PluginInfo): Promise<void> {
+    this.usage.count('plugin.install');
     return this.change(() => this.api.install(p.id), 'plugins.store.done', p.name);
   }
 

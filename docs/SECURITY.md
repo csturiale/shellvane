@@ -30,7 +30,7 @@ Last full code review: November 2026.
   runs with the user's permissions.
 - **Gallery**: the index of snippets and themes is signed the same way, and
   each file is installed only if it matches the SHA-256 in the index.
-- **Team** (in the app from termoraplus.com): end-to-end encrypted file, member list signed by the admins, items
+- **Team** (in the app from shellvane.com): end-to-end encrypted file, member list signed by the admins, items
   signed by whoever writes them, owner with a signed handover, signed versions
   against rollbacks, shared commands only after approval.
 

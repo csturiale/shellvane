@@ -9,7 +9,7 @@ I plugin portano dentro gli host dai sistemi che già li conoscono: cloud, Kuber
 Niente gira finché non lo installi. La vista Plugin elenca:
 
 - i plugin **inclusi in Shellvane**: **Installa** ne abilita uno, **Disinstalla** lo disabilita di nuovo (prima elimina le sue configurazioni);
-- lo **store**: plugin pubblicati a un indirizzo (per default `https://termoraplus.com/plugins/index.json`; si può impostare qualsiasi altro store). **Installa** scarica il pacchetto, ne verifica lo SHA-256 con quello dello store e lo installa; **Aggiorna** compare quando lo store ha una versione più recente;
+- lo **store**: plugin pubblicati a un indirizzo (per default `https://shellvane.com/plugins/index.json`; si può impostare qualsiasi altro store). **Installa** scarica il pacchetto, ne verifica lo SHA-256 con quello dello store e lo installa; **Aggiorna** compare quando lo store ha una versione più recente;
 - **Installa da file**: una cartella o un `.zip` di plugin con un `plugin.json`, ad esempio uno scritto da te.
 
 I plugin esterni girano su questo computer con i tuoi permessi, come i tuoi script: installa solo quelli di cui ti fidi.

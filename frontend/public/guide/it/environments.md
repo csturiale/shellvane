@@ -64,7 +64,7 @@ Avviandolo esegue il login se serve, scrive il contesto, apre il tunnel e apre t
 
 ## Condividi {#share}
 
-Nell'app di termoraplus.com, il pulsante team accanto all'ambiente lo condivide: i membri lo ricevono con i suoi tunnel, tenuto aggiornato, e ne approvano i comandi prima che giri sul loro computer.
+Nell'app di shellvane.com, il pulsante team accanto all'ambiente lo condivide: i membri lo ricevono con i suoi tunnel, tenuto aggiornato, e ne approvano i comandi prima che giri sul loro computer.
 
 
 L'icona di copia mette l'ambiente negli appunti in YAML, con i **nomi** di host, tunnel e workspace al posto degli ID interni e senza segreti. **Importa** lo rilegge e collega i nomi ai tuoi host, tunnel e workspace; si possono incollare più ambienti insieme, separati da righe con `---`. I tunnel importati da una configurazione OpenSSH prendono il nome dall'host e dalle porte (`bastion SOCKS 1080`, `bastion L 8080 → db:5432`), così gli ambienti possono farvi riferimento.

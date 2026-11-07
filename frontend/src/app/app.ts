@@ -36,6 +36,8 @@ import { Cheatsheet } from './palette/cheatsheet';
 import { CommandPalette } from './palette/command-palette';
 import { GalleryDialog } from './gallery/gallery-dialog';
 import { UpdatePrompt } from './updates/update-prompt';
+import { UsageConsent } from './core/usage/usage-consent';
+import { UsageStore } from './core/usage/usage.store';
 import { SnippetsStore } from './snippets/snippets.store';
 import { combo, shortcutAction } from './sessions/shortcuts';
 import { VaultStore } from './vault/vault.store';
@@ -80,6 +82,7 @@ const HOUR = 60 * 60 * 1000;
     CommandPalette,
     GalleryDialog,
     UpdatePrompt,
+    UsageConsent,
     Cheatsheet,
     WelcomeTour,
   ],
@@ -209,6 +212,7 @@ export class App {
       void import('./themes/themes.store').then((m) => this.injector.get(m.ThemesStore).load()).catch(() => undefined);
     }
   }
+  protected readonly usage = inject(UsageStore);
   protected readonly paletteOpen = signal(false);
   protected readonly cheatsheetOpen = signal(false);
 
@@ -239,6 +243,16 @@ export class App {
         closeWindow();
       }
     });
+    // Views opened, for the usage statistics (counted only with consent).
+    effect(() => {
+      const v = this.view();
+      untracked(() => this.usage.view(v));
+    });
+    effect(() => {
+      if (this.paletteOpen()) {
+        untracked(() => this.usage.count('palette'));
+      }
+    });
     // A panel asked to do something (new host, import...) shows itself.
     effect(() => {
       if (this.nav.request() && !this.fullView()) {
@@ -265,7 +279,11 @@ export class App {
           const store = this.injector.get(m.UpdatesStore);
           this.updates.set(store);
           // A window left open for days still learns about new versions.
-          setInterval(() => void store.checkDaily(), HOUR);
+          setInterval(() => {
+            void store.checkDaily();
+            void this.usage.sendIfDue().catch(() => undefined);
+          }, HOUR);
+          void this.usage.sendIfDue().catch(() => undefined);
           return store.checkDaily();
         });
         // Environments' panes come back as plain shells: start their environments again.

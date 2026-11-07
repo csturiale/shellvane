@@ -6,6 +6,7 @@ import { LaunchApi } from '../core/backend/launch-api';
 import { DropZone, Layout, SplitDir, grid, leaf, mapPanes, neighbour, panesOf, remove, replace, setRatio, split, swap } from './layout';
 import { writePreference } from '../core/preferences';
 import { SessionPrefs } from './session-prefs';
+import { UsageStore } from '../core/usage/usage.store';
 
 export type PaneState = 'connecting' | 'connected' | 'closed' | 'failed';
 
@@ -152,6 +153,7 @@ const INITIAL_ROWS = 32;
 
 @Injectable({ providedIn: 'root' })
 export class SessionsStore {
+  private readonly usage = inject(UsageStore);
   private readonly api = inject(SessionApi);
   private readonly launch = inject(LaunchApi);
   private nextKey = 1;
@@ -226,6 +228,7 @@ export class SessionsStore {
 
   /** Opens a session to a saved host in a new tab; returns the pane key. */
   async openHost(hostId: string, title: string, extra: OpenExtra = {}): Promise<number> {
+    this.usage.count('session.ssh');
     const pane = await this.createPane({ kind: 'host', hostId }, title, undefined, false, extra.kube ?? null, extra.script, extra.env);
     this.addTab(pane.key);
     return pane.key;
@@ -236,6 +239,7 @@ export class SessionsStore {
    * goes to all of them.
    */
   async openMany(hosts: { id: string; name: string }[], broadcast = false): Promise<void> {
+    this.usage.count('session.many');
     const keys: number[] = [];
     for (const h of hosts) {
       try {
@@ -261,6 +265,7 @@ export class SessionsStore {
   }
 
   async openLocal(program = this.prefs.localShell(), extra: OpenExtra = {}): Promise<number> {
+    this.usage.count('session.local');
     const pane = await this.createPane({ kind: 'local', program }, '', undefined, false, extra.kube ?? null, extra.script, extra.env);
     this.addTab(pane.key);
     return pane.key;
@@ -286,17 +291,20 @@ export class SessionsStore {
 
   /** Opens a host with Mosh (roaming, survives sleep and network changes). */
   async openMosh(hostId: string, title: string): Promise<void> {
+    this.usage.count('session.mosh');
     const pane = await this.createPane({ kind: 'mosh', hostId }, 'mosh ' + title);
     this.addTab(pane.key);
   }
 
   async openTarget(spec: string): Promise<void> {
+    this.usage.count('session.quick');
     const pane = await this.createPane({ kind: 'target', spec }, spec);
     this.addTab(pane.key);
   }
 
   /** Opens a new session to the focused pane's host next to it. */
   async split(dir: SplitDir): Promise<void> {
+    this.usage.count('pane.split');
     const tab = this.active();
     const from = tab && this.pane(tab.focus);
     if (!tab || !from) {
@@ -341,6 +349,7 @@ export class SessionsStore {
 
   /** Starts or stops the pane's recording; returns the file path when started. */
   async toggleRecording(paneKey: number): Promise<string | null> {
+    this.usage.count('recording');
     const pane = this.pane(paneKey);
     if (!pane) {
       return null;
@@ -433,6 +442,7 @@ export class SessionsStore {
   }
 
   toggleBroadcast(tabKey: number): void {
+    this.usage.count('broadcast');
     this.updateTab(tabKey, (t) => ({ ...t, broadcast: !t.broadcast }));
   }
 
