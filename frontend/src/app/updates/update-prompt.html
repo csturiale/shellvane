@@ -1,0 +1,42 @@
+<aside *transloco="let t" class="prompt" role="dialog" aria-labelledby="update-prompt-title">
+  @if (store.info(); as i) {
+    <header>
+      <strong id="update-prompt-title">
+        {{ store.installed() ? t('updates.prompt.ready', { version: i.latest }) : t('updates.available', { version: i.latest }) }}
+      </strong>
+      <button type="button" class="close" [attr.aria-label]="t('common.close')" [title]="t('common.close')" (click)="store.dismiss()">
+        <svg lucideX [size]="14" aria-hidden="true"></svg>
+      </button>
+    </header>
+    @if (store.installed()) {
+      <p>{{ t('updates.prompt.readyText') }}</p>
+      <div class="actions">
+        <button type="button" class="btn small primary" (click)="store.restart()">{{ t('updates.prompt.restartNow') }}</button>
+        <button type="button" class="btn small" (click)="store.dismiss()">{{ t('updates.prompt.restartLater') }}</button>
+      </div>
+    } @else {
+      <p class="muted">{{ t('updates.current', { version: i.current }) }}</p>
+      @if (notes()) {
+        <p class="notes">{{ notes() }}</p>
+      }
+      @if (i.blocked) {
+        <p class="hint">{{ t('updates.blocked.' + i.blocked) }}</p>
+      }
+      @if (store.error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+      <div class="actions">
+        @if (i.canInstall) {
+          <button type="button" class="btn small primary" [disabled]="store.installing()" (click)="store.install()">
+            {{ t(store.installing() ? 'updates.installing' : 'updates.install') }}
+          </button>
+        } @else if (i.page) {
+          <button type="button" class="btn small primary" (click)="openPage()">{{ t('updates.page') }}</button>
+        }
+        <button type="button" class="btn small" [disabled]="store.installing()" (click)="store.snooze()">{{ t('updates.prompt.tomorrow') }}</button>
+        <button type="button" class="btn small" [disabled]="store.installing()" (click)="store.skip()">{{ t('updates.prompt.skip') }}</button>
+      </div>
+      <button type="button" class="link" (click)="stopNotices()">{{ t('updates.prompt.stop') }}</button>
+    }
+  }
+</aside>

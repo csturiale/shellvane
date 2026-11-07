@@ -33,6 +33,9 @@ Use one Wails stream per terminal, named `terminal`:
 | Server build in headless Chromium, WebGL in software (no GPU, VM) | Settings › Diagnostics › Terminal performance: 8 MB generated in Go, timed to the last byte drawn | 1.10 s, 7.2 MB/s |
 | Same, 2026-11 | Terminal performance › Measure, then › Transport only (counted, not drawn) | Measure 1.2–1.6 s (5–6.7 MB/s), last byte received after 0.7 s; transport only 0.15–0.18 s (45–54 MB/s) |
 | Desktop app, macOS (Apple silicon), WKWebView, WebGL | Terminal performance › Measure | 1.00 s, 8.0 MB/s |
+| Same Mac, 2026-11 | Measure, then Transport only | Measure 0.63 s (12.7 MB/s, received in 0.62 s, 3 pauses); transport only 0.08 s (105 MB/s) |
+| VM, xterm.js 6.0 alone (no app, 160×45) | 8 MB written in 32 KB chunks | DOM 14–15 MB/s, WebGL in software 7–10 MB/s; 6.1 beta the same |
+| VM, the app after the 2026-11 changes | Measure | DOM 10 → 12.8 MB/s, WebGL 5.5 → 8.5 MB/s: at xterm.js's own speed |
 
 All runs but the macOS one had no GPU. The 2026-11 runs show the stream
 is not the limit (about 50 MB/s without drawing): the time goes to xterm.js
@@ -52,3 +55,23 @@ its result can be copied here.
   `write` callback and send pause/resume to Go above a high watermark.
 - The stream ends when the window reloads; the session is then closed. Session
   restore across reloads belongs to the reconnect work (v1).
+
+## Drawing (2026-11)
+
+With the stream at 50–100 MB/s, the limit is xterm.js parsing and drawing.
+Measured against xterm.js alone, the app lost about a third to its own
+work around the terminal; four changes recovered it:
+
+- frames that arrive in one delivery are joined (up to 512 KB) before
+  `term.write`, since each write has a fixed cost;
+- the command suggestion is repositioned once per drawn frame (`onRender`)
+  instead of on every `onScroll`, which fires for each line of a flood;
+- highlighting scans at most the last 1000 new lines per write: during a
+  flood only those are colored;
+- flow control pauses Go above 4 MiB not yet drawn and resumes below 1 MiB,
+  so xterm.js still has work while new output is on its way.
+
+What is left is inside xterm.js (buffer line recycling, events per scrolled
+line, the viewport's scrollbar) and the same in its 6.1 beta. Further gains
+would need changes upstream; the 20 MB/s target is within reach on Apple
+silicon, not in software-rendered VMs.

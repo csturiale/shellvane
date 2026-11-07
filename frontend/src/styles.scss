@@ -107,15 +107,34 @@ button.btn {
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
 
+  // The surface darkened (or lightened) by the text color: the label keeps
+  // its contrast, unlike a translucent overlay on colored buttons.
   &:hover:not(:disabled) {
-    background: var(--hover);
+    background: color-mix(in srgb, var(--surface), var(--text) 9%);
+    border-color: color-mix(in srgb, var(--border), var(--text) 18%);
+  }
+
+  &:active:not(:disabled) {
+    background: color-mix(in srgb, var(--surface), var(--text) 15%);
   }
 
   &.primary {
     border-color: var(--accent);
     background: var(--accent);
     color: var(--on-accent);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--accent), var(--text) 16%);
+      border-color: color-mix(in srgb, var(--accent), var(--text) 16%);
+    }
+
+    &:active:not(:disabled) {
+      background: color-mix(in srgb, var(--accent), var(--text) 26%);
+    }
   }
 
   &.small {
@@ -127,6 +146,11 @@ button.btn {
     border-color: var(--danger);
     background: var(--danger);
     color: #fff;
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--danger), #000 14%);
+      border-color: color-mix(in srgb, var(--danger), #000 14%);
+    }
   }
 
   &:disabled {

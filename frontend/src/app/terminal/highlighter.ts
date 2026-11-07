@@ -35,6 +35,13 @@ export const BUILTIN_HIGHLIGHTS: HighlightRule[] = [
 
 /** Longer lines are not scanned, so a rule cannot stall the terminal. */
 const MAX_LINE = 1024;
+/**
+ * Lines scanned per write at most: when a command floods the terminal
+ * (cat of a big file), only the last ones are colored, so the highlighting
+ * cannot slow the output down. Normal output, even a busy tail -f, stays
+ * well below this.
+ */
+export const MAX_SCAN = 1000;
 
 export interface Span {
   start: number;
@@ -110,6 +117,9 @@ export class Highlighter {
     const end = buf.baseY + buf.cursorY; // the cursor line is still being written
     if (this.next > end) {
       this.next = end; // cleared screen or trimmed scrollback
+    }
+    if (end - this.next > MAX_SCAN) {
+      this.next = end - MAX_SCAN; // a flood: color the latest lines only
     }
     for (let y = this.next; y < end; y++) {
       const line = buf.getLine(y);

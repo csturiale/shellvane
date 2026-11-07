@@ -1695,7 +1695,17 @@
     },
     "noRelease": "No release has been published yet: there is nothing to update to.",
     "support": "Shellvane is free, with every feature. If it saves you time, you can support it.",
-    "supportAction": "Support Shellvane"
+    "supportAction": "Support Shellvane",
+    "notify": "Show a notice when a new version is available",
+    "prompt": {
+      "ready": "Version {{version}} is installed",
+      "readyText": "Restart Shellvane to use it, now or later: otherwise it starts the next time you open the app.",
+      "restartNow": "Restart now",
+      "restartLater": "Later",
+      "tomorrow": "Remind me tomorrow",
+      "skip": "Skip this version",
+      "stop": "Don't show these notices"
+    }
   },
   "sync": {
     "title": "Sync",

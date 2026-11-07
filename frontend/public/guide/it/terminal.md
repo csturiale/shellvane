@@ -76,7 +76,7 @@ Impostazioni › Aspetto › **Dimensione dell'interfaccia** ingrandisce o rimpi
 
 ## Evidenziazioni {#highlights}
 
-Livelli di log, indirizzi IP, codici HTTP e UUID vengono colorati (i byte non cambiano). Disattiva il set predefinito in Impostazioni › Terminale e aggiungine di tuoi con le [regole di evidenziazione](shellvane:topic/automation#rules).
+Livelli di log, indirizzi IP, codici HTTP e UUID vengono colorati (i byte non cambiano). Disattiva il set predefinito in Impostazioni › Terminale e aggiungine di tuoi con le [regole di evidenziazione](shellvane:topic/automation#rules). Quando un comando stampa più di mille righe in un colpo (il `cat` di un file grande), vengono colorate solo le ultime mille, così le evidenziazioni non rallentano mai l'output.
 
 ## Copia e incolla {#clipboard}
 

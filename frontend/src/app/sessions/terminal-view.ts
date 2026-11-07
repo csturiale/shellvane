@@ -29,6 +29,7 @@ import { BUILTIN_HIGHLIGHTS, Highlighter } from '../terminal/highlighter';
 import { findScheme } from '../terminal/schemes';
 import { CommandTracker, OscNotification, parseOsc777, parseOsc9 } from '../terminal/osc';
 import { CommandHistory, LineTracker } from '../terminal/suggest';
+import { BackendService } from '../core/backend/backend.service';
 import { SnippetsStore } from '../snippets/snippets.store';
 import { TerminalPrefs } from '../terminal/terminal-prefs';
 import { Navigation } from '../layout/navigation';
@@ -63,8 +64,12 @@ const RESIZE_DEBOUNCE_MS = 50;
  * Flow control: above HIGH unrendered bytes Go stops reading the SSH channel,
  * below LOW it resumes. Keeps memory bounded when a command floods output.
  */
-const FLOW_HIGH = 1024 * 1024;
-const FLOW_LOW = 128 * 1024;
+const FLOW_HIGH = 4 * 1024 * 1024;
+// Resuming early enough hides the round trip to Go: xterm.js still has
+// this much to draw while new output is on its way.
+const FLOW_LOW = 1024 * 1024;
+/** Output frames that arrive together are written to xterm.js in one go, up to this size. */
+const COALESCE_MAX = 512 * 1024;
 
 /** A dropped stream is opened again this many times, this long apart. */
 const REATTACH_TRIES = 5;
@@ -247,6 +252,7 @@ export class TerminalView {
   });
   private readonly nav = inject(Navigation);
   private readonly transloco = inject(TranslocoService);
+  private readonly backend = inject(BackendService);
   private readonly theme = inject(ThemeService);
   private readonly zone = inject(NgZone);
   private readonly hostEl = viewChild.required<ElementRef<HTMLElement>>('host');
@@ -422,9 +428,9 @@ export class TerminalView {
       this.store.typed(this.pane().key, data);
       this.followLine(data);
     });
-    // The suggestion follows the echo of what was typed.
-    term.onCursorMove(() => this.scheduleGhost());
-    term.onScroll(() => this.scheduleGhost());
+    // The suggestion follows the echo of what was typed: checked once per
+    // drawn frame, not for each line that scrolls by during a flood.
+    term.onRender(() => this.scheduleGhost());
     term.buffer.onBufferChange(() => {
       this.line.reset();
       this.scheduleGhost();
@@ -809,10 +815,32 @@ export class TerminalView {
     socket.onopen = () => socket.send(encoder.encode(JSON.stringify({ sessionId, replay })));
     this.pending = 0;
     this.paused = false;
+    // Frames of one delivery are joined before reaching the terminal: each
+    // write has a fixed cost in xterm.js, and floods come in 32 KB frames.
+    let queued: Uint8Array[] = [];
+    let queuedBytes = 0;
+    const flush = () => {
+      const frames = queued;
+      queued = [];
+      queuedBytes = 0;
+      if (sessionId !== this.socketSession || frames.length === 0) {
+        return;
+      }
+      this.zmodem.consume(frames.length === 1 ? frames[0] : joinFrames(frames));
+    };
     socket.onmessage = (ev) => {
       this.reattachTries = 0;
-      if (sessionId === this.socketSession) {
-        this.zmodem.consume(new Uint8Array(ev.data as ArrayBuffer));
+      if (sessionId !== this.socketSession) {
+        return;
+      }
+      const frame = new Uint8Array(ev.data as ArrayBuffer);
+      if (queued.length === 0) {
+        queueMicrotask(flush);
+      }
+      queued.push(frame);
+      queuedBytes += frame.length;
+      if (queuedBytes >= COALESCE_MAX) {
+        flush();
       }
     };
     // A stream that drops while the session runs is opened again: the
@@ -821,7 +849,7 @@ export class TerminalView {
       if (this.bench && !this.benchResult()) {
         this.bench.ended = true;
         if (this.pending === 0) {
-          this.finishBench();
+          void this.finishBench();
         }
       }
       if (this.destroyed || this.socket !== socket || this.pane().sessionId !== sessionId || this.pane().state !== 'connected') {
@@ -892,13 +920,20 @@ export class TerminalView {
   protected readonly benchResult = signal<string | null>(null);
 
   /** All output drawn: the time from the first byte to the last one shown. */
-  private finishBench(): void {
+  private async finishBench(): Promise<void> {
     const b = this.bench;
     if (!b || this.benchResult()) {
       return;
     }
     const seconds = (performance.now() - b.start) / 1000;
     const mb = b.bytes / (1024 * 1024);
+    // navigator.platform says "MacIntel" on every Mac: the app knows the
+    // real system and processor.
+    const info = await this.backend.info();
+    if (this.benchResult()) {
+      return;
+    }
+    const os = info ? `${{ darwin: 'macOS', windows: 'Windows', linux: 'Linux' }[info.os] ?? info.os} ${info.arch}` : navigator.platform;
     const ua = navigator.userAgent;
     const engine = /Edg\//.test(ua) ? 'WebView2' : /AppleWebKit/.test(ua) && !/Chrome/.test(ua) ? 'WebKit' : /Chrome/.test(ua) ? 'Chromium' : 'other';
     this.zone.run(() =>
@@ -911,7 +946,7 @@ export class TerminalView {
           pauses: b.pauses,
           renderer: this.renderer === 'webgl' ? 'WebGL' : 'DOM',
           engine,
-          os: navigator.platform,
+          os,
         }),
       ),
     );
@@ -946,7 +981,7 @@ export class TerminalView {
     this.term.write(data, () => {
       this.pending -= data.length;
       if (this.bench?.ended && this.pending === 0) {
-        this.finishBench();
+        void this.finishBench();
       }
       if (this.paused && this.pending < FLOW_LOW && sessionId === this.socketSession) {
         this.paused = false;
@@ -998,4 +1033,19 @@ export function cwdOf(data: string): string {
   } catch {
     return m[1];
   }
+}
+
+/** One buffer holding the frames in order. */
+export function joinFrames(frames: Uint8Array[]): Uint8Array {
+  let size = 0;
+  for (const f of frames) {
+    size += f.length;
+  }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const f of frames) {
+    out.set(f, at);
+    at += f.length;
+  }
+  return out;
 }

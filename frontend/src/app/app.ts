@@ -35,6 +35,7 @@ import { SettingsPage } from './settings/settings-page';
 import { Cheatsheet } from './palette/cheatsheet';
 import { CommandPalette } from './palette/command-palette';
 import { GalleryDialog } from './gallery/gallery-dialog';
+import { UpdatePrompt } from './updates/update-prompt';
 import { SnippetsStore } from './snippets/snippets.store';
 import { combo, shortcutAction } from './sessions/shortcuts';
 import { VaultStore } from './vault/vault.store';
@@ -46,6 +47,8 @@ import type { UpdatesStore } from './updates/updates.store';
 import { guardLinks } from './core/browser';
 import { NgComponentOutlet } from '@angular/common';
 import { EXTENSIONS } from './extensions/extensions';
+
+const HOUR = 60 * 60 * 1000;
 
 @Component({
   selector: 'app-root',
@@ -76,6 +79,7 @@ import { EXTENSIONS } from './extensions/extensions';
     EnvironmentNotice,
     CommandPalette,
     GalleryDialog,
+    UpdatePrompt,
     Cheatsheet,
     WelcomeTour,
   ],
@@ -260,6 +264,8 @@ export class App {
         void import('./updates/updates.store').then((m) => {
           const store = this.injector.get(m.UpdatesStore);
           this.updates.set(store);
+          // A window left open for days still learns about new versions.
+          setInterval(() => void store.checkDaily(), HOUR);
           return store.checkDaily();
         });
         // Environments' panes come back as plain shells: start their environments again.

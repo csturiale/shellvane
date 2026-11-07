@@ -1,0 +1,102 @@
+.prompt {
+  position: fixed;
+  z-index: 60;
+  // Top right, under the toolbar: the bottom corner holds automation toasts.
+  inset-block-start: 52px;
+  inset-inline-end: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(380px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 22%);
+  animation: rise 180ms ease-out;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prompt {
+    animation: none;
+  }
+}
+
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.muted,
+.hint {
+  color: var(--text-muted);
+}
+
+.hint {
+  font-size: 12px;
+}
+
+.notes {
+  max-height: 96px;
+  overflow: auto;
+  white-space: pre-line;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--hover);
+    color: var(--text);
+  }
+}
+
+.link {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+  }
+}
