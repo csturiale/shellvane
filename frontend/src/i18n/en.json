@@ -1707,7 +1707,8 @@
     "page": "Release page",
     "blocked": {
       "translocated": "macOS runs Shellvane from a temporary copy because it was opened where it was downloaded. Move Shellvane to Applications and open it again to update it.",
-      "readOnly": "Shellvane cannot write to its own folder. Install the update from the release page, or move Shellvane to a folder you can write to."
+      "readOnly": "Shellvane cannot write to its own folder. Install the update from the release page, or move Shellvane to a folder you can write to.",
+      "notPublished": "This version's package for your system is not published yet: it usually follows within the hour. Shellvane checks again by itself, or check now from Settings."
     },
     "noRelease": "No release has been published yet: there is nothing to update to.",
     "support": "Shellvane is free, with every feature. If it saves you time, you can support it.",
@@ -1720,7 +1721,8 @@
       "restartLater": "Later",
       "tomorrow": "Remind me tomorrow",
       "skip": "Skip this version",
-      "stop": "Don't show these notices"
+      "stop": "Don't show these notices",
+      "settings": "Settings"
     }
   },
   "sync": {

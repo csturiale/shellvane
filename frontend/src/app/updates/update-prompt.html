@@ -33,6 +33,7 @@
         } @else if (i.page) {
           <button type="button" class="btn small primary" (click)="openPage()">{{ t('updates.page') }}</button>
         }
+        <button type="button" class="btn small" (click)="openSettings()">{{ t('updates.prompt.settings') }}</button>
         <button type="button" class="btn small" [disabled]="store.installing()" (click)="store.snooze()">{{ t('updates.prompt.tomorrow') }}</button>
         <button type="button" class="btn small" [disabled]="store.installing()" (click)="store.skip()">{{ t('updates.prompt.skip') }}</button>
       </div>

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Makes a compressed disk image (UDZO) of a folder.
+# Makes a compressed disk image (UDZO) of a folder: with diskutil image
+# where macOS has it (hdiutil create is deprecated there), else hdiutil.
 #
 # Usage: make-dmg.sh <folder> <dmg to create> <volume name>
 #
@@ -11,6 +12,14 @@
 set -euo pipefail
 src=$1 dmg=$2 volume=$3
 rm -f "$dmg"
+# diskutil image (macOS 26+) replaces hdiutil create, deprecated there.
+if diskutil image create from --help >/dev/null 2>&1; then
+  if diskutil image create from "$src" "$dmg" --format UDZO --volumeName "$volume"; then
+    exit 0
+  fi
+  echo "diskutil image create failed: trying hdiutil create" >&2
+  rm -f "$dmg"
+fi
 if hdiutil create -volname "$volume" -srcfolder "$src" -ov -format UDZO "$dmg"; then
   exit 0
 fi

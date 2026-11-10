@@ -3,6 +3,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { LucideX } from '@lucide/angular';
 
 import { openUrl } from '../core/browser';
+import { Navigation } from '../layout/navigation';
 import { LanguageService } from '../core/i18n/language.service';
 import { UpdatesStore } from './updates.store';
 
@@ -20,6 +21,12 @@ import { UpdatesStore } from './updates.store';
 export class UpdatePrompt {
   protected readonly store = inject(UpdatesStore);
   private readonly language = inject(LanguageService);
+  private readonly nav = inject(Navigation);
+
+  /** Settings › Updates: check again, install, all the options. */
+  protected openSettings(): void {
+    this.nav.view.set('settings');
+  }
 
   /** The first lines of the release notes, in the UI language or English. */
   protected readonly notes = computed(() => {

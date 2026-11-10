@@ -817,7 +817,8 @@ export interface UpdateInfo {
     "noRelease": boolean;
 
     /**
-     * Blocked tells why an installable package cannot be installed here:
+     * Blocked tells why an installable package cannot be installed here
+     * ("notPublished": the release has no package for this system yet):
      * "translocated" (a macOS app run from where it was downloaded) or
      * "readOnly" (the app folder is not writable).
      */

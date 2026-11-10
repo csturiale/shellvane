@@ -28,7 +28,8 @@ type UpdateInfo struct {
 	// NoRelease is true when no release is published yet: nothing to
 	// update to, not an error.
 	NoRelease bool `json:"noRelease"`
-	// Blocked tells why an installable package cannot be installed here:
+	// Blocked tells why an installable package cannot be installed here
+	// ("notPublished": the release has no package for this system yet):
 	// "translocated" (a macOS app run from where it was downloaded) or
 	// "readOnly" (the app folder is not writable).
 	Blocked string `json:"blocked"`
@@ -72,6 +73,10 @@ func (s *UpdateService) Check(ctx context.Context) (UpdateInfo, error) {
 	info.Available = update.Newer(m.Version, version.Version)
 	if a, ok := m.Assets[update.Platform()]; ok {
 		_, info.Blocked, info.CanInstall = updateTarget(a)
+	} else if info.Available {
+		// The release is out but this system's package is not in it yet
+		// (published a little after the others): the next check finds it.
+		info.Blocked = "notPublished"
 	}
 	return info, nil
 }
