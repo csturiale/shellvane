@@ -12,4 +12,4 @@ build/linux/appimage/shellvane.png
 /dist/
 /shellvane
 __pycache__/
-/dist-macos/
+/dist-local/
