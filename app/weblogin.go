@@ -65,6 +65,20 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 			finish()
 			return
 		}
+		// A form the probe stopped (a SAML response on its way): posted on to
+		// where it was going, so the sign-in in the page goes on.
+		if action := values["__action"]; strings.HasPrefix(action, "https://") || strings.HasPrefix(action, "http://") {
+			var b strings.Builder
+			b.WriteString(`<!doctype html><form method="POST" action="` + html.EscapeString(action) + `">`)
+			for k, v := range values {
+				if !strings.HasPrefix(k, "__") {
+					b.WriteString(`<input type="hidden" name="` + html.EscapeString(k) + `" value="` + html.EscapeString(v) + `">`)
+				}
+			}
+			b.WriteString(`</form><script>document.forms[0].submit()</script>`)
+			w.Write([]byte(b.String()))
+			return
+		}
 		// Not signed in yet: back to the page, which goes on.
 		w.Write([]byte(`<!doctype html><script>history.back()</script>`))
 	})}

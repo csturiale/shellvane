@@ -453,6 +453,39 @@ export interface PromptAnswer {
 }
 
 /**
+ * ReachResult is the outcome of reaching one address.
+ */
+export interface ReachResult {
+    "url": string;
+
+    /**
+     * the proxy used, "" for a direct connection
+     */
+    "via": string;
+
+    /**
+     * an HTTP answer came back
+     */
+    "ok": boolean;
+
+    /**
+     * its status code
+     */
+    "status": number;
+
+    /**
+     * why it failed
+     */
+    "detail": string;
+
+    /**
+     * Blocked: the answer is a page of a filtering proxy (e.g. Zscaler)
+     * refusing the site, not the site itself.
+     */
+    "blocked": boolean;
+}
+
+/**
  * RemoteFSInfo describes an open remote file system.
  */
 export interface RemoteFSInfo {

@@ -355,6 +355,9 @@
     },
     "usage": {
       "failed": "The usage statistics could not be sent ({{detail}})."
+    },
+    "proxy": {
+      "invalid": "Not a proxy address: {{url}} (http://host:port, https://… or socks5://…)."
     }
   },
   "common": {
@@ -756,6 +759,10 @@
     "lockNow": "Lock the vault",
     "openSettings": "Open vault settings",
     "gate": {
+      "enable": {
+        "touchid": "Use Touch ID to unlock from now on",
+        "hello": "Use Windows Hello to unlock from now on"
+      },
       "touchid": "Use Touch ID",
       "hello": "Use Windows Hello",
       "title": "Unlock the vault",
@@ -2080,5 +2087,30 @@
     "consentChange": "You can see exactly what is sent and change your mind in Settings › Privacy.",
     "yes": "Share statistics",
     "no": "No thanks"
+  },
+  "network": {
+    "title": "Network",
+    "intro": "How Shellvane's own requests reach the internet: update checks, the gallery, the plugin store, usage reports, WebDAV and S3 sync, credential plugins; git (teams, sync) and kubectl get the same proxy. SSH connections are not affected: they use jump hosts and proxy commands.",
+    "proxy": "Proxy",
+    "modes": {
+      "system": "System",
+      "none": "None",
+      "manual": "Manual"
+    },
+    "modeHints": {
+      "system": "The proxy variables (HTTPS_PROXY…, also from your login shell), else the proxy set in macOS or Windows network settings. Automatic configuration (PAC) scripts are not read: use Manual then.",
+      "none": "Direct connections.",
+      "manual": "The proxy below, e.g. the one your company's PAC file names."
+    },
+    "url": "Proxy address",
+    "noProxy": "Direct for (comma separated)",
+    "saved": "Saved.",
+    "test": "Check connection",
+    "testing": "Checking…",
+    "via": "through {{proxy}}",
+    "direct": "direct",
+    "reached": "reached ({{status}})",
+    "status": "answer {{status}}",
+    "blocked": "blocked by the company's web filter: ask IT to allow the site"
   }
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -175,5 +176,66 @@ func TestGitErrorKinds(t *testing.T) {
 	}
 	if u := (GitStore{Remote: "git@github.com:x/y.git", User: "c1"}).cloneURL(); u != "git@github.com:x/y.git" {
 		t.Errorf("cloneURL ssh = %q", u)
+	}
+}
+
+// The server's default branch (main) is not where the first device pushed
+// Shellvane's folder: the others find it on its branch anyway.
+func TestGitFindsTheDataOnAnotherBranch(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not installed")
+	}
+	ctx := context.Background()
+	run := func(dir string, args ...string) {
+		t.Helper()
+		cmd := exec.Command("git", args...)
+		cmd.Dir = dir
+		cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@t", "GIT_COMMITTER_NAME=t", "GIT_COMMITTER_EMAIL=t@t")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v %s", args, err, out)
+		}
+	}
+	remote := filepath.Join(t.TempDir(), "team.git")
+	run(".", "init", "--quiet", "--bare", remote)
+
+	a := GitStore{Remote: remote, Dir: filepath.Join(t.TempDir(), "a")}
+	if err := a.Begin(ctx); err != nil {
+		t.Fatal(err)
+	}
+	run(a.Dir, "checkout", "--quiet", "-b", "master")
+	if err := a.Put(ctx, "team.json", []byte("v1")); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.EndExclusive(ctx, "a"); err != nil {
+		t.Fatal(err)
+	}
+	// The server's default branch is main, with only a README.
+	other := filepath.Join(t.TempDir(), "other")
+	run(".", "init", "--quiet", other)
+	os.WriteFile(filepath.Join(other, "README"), []byte("hi"), 0o644)
+	run(other, "add", "README")
+	run(other, "commit", "--quiet", "-m", "readme")
+	run(other, "push", "--quiet", remote, "HEAD:refs/heads/main")
+	run(remote, "symbolic-ref", "HEAD", "refs/heads/main")
+
+	b := GitStore{Remote: remote, Dir: filepath.Join(t.TempDir(), "b")}
+	if err := b.Begin(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := b.Get(ctx, "team.json"); err != nil || string(got) != "v1" {
+		t.Fatalf("b reads %q, %v", got, err)
+	}
+	// b's changes go to that branch too, and a sees them.
+	if err := b.Put(ctx, "team.json", []byte("v2")); err != nil {
+		t.Fatal(err)
+	}
+	if err := b.EndExclusive(ctx, "b"); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.ResetToRemote(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := a.Get(ctx, "team.json"); string(got) != "v2" {
+		t.Fatalf("a reads %q", got)
 	}
 }

@@ -75,8 +75,12 @@ export class VaultStore {
   }
 
   async unlockWithKeychain(): Promise<void> {
-    await this.api.unlockWithKeychain();
-    await this.refresh();
+    try {
+      await this.api.unlockWithKeychain();
+    } finally {
+      // A secret the keychain lost turns the keychain unlock off.
+      await this.refresh();
+    }
   }
 
   async removeRecoveryKey(): Promise<void> {

@@ -99,6 +99,8 @@ func main() {
 	tunnelService := app.NewTunnelService(tunnel.NewRepo(db), sessions, emitter)
 	control := app.NewControl(repo, tunnelService, emitter)
 	dataDir := filepath.Dir(dbPath)
+	// Settings › Network: the proxy of the app's own requests (before any).
+	networkService := app.NewNetworkService(dataDir)
 
 	// Features of the official builds plug in here (none in the community
 	// edition); they may route host credentials to their own brokers.
@@ -137,6 +139,7 @@ func main() {
 			application.NewServiceWithOptions(themeService, serviceOptions),
 			application.NewServiceWithOptions(app.NewGalleryService(snippetService, themeService), serviceOptions),
 			application.NewServiceWithOptions(app.NewUsageService(), serviceOptions),
+			application.NewServiceWithOptions(networkService, serviceOptions),
 			application.NewServiceWithOptions(app.NewDiagnosticsService(sessions, repo, filepath.Dir(dbPath)), serviceOptions),
 			application.NewServiceWithOptions(app.NewImportService(db, repo, tunnel.NewRepo(db), filepath.Join(filepath.Dir(dbPath), "backups")), serviceOptions),
 			application.NewServiceWithOptions(app.NewDownloadsService(os.Getenv("SHELLVANE_DOWNLOADS")), serviceOptions),

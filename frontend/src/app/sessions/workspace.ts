@@ -1,6 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 
-const PANE_MIME = 'application/x-shellvane-pane';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { LucideArrowLeftToLine, LucideExternalLink, LucideRadioTower, LucideSquareTerminal, LucideX } from '@lucide/angular';
 
@@ -66,73 +65,138 @@ export class Workspace {
     return out;
   });
 
-  // Moving panes by dragging their header.
-  private dragged: number | null = null;
+  // Moving panes by dragging their header. Pointer events, not HTML drag
+  // and drop: in the macOS app the web view's native file-drop layer gets
+  // in the way of HTML drags, and pointer events behave the same everywhere.
+  private drag: { pane: number; pointer: number; x: number; y: number; moving: boolean } | null = null;
   protected readonly dropHint = signal<{ target: number; zone: DropZone } | null>(null);
   /** Tab under the pointer; 0 is the empty part of the tab bar (new tab). */
   protected readonly dropTab = signal<number | null>(null);
+  /** The dragged pane's title next to the pointer. */
+  protected readonly dragGhost = signal<{ title: string; x: number; y: number } | null>(null);
+  /** Hovering a tab while dragging opens it, to drop at a precise place. */
+  private hoverTimer: ReturnType<typeof setTimeout> | undefined;
+  private hoverTab: number | null = null;
 
-  protected onPaneDragStart(ev: DragEvent, paneKey: number): void {
-    if (!(ev.target as HTMLElement).closest?.('.pane-header')) {
-      return;
-    }
-    this.dragged = paneKey;
-    ev.dataTransfer?.setData(PANE_MIME, String(paneKey));
-    if (ev.dataTransfer) {
-      ev.dataTransfer.effectAllowed = 'move';
-    }
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.cancelDrag());
   }
 
-  protected onPaneDragOver(ev: DragEvent, target: number): void {
-    if (this.dragged === null || this.dragged === target) {
+  protected onPanePointerDown(ev: PointerEvent, paneKey: number): void {
+    const el = ev.target as HTMLElement;
+    if (ev.button !== 0 || !el.closest?.('.pane-header') || el.closest('button, input, select, a, [role="button"]')) {
+      return;
+    }
+    this.drag = { pane: paneKey, pointer: ev.pointerId, x: ev.clientX, y: ev.clientY, moving: false };
+    document.addEventListener('pointermove', this.onPointerMove);
+    document.addEventListener('pointerup', this.onPointerUp);
+    document.addEventListener('pointercancel', this.cancelDrag);
+    document.addEventListener('keydown', this.onDragKey, true);
+  }
+
+  private readonly onPointerMove = (ev: PointerEvent): void => {
+    const d = this.drag;
+    if (!d || ev.pointerId !== d.pointer) {
+      return;
+    }
+    if (!d.moving) {
+      if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 6) {
+        return;
+      }
+      d.moving = true;
+      document.body.classList.add('pane-dragging');
+      getSelection()?.removeAllRanges();
+    }
+    ev.preventDefault();
+    this.dragGhost.set({ title: this.store.pane(d.pane)?.title ?? '', x: ev.clientX, y: ev.clientY });
+    this.track(ev.clientX, ev.clientY);
+  };
+
+  /** What is under the pointer: a pane (and which side), a tab, the bar. */
+  private track(x: number, y: number): void {
+    const d = this.drag!;
+    const under = document.elementFromPoint(x, y) as HTMLElement | null;
+    const tabEl = under?.closest<HTMLElement>('[data-tab-key]');
+    const barEl = under?.closest<HTMLElement>('.tabs');
+    const paneEl = under?.closest<HTMLElement>('[data-pane-key]');
+    if (tabEl || barEl) {
+      const tabKey = tabEl ? Number(tabEl.dataset['tabKey']) : 0;
+      this.dropHint.set(null);
+      this.dropTab.set(tabKey);
+      this.hoverOpen(tabKey);
+      return;
+    }
+    this.hoverOpen(null);
+    this.dropTab.set(null);
+    const target = paneEl ? Number(paneEl.dataset['paneKey']) : null;
+    if (target === null || target === d.pane) {
       this.dropHint.set(null);
       return;
     }
-    ev.preventDefault();
-    const box = (ev.currentTarget as HTMLElement).getBoundingClientRect();
-    const zone = dropZone((ev.clientX - box.left) / box.width, (ev.clientY - box.top) / box.height);
+    const box = paneEl!.getBoundingClientRect();
+    const zone = dropZone((x - box.left) / box.width, (y - box.top) / box.height);
     const h = this.dropHint();
     if (!h || h.target !== target || h.zone !== zone) {
       this.dropHint.set({ target, zone });
     }
   }
 
-  protected onPaneDrop(ev: DragEvent, target: number): void {
-    const hint = this.dropHint();
-    if (this.dragged !== null && hint?.target === target) {
-      ev.preventDefault();
-      this.store.movePane(this.dragged, target, hint.zone);
-    }
-    this.endDrag();
-  }
-
-  protected onTabDragOver(ev: DragEvent, tabKey: number): void {
-    if (this.dragged === null) {
+  /** Opens a tab hovered for a moment during a drag (not the new-tab area). */
+  private hoverOpen(tabKey: number | null): void {
+    if (tabKey === this.hoverTab) {
       return;
     }
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.dropTab.set(tabKey);
+    clearTimeout(this.hoverTimer);
+    this.hoverTab = tabKey;
+    if (tabKey && tabKey !== this.store.activeKey()) {
+      this.hoverTimer = setTimeout(() => {
+        if (this.drag?.moving && this.hoverTab === tabKey) {
+          this.store.activate(tabKey);
+        }
+      }, 600);
+    }
   }
 
-  protected onTabDrop(ev: DragEvent, tabKey: number): void {
-    if (this.dragged !== null) {
-      ev.preventDefault();
-      ev.stopPropagation();
-      if (tabKey === 0) {
-        this.store.movePaneToNewTab(this.dragged);
-      } else {
-        this.store.movePaneToTab(this.dragged, tabKey);
+  private readonly onPointerUp = (ev: PointerEvent): void => {
+    const d = this.drag;
+    if (!d || ev.pointerId !== d.pointer) {
+      return;
+    }
+    if (d.moving) {
+      const hint = this.dropHint();
+      const tab = this.dropTab();
+      if (tab === 0) {
+        this.store.movePaneToNewTab(d.pane);
+      } else if (tab !== null) {
+        this.store.movePaneToTab(d.pane, tab);
+      } else if (hint) {
+        this.store.movePane(d.pane, hint.target, hint.zone);
       }
     }
-    this.endDrag();
-  }
+    this.cancelDrag();
+  };
 
-  protected endDrag(): void {
-    this.dragged = null;
+  private readonly onDragKey = (ev: KeyboardEvent): void => {
+    if (ev.key === 'Escape' && this.drag?.moving) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.cancelDrag();
+    }
+  };
+
+  protected readonly cancelDrag = (): void => {
+    document.removeEventListener('pointermove', this.onPointerMove);
+    document.removeEventListener('pointerup', this.onPointerUp);
+    document.removeEventListener('pointercancel', this.cancelDrag);
+    document.removeEventListener('keydown', this.onDragKey, true);
+    document.body.classList.remove('pane-dragging');
+    clearTimeout(this.hoverTimer);
+    this.hoverTab = null;
+    this.drag = null;
+    this.dragGhost.set(null);
     this.dropHint.set(null);
     this.dropTab.set(null);
-  }
+  };
 
   // Renaming a tab (double click on its title).
   protected readonly renaming = signal<number | null>(null);

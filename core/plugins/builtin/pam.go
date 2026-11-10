@@ -288,16 +288,26 @@ func (p CyberArk) pvwaLogon(call pamCall, s map[string]string, base, method stri
 }
 
 // pvwaProbe runs in the pages of the browser sign-in. It reports the
-// SAML response on its way to the PVWA (read before the form posts it),
+// SAML response on its way to the PVWA (read while the identity
+// provider's form posts it; navigating away stops that post, and when
+// the response cannot be used the app posts it on to __action, so the
+// PVWA web sign-in goes on),
 // and, once the PVWA web app is open, the values it keeps in the
 // browser's storage and cookies: one of them is the session token, which
 // pvwaWebLogon finds by trying them on the API. A set already reported is
 // not sent again.
 const pvwaProbe = `(function () {
+  if (location.href.indexOf(__SHELLVANE_RETURN__) === 0) return; // the app's own pages
   var out = {};
   var saml = document.querySelector('input[name="SAMLResponse"]');
   if (saml && saml.value) {
     out.SAMLResponse = saml.value;
+    var form = saml.form;
+    if (form) {
+      out.__action = form.action || '';
+      var relay = form.querySelector('input[name="RelayState"]');
+      if (relay) out.RelayState = relay.value;
+    }
   } else {
     var p = location.pathname.toLowerCase();
     if (p.indexOf('/passwordvault/') < 0 || p.indexOf('logon') >= 0 || p.indexOf('login') >= 0) return;
@@ -319,7 +329,7 @@ const pvwaProbe = `(function () {
   if (!keys.length) return;
   var q = keys.map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(out[k]); }).join('&');
   try {
-    if (!out.SAMLResponse && sessionStorage.getItem('__shellvane_sent') === q) return;
+    if (sessionStorage.getItem('__shellvane_sent') === q) return;
     sessionStorage.setItem('__shellvane_sent', q);
   } catch (e) {}
   if (window.__shellvaneSent === q) return;
@@ -385,7 +395,15 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 		return "", errs.New(plugins.ErrSetting, errs.Params{"key": "webLoginUrl"})
 	}
 	var token string
+	var seen []string // what the window reported, for the error: names only, no values
 	accept := func(values map[string]string) bool {
+		seen = seen[:0]
+		for k := range values {
+			if !strings.HasPrefix(k, "__") {
+				seen = append(seen, k)
+			}
+		}
+		sort.Strings(seen)
 		if r := values["SAMLResponse"]; r != "" {
 			form := url.Values{"concurrentSession": {"true"}, "apiUse": {"true"}, "SAMLResponse": {r}}
 			data, err := call.do(http.MethodPost, base+"/auth/SAML/Logon", []byte(form.Encode()),
@@ -394,6 +412,9 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 			if err == nil && json.Unmarshal(data, &t) == nil && t != "" {
 				token = t
 				return true
+			}
+			if err != nil {
+				seen = append(seen, "(SAML exchange: "+err.Error()+")")
 			}
 			return false
 		}
@@ -405,13 +426,20 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 		}
 		return false
 	}
-	if err := plugins.OpenWebLogin(call.ctx, "CyberArk", start, pvwaProbe, accept); err != nil {
+	err := plugins.OpenWebLogin(call.ctx, "CyberArk", start, pvwaProbe, accept)
+	if token != "" {
+		return token, nil
+	}
+	if err != nil && errs.CodeOf(err) == plugins.ErrUnsupported {
 		return "", err
 	}
-	if token == "" {
-		return "", errs.New(plugins.ErrCommand, errs.Params{"command": "cyberark", "detail": "the browser sign-in gave no PVWA session"})
+	detail := "the browser sign-in gave no PVWA session"
+	if len(seen) > 0 {
+		detail += " (seen: " + strings.Join(seen, ", ") + ")"
+	} else if err != nil {
+		detail += " (" + err.Error() + ")"
 	}
-	return token, nil
+	return "", errs.New(plugins.ErrCommand, errs.Params{"command": "cyberark", "detail": detail})
 }
 
 // pvwaWorks tells whether the API accepts token.

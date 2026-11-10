@@ -117,6 +117,16 @@ describe('EnvironmentsStore', () => {
     expect(store.runOf('e1')).toBeUndefined();
   }, 15000);
 
+  it('gives restored panes their context again, without reopening them', async () => {
+    // A restored local pane of the environment, without its context.
+    panes.set(7, { key: 7, state: 'connected', local: true, source: { kind: 'local' }, env: { id: 'e1', name: 'GKE', values: {} }, kubeOverride: null });
+    // One that already has it is left alone.
+    panes.set(8, { key: 8, state: 'connected', local: true, source: { kind: 'local' }, env: { id: 'e1', name: 'GKE', values: {} }, kubeOverride: { context: 'gke_prd', namespace: 'web' } });
+    await store.start(env({ localKube: { context: 'gke_prd', namespace: 'web', tunnelId: '', terminals: 1 } }), {}, 'login', { adopt: [7, 8] });
+    expect(opened).toEqual([]);
+    expect(kubeSet).toEqual([7]);
+  });
+
   it('fails a login step without a login command', async () => {
     checks = [false];
     await store.start(env({ login: { check: 'false', login: '', prepare: '' } }), {});

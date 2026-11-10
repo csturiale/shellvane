@@ -4,7 +4,7 @@
 
 - The **+** after the last tab opens a new tab: a local terminal, a favorite or recent host, any saved host by searching its name, address, group or tag, or an address typed in (`user@host:port`, `telnet://…`, `serial://…`). Arrows and Enter work too.
 - **Split right** and **Split down** (the two buttons in the tab bar) open a session next to the focused pane: **Same host**, a local terminal, any saved host (favorites and recent first, or search) or an address typed in (`user@host:port`), so one tab can hold panes of different servers. The shortcuts [[D]] and [[E]] split with the same host at once.
-- Panes can also be dragged from one tab into another, on any side of a pane.
+- **Drag a pane by its title bar**: drop it on a side of another pane to place it there, in its middle to swap the two, on a tab to move it there, or on the empty part of the tab bar for a new tab. Holding it over a tab for a moment opens that tab, to drop it at an exact place; Esc cancels. Sessions stay connected.
 - Drag the divider to resize. **Alt+arrows** move the focus between panes.
 - **Close pane**: [[W]].
 

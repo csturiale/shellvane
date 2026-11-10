@@ -4,9 +4,6 @@
       class="tabs"
       role="tablist"
       [class.drop-new]="dropTab() === 0"
-      (dragover)="onTabDragOver($event, 0)"
-      (dragleave)="dropTab.set(null)"
-      (drop)="onTabDrop($event, 0)"
     >
       @for (tab of store.tabs(); track tab.key) {
         @let pane = store.pane(tab.focus);
@@ -21,9 +18,7 @@
           (auxclick)="$event.button === 1 && close(tab)"
           (contextmenu)="tabMenu($event, tab)"
           [class.drop-target]="dropTab() === tab.key"
-          (dragover)="onTabDragOver($event, tab.key)"
-          (dragleave)="dropTab.set(null)"
-          (drop)="onTabDrop($event, tab.key)"
+          [attr.data-tab-key]="tab.key"
           [style.--tab-color]="pane?.color ? colorVar(pane!.color) : null"
           [title]="pane ? t('sessions.paneTooltip', { label: label(pane), state: t('sessions.states.' + pane.state) }) : ''"
         >
@@ -138,10 +133,8 @@
         [style.height.%]="item.rect.h"
         (focusin)="store.focusPane(item.tab.key, item.pane.key)"
         (mousedown)="store.focusPane(item.tab.key, item.pane.key)"
-        (dragstart)="onPaneDragStart($event, item.pane.key)"
-        (dragend)="endDrag()"
-        (dragover)="onPaneDragOver($event, item.pane.key)"
-        (drop)="onPaneDrop($event, item.pane.key)"
+        (pointerdown)="onPanePointerDown($event, item.pane.key)"
+        [attr.data-pane-key]="item.pane.key"
       >
         <app-terminal-view
           [pane]="item.pane"
@@ -184,5 +177,8 @@
       (confirmed)="confirmClose()"
       (cancelled)="closing.set(null)"
     />
+  }
+  @if (dragGhost(); as g) {
+    <div class="drag-ghost" aria-hidden="true" [style.left.px]="g.x + 12" [style.top.px]="g.y + 12">{{ g.title }}</div>
   }
 </ng-container>

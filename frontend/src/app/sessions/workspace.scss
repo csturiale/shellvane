@@ -198,3 +198,23 @@ button.icon.broadcast-toggle {
   flex: none;
   font-size: 11px;
 }
+
+/* The dragged pane's title, next to the pointer. */
+.drag-ghost {
+  position: fixed;
+  z-index: 60;
+  /* Above the WebGL terminals. */
+  transform: translateZ(0);
+  max-width: 280px;
+  padding: 4px 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 30%);
+  color: var(--text);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}

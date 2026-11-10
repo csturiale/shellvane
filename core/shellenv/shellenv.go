@@ -170,6 +170,10 @@ func Complete(ctx context.Context) {
 	if p := env["PATH"]; p != "" {
 		os.Setenv("PATH", Merge(p, os.Getenv("PATH")))
 	}
+	// When the login shell could not be read (slow startup files on a
+	// managed computer, a shell that fails), the usual places of the
+	// tools are added anyway, after the others.
+	os.Setenv("PATH", Merge(os.Getenv("PATH"), strings.Join(existing(Fallback()), string(filepath.ListSeparator))))
 	for _, name := range Imported {
 		if v, ok := env[name]; ok && v != "" {
 			if _, set := os.LookupEnv(name); !set {
@@ -177,6 +181,35 @@ func Complete(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// Fallback lists the usual folders of command-line tools (Homebrew,
+// MacPorts, user installs, krew, the Google Cloud SDK, Docker Desktop,
+// Rancher Desktop).
+func Fallback() []string {
+	home, _ := os.UserHomeDir()
+	dirs := []string{"/opt/homebrew/bin", "/opt/homebrew/sbin", "/usr/local/bin", "/usr/local/sbin", "/opt/local/bin"}
+	if home != "" {
+		dirs = append(dirs,
+			filepath.Join(home, ".local", "bin"), filepath.Join(home, "bin"),
+			filepath.Join(home, ".krew", "bin"), filepath.Join(home, "google-cloud-sdk", "bin"),
+			filepath.Join(home, ".docker", "bin"), filepath.Join(home, ".rd", "bin"))
+	}
+	if runtime.GOOS == "darwin" {
+		dirs = append(dirs, "/Applications/Docker.app/Contents/Resources/bin")
+	}
+	return dirs
+}
+
+// existing keeps the folders that exist.
+func existing(dirs []string) []string {
+	var out []string
+	for _, d := range dirs {
+		if fi, err := os.Stat(d); err == nil && fi.IsDir() {
+			out = append(out, d)
+		}
+	}
+	return out
 }
 
 var (

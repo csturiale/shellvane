@@ -16,6 +16,8 @@ import (
 	"github.com/csturiale/shellvane/core/errs"
 	"github.com/csturiale/shellvane/core/kube"
 	"github.com/csturiale/shellvane/core/localshell"
+	"github.com/csturiale/shellvane/core/netproxy"
+	"github.com/csturiale/shellvane/core/shellenv"
 	"github.com/csturiale/shellvane/core/sshengine"
 )
 
@@ -241,10 +243,13 @@ func (s *SessionService) kubectl(ctx context.Context, sess *session, args ...str
 }
 
 func localKubectl(ctx context.Context, args ...string) ([]byte, error) {
+	// At startup, restored panes ask before the login shell's PATH (where
+	// kubectl usually is) has been read.
+	shellenv.Wait(ctx)
 	ctx, cancel := context.WithTimeout(ctx, kubectlTimeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "kubectl", args...)
-	cmd.Env = append(os.Environ(), "KUBECONFIG="+kube.Original())
+	cmd.Env = append(append(os.Environ(), netproxy.ChildEnv()...), "KUBECONFIG="+kube.Original())
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()

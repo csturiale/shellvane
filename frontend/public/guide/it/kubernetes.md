@@ -10,7 +10,7 @@ Shellvane non esegue mai `kubectl config use-context` sul tuo kubeconfig (cambie
 
 Ogni pannello locale ha il proprio file. Clicca il badge con il timone nell'intestazione del pannello, scegli un contesto (letto da `kubectl config get-contexts`) ed eventualmente un namespace, poi **Applica**. Il valore predefinito per i nuovi terminali locali è in Impostazioni › Terminale locale.
 
-Su macOS e Linux Shellvane legge all'avvio il `PATH` della tua shell di login, così `kubectl`, `gcloud`, `aws` e i loro plugin di credenziali installati con Homebrew o in `~/.local/bin` vengono trovati anche quando l'app è aperta dal Dock o dal Finder. Se l'elenco dei contesti fallisce, il messaggio mostra l'errore di kubectl.
+Su macOS e Linux Shellvane legge all'avvio il `PATH` della tua shell di login, così `kubectl`, `gcloud`, `aws` e i loro plugin di credenziali installati con Homebrew o in `~/.local/bin` vengono trovati anche quando l'app è aperta dal Dock o dal Finder; all'avvio kubectl lo aspetta, e se i file di avvio della shell sono troppo lenti da leggere vengono aggiunte comunque le cartelle abituali (Homebrew, `~/.local/bin`, `~/bin`, krew, Google Cloud SDK, Docker e Rancher Desktop). Se l'elenco dei contesti fallisce, il messaggio mostra l'errore di kubectl.
 
 ## Server {#remote}
 
@@ -18,7 +18,7 @@ Imposta **Contesto e namespace Kubernetes** in Avanzate su un host o gruppo (ad 
 
 ## Sicurezza in produzione {#prod}
 
-Il contesto è mostrato nell'intestazione del pannello e sulla tab. I contesti che corrispondono al pattern **Contesti di produzione** (Impostazioni › Terminale locale, predefinito `prod`) sono mostrati in rosso.
+Il contesto è mostrato nell'intestazione del pannello e sulla tab. I contesti che corrispondono al pattern **Contesti di produzione** (Impostazioni › Terminale locale, predefinito `prod`) sono mostrati in rosso. Il pattern si confronta con il nome del contesto kubectl (come lo mostra `kubectl config get-contexts`), non con il nome dell'ambiente sul badge del pannello.
 
 ## Limiti {#limits}
 

@@ -36,6 +36,8 @@ type VaultService struct {
 	reason  func() string
 	secrets vault.SecretStore // the system keychain; tests replace it
 
+	unlockMu sync.Mutex // one keychain unlock at a time
+
 	mu          sync.Mutex
 	autoLock    time.Duration // 0 never locks for inactivity
 	lockOnSleep bool
@@ -136,13 +138,34 @@ func (s *VaultService) HasKeychainUnlock(ctx context.Context) (bool, error) {
 // UnlockWithKeychain opens the vault with the keychain secret; the system
 // may ask the user to allow it, and Touch ID or Windows Hello confirms
 // the user first when required.
+//
+// One unlock runs at a time: the app's start, the panes of an
+// environment and the unlock dialog may all ask together, and the ones
+// that wait find the vault open instead of asking for Touch ID again.
+// The keychain secret is checked before Touch ID, so the user is not
+// asked for nothing; a secret the keychain no longer has turns the
+// keychain unlock off (the master password turns it on again).
 func (s *VaultService) UnlockWithKeychain(ctx context.Context) error {
+	s.unlockMu.Lock()
+	defer s.unlockMu.Unlock()
+	if st, _ := s.v.State(ctx); st == vault.StateUnlocked {
+		return nil
+	}
+	store := s.keychain()
+	if err := s.v.DeviceSecretPresent(ctx, store); err != nil {
+		if errs.CodeOf(err) == vault.ErrDeviceSecretGone {
+			s.v.SetDeviceBiometric(ctx, false)
+			s.v.DisableDeviceUnlock(ctx, store)
+			s.notify(ctx)
+		}
+		return err
+	}
 	if on, _ := s.v.DeviceBiometric(ctx); on {
 		if err := s.verifier().Verify(ctx, s.reasonText()); err != nil {
 			return err
 		}
 	}
-	if err := s.v.UnlockWithDevice(ctx, s.keychain()); err != nil {
+	if err := s.v.UnlockWithDevice(ctx, store); err != nil {
 		return err
 	}
 	s.touch()

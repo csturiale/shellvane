@@ -172,3 +172,10 @@ textarea {
   border-radius: 6px;
   padding: 4px 8px;
 }
+
+/* A pane is being dragged by its header (sessions/workspace.ts). */
+body.pane-dragging,
+body.pane-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}

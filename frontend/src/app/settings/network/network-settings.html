@@ -1,0 +1,59 @@
+<section *transloco="let t">
+  <h2>{{ t('network.title') }} <app-help-link topic="integration" anchor="network" /></h2>
+  <form class="card" (ngSubmit)="save()">
+    <p class="hint">{{ t('network.intro') }}</p>
+    <fieldset class="modes">
+      <legend>{{ t('network.proxy') }}</legend>
+      @for (m of ['system', 'none', 'manual']; track m) {
+        <label class="mode">
+          <input type="radio" name="mode" [value]="m" [(ngModel)]="config.mode" />
+          <span>
+            {{ t('network.modes.' + m) }}
+            <small class="hint">{{ t('network.modeHints.' + m) }}</small>
+          </span>
+        </label>
+      }
+    </fieldset>
+    @if (config.mode === 'manual') {
+      <label class="field">
+        <span>{{ t('network.url') }}</span>
+        <input name="url" class="mono" spellcheck="false" placeholder="http://proxy.example.org:8080" [(ngModel)]="config.url" />
+      </label>
+      <label class="field">
+        <span>{{ t('network.noProxy') }}</span>
+        <input name="noProxy" class="mono" spellcheck="false" placeholder=".corp.example, 10.0.0.0/8" [(ngModel)]="config.noProxy" />
+      </label>
+    }
+    @if (error(); as e) {
+      <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+    }
+    <div class="actions">
+      @if (saved()) {
+        <span class="ok" role="status">{{ t('network.saved') }}</span>
+      }
+      <button type="button" class="btn" [disabled]="testing()" (click)="test()">{{ t(testing() ? 'network.testing' : 'network.test') }}</button>
+      <button type="submit" class="btn primary">{{ t('common.save') }}</button>
+    </div>
+    @if (results(); as rs) {
+      <ul class="results">
+        @for (r of rs; track r.url) {
+          <li [class.ok]="r.ok" [class.bad]="!r.ok">
+            <strong>{{ host(r.url) }}</strong>
+            <span>{{ r.via ? t('network.via', { proxy: r.via }) : t('network.direct') }}</span>
+            <span>
+              @if (r.blocked) {
+                {{ t('network.blocked') }}
+              } @else if (r.ok) {
+                {{ t('network.reached', { status: r.status }) }}
+              } @else if (r.status) {
+                {{ t('network.status', { status: r.status }) }}
+              } @else {
+                {{ r.detail }}
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </form>
+</section>

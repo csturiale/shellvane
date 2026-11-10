@@ -162,6 +162,13 @@ export function Unlock(password: string): $CancellablePromise<void> {
  * UnlockWithKeychain opens the vault with the keychain secret; the system
  * may ask the user to allow it, and Touch ID or Windows Hello confirms
  * the user first when required.
+ * 
+ * One unlock runs at a time: the app's start, the panes of an
+ * environment and the unlock dialog may all ask together, and the ones
+ * that wait find the vault open instead of asking for Touch ID again.
+ * The keychain secret is checked before Touch ID, so the user is not
+ * asked for nothing; a secret the keychain no longer has turns the
+ * keychain unlock off (the master password turns it on again).
  */
 export function UnlockWithKeychain(): $CancellablePromise<void> {
     return $Call.ByID(2315903934);

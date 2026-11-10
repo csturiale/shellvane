@@ -4,7 +4,7 @@
 
 - Il **+** dopo l'ultima tab apre una nuova tab: un terminale locale, un host preferito o recente, qualsiasi host salvato cercandone nome, indirizzo, gruppo o tag, oppure un indirizzo scritto a mano (`utente@host:porta`, `telnet://…`, `serial://…`). Funzionano anche frecce e Invio.
 - **Dividi a destra** e **Dividi in basso** (i due pulsanti nella barra delle tab) aprono una sessione accanto al pannello attivo: **Stesso host**, un terminale locale, qualsiasi host salvato (preferiti e recenti per primi, oppure cerca) o un indirizzo scritto (`utente@host:porta`), così una tab può contenere pannelli di server diversi. Le scorciatoie [[D]] e [[E]] dividono subito con lo stesso host.
-- I pannelli si possono anche trascinare da una tab all'altra, su qualsiasi lato di un pannello.
+- **Trascina un pannello dalla sua barra del titolo**: rilascialo su un lato di un altro pannello per metterlo lì, al centro per scambiarli, su una tab per spostarlo in quella tab, o nella parte vuota della barra delle tab per una tab nuova. Tenendolo per un attimo sopra una tab, la tab si apre e puoi rilasciarlo nel punto esatto; Esc annulla. Le sessioni restano collegate.
 - Trascina il divisore per ridimensionare. **Alt+frecce** spostano il focus tra i pannelli.
 - **Chiudi pannello**: [[W]].
 

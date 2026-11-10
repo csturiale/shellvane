@@ -5,6 +5,12 @@
       <span>{{ t('vault.master') }}</span>
       <input name="password" type="password" autocomplete="current-password" autofocus [(ngModel)]="password" />
     </label>
+    @if (offerBiometric(); as kind) {
+      <label class="check">
+        <input name="enableBiometric" type="checkbox" [(ngModel)]="enableBiometric" />
+        <span>{{ t('vault.gate.enable.' + kind) }}</span>
+      </label>
+    }
     @if (error(); as e) {
       <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
     }

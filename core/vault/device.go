@@ -110,6 +110,24 @@ func (v *Vault) DisableDeviceUnlock(ctx context.Context, store SecretStore) erro
 	return err
 }
 
+// DeviceSecretPresent tells, without unlocking, whether store still has
+// the secret of the device unlock: nil when it has, ErrDeviceSecretGone
+// when the keychain answers that it is missing, another error when the
+// keychain cannot be read now.
+func (v *Vault) DeviceSecretPresent(ctx context.Context, store SecretStore) error {
+	account, err := v.deviceAccount(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := store.Get(account); err != nil {
+		if errs.CodeOf(err) == "keychain.notFound" {
+			return errs.New(ErrDeviceSecretGone, nil)
+		}
+		return err
+	}
+	return nil
+}
+
 // UnlockWithDevice opens the vault with the secret in store.
 func (v *Vault) UnlockWithDevice(ctx context.Context, store SecretStore) error {
 	var wrapped []byte

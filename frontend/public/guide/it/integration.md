@@ -33,6 +33,16 @@ L'icona nella tray elenca gli host recenti (clicca per aprirne uno), i tunnel sa
 
 **Homebrew** (macOS, Apple silicon): `brew tap csturiale/shellvane && brew trust csturiale/shellvane && brew install --cask shellvane && brew install shellvane-cli` installa l'app e la CLI (la CLI anche su Linux). Le versioni recenti di Homebrew caricano un tap di terzi solo dopo `brew trust`; senza, si fermano con "Refusing to load cask … from untrusted tap". Installata così, macOS apre l'app senza l'avviso di sicurezza.
 
+## Rete e proxy {#network}
+
+**Impostazioni › Rete** decide come le richieste di Shellvane raggiungono internet: controllo aggiornamenti, galleria, store dei plugin, statistiche d'uso, sincronizzazione WebDAV e S3 e plugin di credenziali. git (storage dei team e della sincronizzazione) e kubectl usano lo stesso proxy. Le connessioni SSH non cambiano: usano jump host e comandi proxy.
+
+- **Di sistema** (predefinito): le variabili del proxy (`HTTPS_PROXY`, `NO_PROXY`…, anche quelle impostate nella tua shell di login), altrimenti il proxy configurato nelle impostazioni di rete di macOS o Windows. Gli script di configurazione automatica (PAC) non vengono letti: usa **Manuale** con il proxy indicato dal file PAC.
+- **Nessuno**: connessioni dirette.
+- **Manuale**: l'indirizzo di un proxy (`http://proxy.example.org:8080`, `https://…` o `socks5://…`, con `utente:password@` se serve) e gli host da raggiungere direttamente.
+
+**Verifica connessione** prova gli indirizzi che l'app usa (i download delle release su GitHub per gli aggiornamenti, shellvane.com per la galleria) e dice, per ognuno, se è stato raggiunto, tramite quale proxy, o perché no. Quando un filtro web aziendale (Zscaler, Netskope, Forcepoint…) rifiuta un sito, la verifica lo indica: il proxy funziona, ma il sito non è consentito. Un dominio nuovo viene spesso rifiutato come *non classificato*: l'IT può consentirlo o farlo classificare (Zscaler: Site Review). Gli aggiornamenti richiedono `github.com` e `objects.githubusercontent.com`; galleria, store dei plugin e statistiche d'uso richiedono `shellvane.com`.
+
 ## Installazione {#install}
 
 Ogni release è su [shellvane.com/download](https://shellvane.com/download/) e contiene: un installer per Windows (e il solo `shellvane-windows-amd64.exe`), l'app macOS per Mac Apple silicon (M1 o successivi; i Mac Intel non sono supportati) come immagine disco (`.dmg`: trascina Shellvane in Applicazioni) e in uno zip e, per Linux, un `.deb`, un `.rpm` e un AppImage (che si aggiorna da solo). Anche `shellvane-cli` viene pubblicato per ogni sistema. Le release con un suffisso nella versione (`v1.2.0-rc1`) sono pre-release.

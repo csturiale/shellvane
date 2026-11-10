@@ -355,6 +355,9 @@
     },
     "usage": {
       "failed": "Non è stato possibile inviare le statistiche d'uso ({{detail}})."
+    },
+    "proxy": {
+      "invalid": "Non è un indirizzo di proxy: {{url}} (http://host:porta, https://… o socks5://…)."
     }
   },
   "common": {
@@ -756,6 +759,10 @@
     "lockNow": "Blocca il vault",
     "openSettings": "Apri le impostazioni del vault",
     "gate": {
+      "enable": {
+        "touchid": "Usa Touch ID per sbloccare d'ora in poi",
+        "hello": "Usa Windows Hello per sbloccare d'ora in poi"
+      },
       "touchid": "Usa Touch ID",
       "hello": "Usa Windows Hello",
       "title": "Sblocca il vault",
@@ -2080,5 +2087,30 @@
     "consentChange": "Puoi vedere esattamente cosa viene inviato e cambiare idea in Impostazioni › Privacy.",
     "yes": "Condividi le statistiche",
     "no": "No, grazie"
+  },
+  "network": {
+    "title": "Rete",
+    "intro": "Come le richieste di Shellvane raggiungono internet: controllo aggiornamenti, galleria, store dei plugin, statistiche d'uso, sincronizzazione WebDAV e S3, plugin di credenziali; git (team, sincronizzazione) e kubectl usano lo stesso proxy. Le connessioni SSH non cambiano: usano jump host e comandi proxy.",
+    "proxy": "Proxy",
+    "modes": {
+      "system": "Di sistema",
+      "none": "Nessuno",
+      "manual": "Manuale"
+    },
+    "modeHints": {
+      "system": "Le variabili del proxy (HTTPS_PROXY…, anche quelle della tua shell di login), altrimenti il proxy impostato nelle impostazioni di rete di macOS o Windows. Gli script di configurazione automatica (PAC) non vengono letti: usa allora Manuale.",
+      "none": "Connessioni dirette.",
+      "manual": "Il proxy qui sotto, ad esempio quello indicato dal file PAC della tua azienda."
+    },
+    "url": "Indirizzo del proxy",
+    "noProxy": "Diretto per (separati da virgola)",
+    "saved": "Salvato.",
+    "test": "Verifica connessione",
+    "testing": "Verifica…",
+    "via": "tramite {{proxy}}",
+    "direct": "diretta",
+    "reached": "raggiunto ({{status}})",
+    "status": "risposta {{status}}",
+    "blocked": "bloccato dal filtro web aziendale: chiedi all'IT di consentire il sito"
   }
 }

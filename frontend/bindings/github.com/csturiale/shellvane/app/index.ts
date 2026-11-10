@@ -14,6 +14,7 @@ import * as ImportService from "./importservice.js";
 import * as KeyService from "./keyservice.js";
 import * as LaunchService from "./launchservice.js";
 import * as MonitorService from "./monitorservice.js";
+import * as NetworkService from "./networkservice.js";
 import * as PluginService from "./pluginservice.js";
 import * as RunbookService from "./runbookservice.js";
 import * as SessionService from "./sessionservice.js";
@@ -39,6 +40,7 @@ export {
     KeyService,
     LaunchService,
     MonitorService,
+    NetworkService,
     PluginService,
     RunbookService,
     SessionService,
@@ -78,6 +80,7 @@ export type {
     PluginInfo,
     Prompt,
     PromptAnswer,
+    ReachResult,
     RemoteFSInfo,
     RotationResult,
     RotationStep,

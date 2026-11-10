@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -40,8 +41,10 @@ func TestLoginPath(t *testing.T) {
 		t.Fatalf("LoginPath = %q", p)
 	}
 	Complete(context.Background())
-	// The terminal's order: the shell's entries first.
-	if os.Getenv("PATH") != "/extra/bin:/usr/bin:/bin" {
+	// The terminal's order: the shell's entries first, then the usual
+	// tool folders that exist on this computer.
+	want := Merge("/extra/bin:/usr/bin:/bin", strings.Join(existing(Fallback()), ":"))
+	if os.Getenv("PATH") != want {
 		t.Fatalf("PATH = %q", os.Getenv("PATH"))
 	}
 	// Proxies come from the shell, without replacing the app's own.

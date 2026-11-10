@@ -10,7 +10,7 @@ Shellvane never runs `kubectl config use-context` on your kubeconfig (that would
 
 Every local pane has its own file. Click the ship-wheel badge in the pane header, pick a context (read from `kubectl config get-contexts`) and optionally a namespace, then **Apply**. The default for new local terminals is in Settings › Local terminal.
 
-On macOS and Linux Shellvane reads the `PATH` of your login shell at startup, so `kubectl`, `gcloud`, `aws` and their credential plugins installed with Homebrew or in `~/.local/bin` are found even when the app is opened from the Dock or the Finder. If listing contexts fails, the message shows kubectl's error.
+On macOS and Linux Shellvane reads the `PATH` of your login shell at startup, so `kubectl`, `gcloud`, `aws` and their credential plugins installed with Homebrew or in `~/.local/bin` are found even when the app is opened from the Dock or the Finder; kubectl waits for it at startup, and when the shell's startup files are too slow to read the usual folders (Homebrew, `~/.local/bin`, `~/bin`, krew, the Google Cloud SDK, Docker and Rancher Desktop) are added anyway. If listing contexts fails, the message shows kubectl's error.
 
 ## Servers {#remote}
 
@@ -18,7 +18,7 @@ Set **Kubernetes context and namespace** under Advanced on a host or group (e.g.
 
 ## Production safety {#prod}
 
-The context is shown in the pane header and on the tab. Contexts matching the **Production contexts** pattern (Settings › Local terminal, default `prod`) are shown in red.
+The context is shown in the pane header and on the tab. Contexts matching the **Production contexts** pattern (Settings › Local terminal, default `prod`) are shown in red. The pattern is matched against the kubectl context's name (as `kubectl config get-contexts` shows it), not against the environment's name on the pane's badge.
 
 ## Limits {#limits}
 

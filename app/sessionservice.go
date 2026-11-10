@@ -158,6 +158,9 @@ type Emitter func(name string, data any)
 
 // SessionService opens SSH shells and pipes them through the "terminal" stream.
 type SessionService struct {
+	// unlockMu: the panes of an environment ask to open the vault one at a time.
+	unlockMu sync.Mutex
+
 	hosts *hosts.Repo
 	known *knownhosts.Store
 	vault *VaultService
@@ -1045,7 +1048,22 @@ func (p *prompter) saved(ctx context.Context, scope string, t sshengine.Target) 
 // unlock opens the vault: with the system keychain (Touch ID, Windows
 // Hello) when enabled, else by asking the master password; cancelling
 // falls back to a prompt.
+//
+// The panes of an environment ask one at a time: the next one finds the
+// vault open (by the keychain, Touch ID or the master password typed for
+// the first) and asks nothing. An answer to a prompt that arrives once
+// the vault was opened elsewhere (the UI answers pending prompts when the
+// vault opens) counts as unlocked.
 func (p *prompter) unlock(ctx context.Context, t sshengine.Target) bool {
+	p.svc.unlockMu.Lock()
+	defer p.svc.unlockMu.Unlock()
+	open := func() bool {
+		st, _ := p.svc.vault.Status(ctx)
+		return st.State == vault.StateUnlocked
+	}
+	if open() {
+		return true
+	}
 	if has, _ := p.svc.vault.HasKeychainUnlock(ctx); has && p.svc.vault.UnlockWithKeychain(ctx) == nil {
 		return true
 	}
@@ -1054,7 +1072,7 @@ func (p *prompter) unlock(ctx context.Context, t sshengine.Target) bool {
 		if err != nil {
 			return false
 		}
-		if p.svc.vault.Unlock(ctx, a.Value) == nil {
+		if open() || p.svc.vault.Unlock(ctx, a.Value) == nil {
 			return true
 		}
 	}

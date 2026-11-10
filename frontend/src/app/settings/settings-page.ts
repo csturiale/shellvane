@@ -13,6 +13,7 @@ import { VaultSettings } from '../vault/vault-settings';
 import { HelpLink } from '../guide/help-link';
 import { SyncSettings } from '../sync/sync-settings';
 import { UsageSettings } from '../core/usage/usage-settings';
+import { NetworkSettings } from './network/network-settings';
 import { UpdateSettings } from '../updates/update-settings';
 import { DiagnosticsSettings } from '../diagnostics/diagnostics-settings';
 import { HostsStore } from '../hosts/hosts.store';
@@ -24,7 +25,7 @@ import { NgComponentOutlet } from '@angular/common';
 import { EXTENSIONS } from '../extensions/extensions';
 @Component({
   selector: 'app-settings-page',
-  imports: [NgComponentOutlet, HelpLink, TranslocoDirective, LucideMonitor, LucideMoon, LucideSun, TerminalSettings, VaultSettings, DiagnosticsSettings, UpdateSettings, UsageSettings, SyncSettings],
+  imports: [NetworkSettings, NgComponentOutlet, HelpLink, TranslocoDirective, LucideMonitor, LucideMoon, LucideSun, TerminalSettings, VaultSettings, DiagnosticsSettings, UpdateSettings, UsageSettings, SyncSettings],
   templateUrl: './settings-page.html',
   styleUrl: './settings-page.scss',
 })

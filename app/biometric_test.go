@@ -95,3 +95,72 @@ func TestBiometricGuardsTheKeychainUnlock(t *testing.T) {
 		t.Fatalf("unlock without biometric: %v, asked %d", err, len(bio.asked))
 	}
 }
+
+// notFoundSecrets answers like the system keychain without the secret.
+type notFoundSecrets struct{ memSecrets }
+
+func (n notFoundSecrets) Get(a string) (string, error) {
+	if s, ok := n.memSecrets[a]; ok {
+		return s, nil
+	}
+	return "", errs.New("keychain.notFound", nil)
+}
+
+func TestKeychainUnlockAsksOnceAndStopsWhenTheSecretIsGone(t *testing.T) {
+	ctx := context.Background()
+	db, err := store.Open(ctx, ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	vs := NewVaultService(vault.New(db, vault.KDFParams{Time: 1, Memory: 1024, Threads: 1}), func(string, any) {})
+	secrets := notFoundSecrets{memSecrets{}}
+	vs.secrets = secrets
+	bio := &fakeVerifier{}
+	EnableBiometric(vs, bio, func() string { return "unlock" })
+	if err := vs.Setup(ctx, "master password"); err != nil {
+		t.Fatal(err)
+	}
+	if err := vs.EnableKeychainUnlock(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := vs.SetBiometric(ctx, true); err != nil {
+		t.Fatal(err)
+	}
+
+	// Many parts of the app ask together: Touch ID is asked once.
+	vs.Lock(ctx)
+	bio.asked = nil
+	done := make(chan error, 5)
+	for i := 0; i < 5; i++ {
+		go func() { done <- vs.UnlockWithKeychain(ctx) }()
+	}
+	for i := 0; i < 5; i++ {
+		if err := <-done; err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(bio.asked) != 1 {
+		t.Fatalf("Touch ID asked %d times", len(bio.asked))
+	}
+
+	// The keychain lost the secret: no Touch ID for nothing, and the
+	// keychain unlock is turned off until the master password turns it on.
+	vs.Lock(ctx)
+	for k := range secrets.memSecrets {
+		delete(secrets.memSecrets, k)
+	}
+	bio.asked = nil
+	if err := vs.UnlockWithKeychain(ctx); errs.CodeOf(err) != vault.ErrDeviceSecretGone {
+		t.Fatalf("gone: %v", err)
+	}
+	if len(bio.asked) != 0 {
+		t.Fatal("Touch ID was asked for a secret that is gone")
+	}
+	if has, _ := vs.HasKeychainUnlock(ctx); has {
+		t.Fatal("the keychain unlock must be turned off")
+	}
+	if st := vs.Biometric(ctx); st.Required {
+		t.Fatal("Touch ID must be turned off with it")
+	}
+}

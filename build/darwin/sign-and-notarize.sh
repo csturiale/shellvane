@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # Signs the macOS app, the CLI and the disk image with a Developer ID
 # certificate and has Apple notarize them, so Gatekeeper opens them without
-# warnings. Run on macOS by the release workflow.
+# warnings. Run on a Mac by scripts/release-macos.sh.
 #
 # Usage: sign-and-notarize.sh <path/to/App.app> <cli binary> <dmg to create> <volume name>
 #
-# Environment:
+# Environment, either a certificate already in your keychain:
+#   MACOS_SIGN_IDENTITY   e.g. "Developer ID Application: Name (TEAMID)"
+#   NOTARY_PROFILE        a notarytool profile saved with
+#                         xcrun notarytool store-credentials
+# or the same as the former GitHub workflow:
 #   MACOS_CERT_P12        Developer ID Application certificate (.p12), base64
 #   MACOS_CERT_PASSWORD   its password
 #   notarization, either an App Store Connect API key:
@@ -20,29 +24,38 @@ here=$(cd "$(dirname "$0")" && pwd)
 work=$(mktemp -d)
 trap 'security delete-keychain "$work/sign.keychain-db" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
 
-# A keychain of its own holding only the certificate.
-kc="$work/sign.keychain-db"
-kcpass=$(openssl rand -hex 16)
-security create-keychain -p "$kcpass" "$kc"
-security set-keychain-settings -lut 3600 "$kc"
-security unlock-keychain -p "$kcpass" "$kc"
-echo "$MACOS_CERT_P12" | base64 --decode >"$work/cert.p12"
-security import "$work/cert.p12" -k "$kc" -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
-security set-key-partition-list -S apple-tool:,apple: -s -k "$kcpass" "$kc" >/dev/null
-security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
-identity=$(security find-identity -v -p codesigning "$kc" | awk -F'"' '/Developer ID Application/ {print $2; exit}')
-if [[ -z $identity ]]; then
-  echo "No 'Developer ID Application' identity in MACOS_CERT_P12" >&2
-  exit 1
+kc_args=()
+if [[ -n ${MACOS_SIGN_IDENTITY:-} ]]; then
+  # A certificate already in the user's keychains.
+  identity=$MACOS_SIGN_IDENTITY
+else
+  # A keychain of its own holding only the certificate.
+  kc="$work/sign.keychain-db"
+  kcpass=$(openssl rand -hex 16)
+  security create-keychain -p "$kcpass" "$kc"
+  security set-keychain-settings -lut 3600 "$kc"
+  security unlock-keychain -p "$kcpass" "$kc"
+  echo "$MACOS_CERT_P12" | base64 --decode >"$work/cert.p12"
+  security import "$work/cert.p12" -k "$kc" -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+  security set-key-partition-list -S apple-tool:,apple: -s -k "$kcpass" "$kc" >/dev/null
+  security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+  identity=$(security find-identity -v -p codesigning "$kc" | awk -F'"' '/Developer ID Application/ {print $2; exit}')
+  if [[ -z $identity ]]; then
+    echo "No 'Developer ID Application' identity in MACOS_CERT_P12" >&2
+    exit 1
+  fi
+  kc_args=(--keychain "$kc")
 fi
 echo "Signing as: $identity"
 
 sign() {
-  codesign --force --timestamp --options runtime --keychain "$kc" --sign "$identity" "$@"
+  codesign --force --timestamp --options runtime ${kc_args[@]+"${kc_args[@]}"} --sign "$identity" "$@"
 }
 
 notarize() {
-  if [[ -n ${APPLE_API_KEY:-} ]]; then
+  if [[ -n ${NOTARY_PROFILE:-} ]]; then
+    xcrun notarytool submit "$1" --wait --keychain-profile "$NOTARY_PROFILE"
+  elif [[ -n ${APPLE_API_KEY:-} ]]; then
     echo "$APPLE_API_KEY" | base64 --decode >"$work/key.p8"
     xcrun notarytool submit "$1" --wait --key "$work/key.p8" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER"
   else

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
@@ -35,6 +35,21 @@ export class PromptDialog {
   protected confirm = '';
   protected readonly vaultError = signal<string | null>(null);
   private readonly transloco = inject(TranslocoService);
+
+  constructor() {
+    // Opened elsewhere (Touch ID, another pane, the unlock dialog): the
+    // panes still waiting for the master password go on without it.
+    effect(() => {
+      if (this.vault.state() !== 'unlocked') {
+        return;
+      }
+      for (const p of this.store.prompts()) {
+        if (p.kind === 'vaultUnlock') {
+          void this.store.answer(p, { value: '', decision: '', cancel: false, save: false, answers: [] });
+        }
+      }
+    });
+  }
 
   protected async submitPassword(): Promise<void> {
     const p = this.prompt();

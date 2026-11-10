@@ -13,6 +13,9 @@ import (
 // Linux: no Secret Service running).
 const ErrUnavailable errs.Code = "keychain.unavailable"
 
+// ErrNotFound: the keychain works but has no such secret.
+const ErrNotFound errs.Code = "keychain.notFound"
+
 // service groups Shellvane's items in the keychain.
 const service = "Shellvane"
 
@@ -22,8 +25,11 @@ type System struct{}
 // Get reads a secret.
 func (System) Get(account string) (string, error) {
 	s, err := keyring.Get(service, account)
+	if err == keyring.ErrNotFound {
+		return "", errs.New(ErrNotFound, nil)
+	}
 	if err != nil {
-		return "", errs.Wrap(err, ErrUnavailable, nil)
+		return "", errs.Wrap(err, ErrUnavailable, errs.Params{"detail": err.Error()})
 	}
 	return s, nil
 }

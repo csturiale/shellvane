@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/csturiale/shellvane/core/errs"
+	"github.com/csturiale/shellvane/core/netproxy"
 	"github.com/csturiale/shellvane/core/shellenv"
 )
 
@@ -277,6 +278,8 @@ func (g GitStore) git(ctx context.Context, dir string, args ...string) (string, 
 	cmd.Dir = dir
 	// Never wait for a password on a terminal nobody sees.
 	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0", "GIT_ASKPASS=", "SSH_ASKPASS=")
+	// The proxy of Settings › Network (git reads only the environment).
+	cmd.Env = append(cmd.Env, netproxy.ChildEnv()...)
 	if g.Password != "" {
 		// HTTPS credentials through the environment (git 2.31+), not the
 		// command line, where other processes could read them.
@@ -344,18 +347,52 @@ func (g GitStore) Begin(ctx context.Context) error {
 		if err := os.MkdirAll(filepath.Dir(g.Dir), 0o700); err != nil {
 			return errs.Wrap(err, ErrFolder, errs.Params{"path": g.Dir})
 		}
-		_, err := g.git(ctx, filepath.Dir(g.Dir), "clone", "--quiet", "--", g.cloneURL(), g.Dir)
-		return err
+		if _, err := g.git(ctx, filepath.Dir(g.Dir), "clone", "--quiet", "--", g.cloneURL(), g.Dir); err != nil {
+			return err
+		}
+		return g.followData(ctx)
 	}
 	// An empty repository has nothing to pull yet.
 	if _, err := g.git(ctx, g.Dir, "rev-parse", "--verify", "HEAD"); err != nil {
-		return nil
+		return g.followData(ctx)
 	}
 	if _, err := g.git(ctx, g.Dir, "ls-remote", "--exit-code", "--heads", "origin"); err != nil {
 		return nil // nothing pushed yet
 	}
-	_, err := g.git(ctx, g.Dir, "pull", "--quiet", "--rebase")
-	return err
+	if _, err := g.git(ctx, g.Dir, "pull", "--quiet", "--rebase"); err != nil {
+		return err
+	}
+	return g.followData(ctx)
+}
+
+// followData moves the clone to the branch that holds Shellvane's folder
+// when the one checked out does not. A clone takes the server's default
+// branch (main, on many servers) while the first device may have pushed
+// Shellvane's data to another one (git's own default, often master): the
+// others would find nothing.
+func (g GitStore) followData(ctx context.Context) error {
+	if fi, err := os.Stat(filepath.Join(g.Dir, DirName)); err == nil && fi.IsDir() {
+		return nil
+	}
+	refs, err := g.git(ctx, g.Dir, "for-each-ref", "--format=%(refname:short)", "refs/remotes/origin")
+	if err != nil {
+		return nil // nothing fetched: an empty repository
+	}
+	for _, ref := range strings.Fields(refs) {
+		if ref == "origin/HEAD" || ref == "origin" {
+			continue
+		}
+		if out, err := g.git(ctx, g.Dir, "ls-tree", "-d", "--name-only", ref, DirName); err != nil || strings.TrimSpace(out) == "" {
+			continue
+		}
+		branch := strings.TrimPrefix(ref, "origin/")
+		if _, err := g.git(ctx, g.Dir, "checkout", "--quiet", "-B", branch, ref); err != nil {
+			return err
+		}
+		_, err := g.git(ctx, g.Dir, "branch", "--quiet", "--set-upstream-to", ref)
+		return err
+	}
+	return nil
 }
 
 // End commits and pushes the device's changes.
@@ -422,14 +459,17 @@ func (g GitStore) ResetToRemote(ctx context.Context) error {
 		}
 		target = "origin/" + branch
 		if _, err := g.git(ctx, g.Dir, "rev-parse", "--verify", "--quiet", target); err != nil {
-			return nil // nothing pushed yet
+			return g.followData(ctx) // nothing pushed on this branch: maybe on another
 		}
 		if _, err := g.git(ctx, g.Dir, "branch", "--quiet", "--set-upstream-to", target); err != nil {
 			return err
 		}
 	}
-	_, err := g.git(ctx, g.Dir, "reset", "--quiet", "--hard", target)
-	return err
+	if _, err := g.git(ctx, g.Dir, "reset", "--quiet", "--hard", target); err != nil {
+		return err
+	}
+	// A clone made by an older version may sit on a branch without the data.
+	return g.followData(ctx)
 }
 
 // Get reads a file of the clone.

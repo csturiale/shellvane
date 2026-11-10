@@ -479,11 +479,15 @@ export class EnvironmentsStore {
         const kube = this.localKube(env, values);
         const open = run.reuse ? run.panes.filter((key) => this.sessions.pane(key)?.local && this.sessions.pane(key)?.env?.id === env.id) : [];
         if (open.length > 0) {
-          // The tunnel may listen on another port now: point the shells at it.
+          // Restored panes come back without their context, and the tunnel
+          // may listen on another port now: give each shell the
+          // environment's context, namespace and route again.
           this.act(run, 'localKube', 'reusing');
+          const same = (a: KubeSelection | null | undefined, b: KubeSelection) =>
+            !!a && a.context === b.context && (a.namespace ?? '') === (b.namespace ?? '') && JSON.stringify(a.route ?? null) === JSON.stringify(b.route ?? null);
           for (const key of open) {
             const pane = this.sessions.pane(key);
-            if (kube && pane && JSON.stringify(pane.kubeOverride?.route ?? null) !== JSON.stringify(kube.route ?? null)) {
+            if (kube && pane && !same(pane.kubeOverride, kube)) {
               await this.sessions.setKube(key, kube).catch(() => undefined);
             }
           }
