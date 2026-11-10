@@ -221,7 +221,8 @@
     "kube": {
       "kubectlFailed": "kubectl non è riuscito: {{detail}}",
       "unknownContext": "Il contesto “{{context}}” non esiste.",
-      "notEnabled": "Questo pannello non ha un contesto kubectl proprio: riaprilo per sceglierne uno."
+      "notEnabled": "Questo pannello non ha un contesto kubectl proprio: riaprilo per sceglierne uno.",
+      "notInstalled": "kubectl non è installato dove gira questo pannello: il contesto si sceglie qui solo dove c'è kubectl."
     },
     "environments": {
       "nameRequired": "Inserisci un nome.",
@@ -1359,8 +1360,8 @@
     "none": "Nessuno (quello del kubeconfig)",
     "loading": "Lettura dei contesti…",
     "apply": "Applica",
-    "whereLocal": "Vale solo per questo pannello, su questo computer. Gli altri pannelli e terminali mantengono il proprio contesto.",
-    "whereRemote": "Vale solo per questo pannello, con kubectl sul server. Il kubeconfig del server non viene modificato.",
+    "whereLocal": "kubectl e il kubeconfig di questo computer. Vale solo per questo pannello; in un ambiente con tunnel, kubectl passa dal tunnel.",
+    "whereRemote": "kubectl e il kubeconfig del server a cui è connesso questo pannello (il suo ~/.kube/config). Vale solo per questo pannello: il kubeconfig del server non viene modificato.",
     "reopens": "Questo pannello è stato aperto senza un contesto proprio: applicando viene riaperto (una sessione tmux viene ripresa)."
   },
   "guide": {

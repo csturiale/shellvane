@@ -21,6 +21,7 @@ import (
 // Error codes returned by this package.
 const (
 	ErrKubectl         errs.Code = "kube.kubectlFailed"
+	ErrNotInstalled    errs.Code = "kube.notInstalled" // no kubectl where the pane runs
 	ErrUnknownContext  errs.Code = "kube.unknownContext"
 	ErrOverlayDisabled errs.Code = "kube.notEnabled"
 )

@@ -15,7 +15,7 @@ import { HelpLink } from '../guide/help-link';
   imports: [HelpLink, FormsModule, TranslocoDirective, LucideShipWheel],
   templateUrl: './kube-picker.html',
   styleUrl: './kube-picker.scss',
-  host: { '(document:pointerdown)': 'onOutside($event)', '(keydown.escape)': 'open.set(false)' },
+  host: { '(document:pointerdown)': 'onOutside($event)', '(keydown.escape)': 'open.set(false)', '[class.unavailable]': 'unavailable()' },
 })
 export class KubePicker {
   readonly pane = input.required<Pane>();
@@ -35,12 +35,20 @@ export class KubePicker {
   protected context = '';
   protected namespace = '';
 
+  /** Sessions where kubectl is not installed: their badge goes away once
+   * the picker has said so (it would only fail again). */
+  private static readonly missing = signal(new Set<string>());
+  protected readonly unavailable = computed(
+    () => !this.open() && !this.pane().kube?.context && KubePicker.missing().has(this.pane().sessionId),
+  );
+
   protected readonly current = computed(() => this.pane().kube);
   protected readonly prod = computed(() => this.prefs.isProd(this.current()?.context ?? ''));
 
   protected async toggle(ev: MouseEvent): Promise<void> {
     const box = (ev.currentTarget as HTMLElement).getBoundingClientRect();
-    this.pos.set({ top: box.bottom + 6, left: Math.max(8, Math.min(box.left, globalThis.innerWidth - 296)) });
+    const width = Math.min(320, globalThis.innerWidth - 16);
+    this.pos.set({ top: box.bottom + 6, left: Math.max(8, Math.min(box.left, globalThis.innerWidth - width - 8)) });
     this.open.update((o) => !o);
     if (!this.open()) {
       return;
@@ -54,6 +62,9 @@ export class KubePicker {
     } catch (err) {
       this.contexts.set([]);
       this.fail(err);
+      if (toTranslatableError(err).key === 'errors.kube.notInstalled') {
+        KubePicker.missing.update((s) => new Set(s).add(this.pane().sessionId));
+      }
     } finally {
       this.loading.set(false);
     }

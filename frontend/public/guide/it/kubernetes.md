@@ -14,7 +14,13 @@ Su macOS e Linux Shellvane legge all'avvio il `PATH` della tua shell di login, c
 
 ## Server {#remote}
 
+In un pannello SSH kubectl gira **sul server**, con il kubeconfig del server (il suo `~/.kube/config`): il selettore elenca i contesti del server, non quelli di questo computer. Su un server senza kubectl il badge lo dice una volta, poi sparisce.
+
 Imposta **Contesto e namespace Kubernetes** in Avanzate su un host o gruppo (ad esempio gruppo *Produzione* → `prod-eu`): i suoi pannelli ricevono un proprio file in `~/.kube/shellvane` sul server e il selettore elenca i contesti del server. Un pannello aperto senza contesto ne riceve uno riaprendosi (una sessione tmux viene ripresa).
+
+## Ambienti con tunnel {#tunnel}
+
+Quando un cluster si raggiunge solo passando da un server, un [ambiente](shellvane:topic/environments) apre terminali **locali** con il contesto indicato e fa passare kubectl dal suo tunnel: un tunnel SOCKS diventa il `proxy-url` del contesto, un port forward verso l'API diventa il suo `server`, nel file del pannello. Il tuo kubeconfig e le sue credenziali (es. `gke-gcloud-auth-plugin`) restano su questo computer e non vengono modificati; quando l'ambiente riparte dopo un riavvio, i suoi pannelli riprendono il contesto e la porta attuale del tunnel.
 
 ## Sicurezza in produzione {#prod}
 

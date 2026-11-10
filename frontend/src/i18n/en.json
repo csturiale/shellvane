@@ -221,7 +221,8 @@
     "kube": {
       "kubectlFailed": "kubectl failed: {{detail}}",
       "unknownContext": "The context “{{context}}” does not exist.",
-      "notEnabled": "This pane has no kubectl context of its own: reopen it to choose one."
+      "notEnabled": "This pane has no kubectl context of its own: reopen it to choose one.",
+      "notInstalled": "kubectl is not installed where this pane runs: the context is chosen here only where kubectl is."
     },
     "environments": {
       "nameRequired": "Enter a name.",
@@ -1359,8 +1360,8 @@
     "none": "None (use the kubeconfig's)",
     "loading": "Reading the contexts…",
     "apply": "Apply",
-    "whereLocal": "Applies only to this pane, on this computer. Other panes and terminals keep their own context.",
-    "whereRemote": "Applies only to this pane, with kubectl on the server. The server's kubeconfig is not changed.",
+    "whereLocal": "kubectl and the kubeconfig of this computer. Applies only to this pane; in an environment with a tunnel, kubectl goes through the tunnel.",
+    "whereRemote": "kubectl and the kubeconfig of the server this pane is connected to (its ~/.kube/config). Applies only to this pane: the server's kubeconfig is not changed.",
     "reopens": "This pane was opened without a context of its own: applying reopens it (a tmux session is resumed)."
   },
   "guide": {

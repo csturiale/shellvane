@@ -14,7 +14,13 @@ On macOS and Linux Shellvane reads the `PATH` of your login shell at startup, so
 
 ## Servers {#remote}
 
+In an SSH pane kubectl runs **on the server**, with the server's kubeconfig (its `~/.kube/config`): the picker lists the server's contexts, not this computer's. On a server without kubectl the badge says so once, then goes away.
+
 Set **Kubernetes context and namespace** under Advanced on a host or group (e.g. group *Production* → `prod-eu`): its panes get their own file under `~/.kube/shellvane` on the server, and the picker lists the server's contexts. A pane opened without a context gets one by reopening (a tmux session is resumed).
+
+## Environments with a tunnel {#tunnel}
+
+When a cluster is reached only through a server, an [environment](shellvane:topic/environments) opens **local** terminals with the context it names and routes kubectl through its tunnel: a SOCKS tunnel becomes the context's `proxy-url`, a port forward to the API becomes its `server`, in the pane's own file. Your kubeconfig and its credentials (e.g. `gke-gcloud-auth-plugin`) stay on this computer and are not changed; when the environment starts again after a restart, its panes get the context and the tunnel's current port back.
 
 ## Production safety {#prod}
 

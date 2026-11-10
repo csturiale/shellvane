@@ -3,11 +3,13 @@ package app
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -254,9 +256,12 @@ func localKubectl(ctx context.Context, args ...string) ([]byte, error) {
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
 	if err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return nil, errs.Wrap(err, kube.ErrNotInstalled, nil)
+		}
 		detail := firstLine(stderr.String())
 		if detail == "" {
-			detail = err.Error() // e.g. kubectl not found in PATH
+			detail = err.Error()
 		}
 		return nil, errs.Wrap(err, kube.ErrKubectl, errs.Params{"detail": detail})
 	}
@@ -282,9 +287,19 @@ func runRemote(ctx context.Context, sess *session, command string) ([]byte, erro
 		err = ctx.Err()
 	}
 	if err != nil {
-		return nil, errs.Wrap(err, kube.ErrKubectl, errs.Params{"detail": firstLine(stderr.String())})
+		detail := firstLine(stderr.String())
+		if notFound(detail) {
+			return nil, errs.Wrap(err, kube.ErrNotInstalled, nil)
+		}
+		return nil, errs.Wrap(err, kube.ErrKubectl, errs.Params{"detail": detail})
 	}
 	return stdout.Bytes(), nil
+}
+
+// notFound recognizes a shell's "command not found" for kubectl.
+func notFound(detail string) bool {
+	d := strings.ToLower(detail)
+	return strings.Contains(d, "kubectl") && (strings.Contains(d, "not found") || strings.Contains(d, "no such file"))
 }
 
 func firstLine(s string) string {
