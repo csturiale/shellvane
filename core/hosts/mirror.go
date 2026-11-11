@@ -197,6 +197,9 @@ func (r *Repo) MirrorTemplate(ctx context.Context, rootID string, tg TemplateGro
 // local copy where the shared ones leave them unset.
 func keepLocal(shared, local settings.Settings) settings.Settings {
 	shared.JumpChain = nil // linked by name afterwards
+	if shared.User == nil {
+		shared.User = local.User // personal user names, or none shared
+	}
 	if shared.IdentityID == nil {
 		shared.IdentityID = local.IdentityID
 	}

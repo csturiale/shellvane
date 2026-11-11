@@ -34,6 +34,27 @@ type TemplateGroup struct {
 	Jumps  []string        `json:"jumps,omitempty"`
 	Hosts  []TemplateHost  `json:"hosts,omitempty"`
 	Groups []TemplateGroup `json:"groups,omitempty"`
+	// PersonalUsers: the user names are left out, each member keeps their
+	// own (set on the top group of a shared group).
+	PersonalUsers bool `json:"personalUsers,omitempty"`
+}
+
+// WithoutUsers returns g with the user names of its groups and hosts
+// removed, at every level.
+func (g TemplateGroup) WithoutUsers() TemplateGroup {
+	g.Settings.User = nil
+	hs := make([]TemplateHost, len(g.Hosts))
+	for i, h := range g.Hosts {
+		h.Settings.User = nil
+		hs[i] = h
+	}
+	g.Hosts = hs
+	gs := make([]TemplateGroup, len(g.Groups))
+	for i, c := range g.Groups {
+		gs[i] = c.WithoutUsers()
+	}
+	g.Groups = gs
+	return g
 }
 
 // TemplateHost is a host of an export.
