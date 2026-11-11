@@ -43,6 +43,7 @@ export class PromptDialog {
       if (this.vault.state() !== 'unlocked') {
         return;
       }
+
       for (const p of this.store.prompts()) {
         if (p.kind === 'vaultUnlock') {
           void this.store.answer(p, { value: '', decision: '', cancel: false, save: false, answers: [] });

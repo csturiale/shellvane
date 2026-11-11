@@ -72,9 +72,17 @@
             <span>{{ t('vault.master') }}</span>
             <input name="master" type="password" autocomplete="current-password" autofocus [(ngModel)]="password" />
           </label>
+          @if (vaultError(); as e) {
+            <p class="error" role="alert">{{ e }}</p>
+          }
         </form>
         <ng-container modal-actions>
           <button type="button" class="btn" (click)="cancel()">{{ t('sessions.vaultUnlock.skip') }}</button>
+          @if (vault.hasKeychain()) {
+            <button type="button" class="btn" (click)="unlockWithKeychain()">
+              {{ t(vault.biometric()?.required && vault.biometric()?.kind ? 'vault.gate.' + vault.biometric()!.kind : 'vault.keychainUnlock') }}
+            </button>
+          }
           <button type="submit" form="unlock-form" class="btn primary">{{ t('vault.unlock') }}</button>
         </ng-container>
       </app-modal>
