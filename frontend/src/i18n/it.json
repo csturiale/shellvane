@@ -98,13 +98,14 @@
     "envBrowserCustom": "Comando personalizzato",
     "envBrowserCommand": "Comando",
     "envBrowserCommandHint": "Apre il link indicato come %s (aggiunto in fondo se manca), ad esempio un browser con un profilo dedicato. L’opzione finestra privata dell’ambiente non lo modifica.",
-    "envClipboard": "Secondi in cui una password di login resta negli appunti",
-    "envClipboardHint": "Una password letta da CyberArk o da un altro plugin delle credenziali per un login viene tolta dagli appunti dopo questo tempo (10–600), a meno che tu non abbia copiato altro.",
+    "envClipboard": "Password di login negli appunti",
+    "envClipboardHint": "Quando un ambiente legge la password del login da un plugin delle credenziali, la password viene tolta dagli appunti dopo questo tempo (10–600 secondi), a meno che tu non abbia copiato altro.",
     "browserAll": "Usa questo browser in tutti i terminali locali",
     "browserAllHint": "Non solo nei login degli ambienti: gli strumenti avviati a mano in un terminale locale (gcloud, az, aws sso…) aprono le pagine di accesso nel browser qui sopra. Vale per i nuovi terminali.",
     "browserAllPrivate": "In una finestra privata",
     "browserAllLinks": "Apri i link di accesso stampati nel terminale",
-    "browserAllLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser (--no-browser, codici dispositivo): Shellvane lo apre nel browser qui sopra, al massimo 5 per terminale."
+    "browserAllLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser (--no-browser, codici dispositivo): Shellvane lo apre nel browser qui sopra, al massimo 5 per terminale.",
+    "seconds": "s"
   },
   "status": {
     "version": "Versione {{version}} · {{os}}/{{arch}}",
@@ -1525,8 +1526,8 @@
     "secretNone": "Nessuna (la scrivi tu)",
     "secretAddress": "Indirizzo dell'account (es. accounts.google.com)",
     "secretUser": "Utente dell'account",
-    "secretSafe": "Safe (facoltativa, sostituisce quella del plugin)",
-    "secretHint": "Quando parte il login, Shellvane legge la password di questo account dal plugin (CyberArk con il suo MFA, Conjur, un login del team…) e la copia negli appunti per 45 secondi, da incollare nella pagina di accesso che il login apre. La password non viene mai salvata né mostrata. Anche qui funzionano le variabili.",
+    "secretSafe": "Safe o cartella (facoltativa, sostituisce quella del plugin)",
+    "secretHint": "Quando parte il login, Shellvane legge la password di questo account dal plugin delle credenziali scelto (accedendo se serve, con il suo MFA) e la copia negli appunti per {{seconds}} secondi, da incollare nella pagina di accesso che il login apre. La password non viene mai salvata né mostrata. Anche qui funzionano le variabili.",
     "secretCopied": "Password di {{user}} copiata negli appunti per {{seconds}} secondi: incollala nella pagina di accesso.",
     "privateBrowser": "Apri la pagina di accesso in una finestra privata",
     "privateBrowserHint": "Per i login che aprono il browser (gcloud, az, aws sso): la pagina si apre in una finestra in incognito, InPrivate o privata, così una sessione Google o Microsoft già aperta nel browser non accede con l’account sbagliato. Safari non ha una finestra privata apribile in questo modo.",
@@ -1541,7 +1542,8 @@
       "safari": "Safari (senza finestra privata)"
     },
     "openLinks": "Apri i link di accesso stampati nel terminale del login",
-    "openLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser, o che ignorano il browser scelto qui (strumenti in Go come kubelogin, vault, tsh; gcloud con --no-launch-browser): Shellvane riconosce i link OAuth, OpenID Connect, SAML e dei codici dispositivo e li apre una volta in questo browser. Non usarlo con strumenti che aprono il browser da soli, altrimenti la pagina si apre due volte."
+    "openLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser, o che ignorano il browser scelto qui (strumenti in Go come kubelogin, vault, tsh; gcloud con --no-launch-browser): Shellvane riconosce i link OAuth, OpenID Connect, SAML e dei codici dispositivo e li apre una volta in questo browser. Non usarlo con strumenti che aprono il browser da soli, altrimenti la pagina si apre due volte.",
+    "secretNoPlugin": "Per inserire in automatico la password del login, installa e configura un plugin delle credenziali (CyberArk, Conjur, HashiCorp Vault…) in Plugin, oppure condividi un login in un team."
   },
   "logs": {
     "title": "Log e registrazioni",

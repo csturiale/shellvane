@@ -30,11 +30,11 @@ When the jump host has no saved password (and no key or team login), its passwor
 
 Logins needed on the jump host go in its commands, e.g. `gcloud auth login --no-launch-browser`.
 
-### Password from CyberArk {#login-secret}
+### Login password from a credential plugin {#login-secret}
 
-When the sign-in page that the login opens needs a password kept in CyberArk (or Conjur, or a team login), set **Password for the login**: the plugin configuration, and the account's **address** and **user** (for example `accounts.google.com` and `alice-admin@example.com`); **Safe** replaces the plugin's own when the account is elsewhere. Variables work in these fields.
+When the sign-in page that the login opens needs a password kept in a password manager, set **Password for the login**. The field appears once a credential plugin is configured in **Plugins** (CyberArk, Conjur, HashiCorp Vault…) or a login is shared in a team. Choose the plugin configuration, and the account's **address** and **user** (for example `accounts.google.com` and `alice-admin@example.com`); **Safe** replaces the plugin's own when the account is elsewhere. Variables work in these fields.
 
-When the check fails, Shellvane first reads the account's password from the plugin, signing in to CyberArk if needed (with its MFA or the browser sign-in; the CyberArk session is then reused), copies it to the clipboard for 45 seconds (configurable in Settings) and only then runs the login: paste the password in the sign-in page. The password is never saved, shown or written in the terminal, and the clipboard is cleared afterwards unless you copied something else. If the password cannot be read, the step says why and the login runs anyway, so you can type it.
+When the check fails, Shellvane first reads the account's password from the plugin, signing in to it if needed (for CyberArk, with its MFA or the browser sign-in; the session is then reused), copies it to the clipboard for 45 seconds (configurable in Settings) and only then runs the login: paste the password in the sign-in page. The password is never saved, shown or written in the terminal, and the clipboard is cleared afterwards unless you copied something else. If the password cannot be read, the step says why and the login runs anyway, so you can type it.
 
 **Open the sign-in page in a private window** (on by default with the Google Cloud and Azure presets) makes `gcloud`, `az` and `aws sso` open their page in an incognito or InPrivate window of Chrome, Edge, Brave or Firefox, through the `BROWSER` variable of the login terminal: a Google or Microsoft session already open in your browser then cannot sign in with the wrong account. Safari has no private window that can be opened this way, so another installed browser is used; without any, the usual browser opens.
 

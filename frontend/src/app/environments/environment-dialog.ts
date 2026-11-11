@@ -14,7 +14,7 @@ import { Modal } from '../shared/modal';
 import { describeTunnel } from '../tunnels/describe';
 import { TunnelsStore } from '../tunnels/tunnels.store';
 import { EnvironmentsStore } from './environments.store';
-import { BROWSERS } from '../sessions/browser-prefs';
+import { BROWSERS, BrowserPrefs } from '../sessions/browser-prefs';
 import { Literals } from '../core/i18n/literals';
 import { EnvironmentApi } from '../core/backend/environment-api';
 import { PluginApi } from '../core/backend/plugin-api';
@@ -77,6 +77,7 @@ export class EnvironmentDialog {
   /** Sign-in links printed in the login terminal open in that browser. */
   protected openLinks = false;
   protected readonly browsers = BROWSERS;
+  protected readonly browserPrefs = inject(BrowserPrefs);
   /** Login secret: a credential plugin configuration (or a team login) and its account. */
   protected secretSource = '';
   protected secretAddress = '';

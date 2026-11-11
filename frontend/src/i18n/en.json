@@ -98,13 +98,14 @@
     "envBrowserCustom": "Custom command",
     "envBrowserCommand": "Command",
     "envBrowserCommandHint": "Opens the link given as %s (added at the end when missing), e.g. a browser with a dedicated profile. The environment’s private window option does not change it.",
-    "envClipboard": "Seconds a login password stays on the clipboard",
-    "envClipboardHint": "A password read from CyberArk or another credential plugin for a login is cleared from the clipboard after this time (10–600), unless you copied something else.",
+    "envClipboard": "Login password on the clipboard",
+    "envClipboardHint": "When an environment reads its login password from a credential plugin, the password is cleared from the clipboard after this time (10–600 seconds), unless you copied something else.",
     "browserAll": "Use this browser in every local terminal",
     "browserAllHint": "Not only in environment logins: tools started by hand in a local terminal (gcloud, az, aws sso…) open sign-in pages in the browser above. New terminals only.",
     "browserAllPrivate": "In a private window",
     "browserAllLinks": "Open sign-in links printed in the terminal",
-    "browserAllLinksHint": "For tools that print the link instead of opening the browser (--no-browser, device codes): Shellvane opens it in the browser above, at most 5 per terminal."
+    "browserAllLinksHint": "For tools that print the link instead of opening the browser (--no-browser, device codes): Shellvane opens it in the browser above, at most 5 per terminal.",
+    "seconds": "s"
   },
   "status": {
     "version": "Version {{version}} · {{os}}/{{arch}}",
@@ -1525,8 +1526,8 @@
     "secretNone": "None (type it yourself)",
     "secretAddress": "Address of the account (e.g. accounts.google.com)",
     "secretUser": "User of the account",
-    "secretSafe": "Safe (optional, replaces the plugin’s)",
-    "secretHint": "When the login runs, Shellvane reads this account’s password from the plugin (CyberArk with its MFA, Conjur, a team login…) and copies it to the clipboard for 45 seconds, to paste in the sign-in page the login opens. The password is never saved or shown. Variables work here too.",
+    "secretSafe": "Safe or folder (optional, replaces the plugin’s)",
+    "secretHint": "When the login runs, Shellvane reads this account’s password from the chosen credential plugin (signing in to it if needed, with its MFA) and copies it to the clipboard for {{seconds}} seconds, to paste in the sign-in page the login opens. The password is never saved or shown. Variables work here too.",
     "secretCopied": "Password of {{user}} copied to the clipboard for {{seconds}} seconds: paste it in the sign-in page.",
     "privateBrowser": "Open the sign-in page in a private window",
     "privateBrowserHint": "For logins that open the browser (gcloud, az, aws sso): the page opens in an incognito, InPrivate or private window, so a Google or Microsoft session already open in the browser does not sign in with the wrong account. Safari has no private window that can be opened this way.",
@@ -1541,7 +1542,8 @@
       "safari": "Safari (no private window)"
     },
     "openLinks": "Open the sign-in links printed in the login terminal",
-    "openLinksHint": "For tools that print the link instead of opening the browser, or that ignore the browser chosen here (Go tools such as kubelogin, vault, tsh; gcloud with --no-launch-browser): Shellvane recognizes OAuth, OpenID Connect, SAML and device-code links and opens each once in this browser. Do not use it with tools that open the browser themselves, or the page opens twice."
+    "openLinksHint": "For tools that print the link instead of opening the browser, or that ignore the browser chosen here (Go tools such as kubelogin, vault, tsh; gcloud with --no-launch-browser): Shellvane recognizes OAuth, OpenID Connect, SAML and device-code links and opens each once in this browser. Do not use it with tools that open the browser themselves, or the page opens twice.",
+    "secretNoPlugin": "To fill in the login password automatically, install and configure a credential plugin (CyberArk, Conjur, HashiCorp Vault…) in Plugins, or share a login in a team."
   },
   "logs": {
     "title": "Logs and recordings",

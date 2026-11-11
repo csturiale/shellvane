@@ -64,6 +64,13 @@ export class SettingsPage {
     p.setLocal(p.localShell(), field === 'context' ? value : p.localKubeContext(), field === 'namespace' ? value : p.localKubeNamespace());
   }
 
+  /** Seconds a login password stays on the clipboard, kept within 10–600. */
+  protected setSeconds(input: HTMLInputElement): void {
+    const n = Math.min(600, Math.max(10, Math.round(+input.value || 45)));
+    input.value = String(n);
+    this.browserPrefs.set({ seconds: n });
+  }
+
   protected onLanguageChange(event: Event): void {
     this.language.set((event.target as HTMLSelectElement).value as Language);
   }

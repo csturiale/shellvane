@@ -179,3 +179,50 @@ body.pane-dragging * {
   cursor: grabbing !important;
   user-select: none !important;
 }
+
+/* Settings: a setting turned on or off is a switch (the checkbox alone at
+   the end of its row); checkboxes beside a label stay checkboxes. */
+app-settings-page .row > input[type='checkbox'] {
+  appearance: none;
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+app-settings-page .row > input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+  transition: transform 0.15s;
+}
+app-settings-page .row > input[type='checkbox']:checked {
+  background: var(--accent);
+}
+app-settings-page .row > input[type='checkbox']:checked::after {
+  transform: translateX(14px);
+}
+app-settings-page .row > input[type='checkbox']:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+app-settings-page .row > input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  app-settings-page .row > input[type='checkbox'],
+  app-settings-page .row > input[type='checkbox']::after {
+    transition: none;
+  }
+}
