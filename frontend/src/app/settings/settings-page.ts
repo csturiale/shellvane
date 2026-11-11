@@ -7,6 +7,7 @@ import { Language } from '../core/i18n/languages';
 import { ThemeMode, ThemeService, UI_SCALES } from '../core/theme/theme.service';
 import { Program, SessionApi } from '../core/backend/session-api';
 import { EnvironmentsStore } from '../environments/environments.store';
+import { BROWSERS, BrowserPrefs } from '../sessions/browser-prefs';
 import { SessionPrefs } from '../sessions/session-prefs';
 import { TerminalSettings } from '../terminal/terminal-settings';
 import { VaultSettings } from '../vault/vault-settings';
@@ -38,6 +39,8 @@ export class SettingsPage {
   protected readonly language = inject(LanguageService);
   protected readonly sessionPrefs = inject(SessionPrefs);
   protected readonly environments = inject(EnvironmentsStore);
+  protected readonly browsers = BROWSERS;
+  protected readonly browserPrefs = inject(BrowserPrefs);
   protected readonly danger = inject(DangerousCommands);
   protected readonly hosts = inject(HostsStore);
   protected readonly shells = signal<Program[]>([]);

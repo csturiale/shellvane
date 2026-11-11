@@ -174,7 +174,7 @@ func (p CyberArk) client(s map[string]string) (*http.Client, error) {
 // when set, else by the host's address and user.
 func (p CyberArk) ccp(call pamCall, s map[string]string, t plugins.Target) (plugins.Credential, error) {
 	q := url.Values{"AppID": {strings.TrimSpace(s["appId"])}}
-	if safe := strings.TrimSpace(s["safe"]); safe != "" {
+	if safe := strings.TrimSpace(or(t.Safe, s["safe"])); safe != "" {
 		q.Set("Safe", safe)
 	}
 	if obj := expandTarget(s["object"], t); obj != "" {
@@ -487,6 +487,14 @@ func (p CyberArk) pvwa(call pamCall, s map[string]string, t plugins.Target) (plu
 	}
 }
 
+// defaultReason is the reason logged by the PVWA when none is set.
+func defaultReason(t plugins.Target) string {
+	if t.Purpose != "" {
+		return "Shellvane: " + t.Purpose
+	}
+	return "Shellvane: SSH to " + t.Hostname
+}
+
 // errPVWAExpired marks a 401 on a kept session.
 var errPVWAExpired = errs.Code("plugins.pvwaExpired")
 
@@ -499,7 +507,7 @@ func (p CyberArk) retrieve(call pamCall, s map[string]string, t plugins.Target, 
 		return err
 	}
 	q := url.Values{"search": {strings.TrimSpace(t.Hostname + " " + t.User)}}
-	if safe := strings.TrimSpace(s["safe"]); safe != "" {
+	if safe := strings.TrimSpace(or(t.Safe, s["safe"])); safe != "" {
 		q.Set("filter", "safeName eq "+safe)
 	}
 	data, err := call.do(http.MethodGet, base+"/Accounts?"+q.Encode(), nil, auth, cyberarkError)
@@ -530,7 +538,7 @@ func (p CyberArk) retrieve(call pamCall, s map[string]string, t plugins.Target, 
 		}
 		return plugins.Credential{}, errs.New(plugins.ErrCommand, errs.Params{"command": "cyberark", "detail": "no account for " + who})
 	}
-	body, _ := json.Marshal(map[string]string{"reason": or(expandTarget(s["reason"], t), "Shellvane: SSH to "+t.Hostname)})
+	body, _ := json.Marshal(map[string]string{"reason": or(expandTarget(s["reason"], t), defaultReason(t))})
 	data, err = call.do(http.MethodPost, base+"/Accounts/"+url.PathEscape(id)+"/Password/Retrieve", body, auth, cyberarkError)
 	if err != nil {
 		return plugins.Credential{}, expired(err)

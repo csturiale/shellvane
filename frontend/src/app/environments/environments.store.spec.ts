@@ -6,6 +6,7 @@ import { SessionsStore } from '../sessions/sessions.store';
 import { WorkspacesStore } from '../sessions/workspaces.store';
 import { TunnelsStore } from '../tunnels/tunnels.store';
 import { EnvironmentsStore, expand, routeFor } from './environments.store';
+import { BrowserPrefs } from '../sessions/browser-prefs';
 
 const env = (over: Partial<Environment> = {}): Environment => ({
   id: 'e1',
@@ -103,7 +104,7 @@ describe('EnvironmentsStore', () => {
     );
     const run = store.runOf('e1')!;
     expect(run.steps.map((s) => s.state)).toEqual(['done', 'done', 'done', 'done', 'skipped']);
-    expect(opened[0]).toEqual({ kind: 'local', extra: { script: ['gcloud auth login --project acme'] } });
+    expect(opened[0]).toMatchObject({ kind: 'local', extra: { script: ['gcloud auth login --project acme'] } });
     const tag = { id: 'e1', name: 'GKE', values: { p: 'acme' } };
     expect(opened[1]).toEqual({ kind: 'host:h1', extra: { script: ['echo acme'], kube: { context: 'gke_acme', namespace: '' }, env: tag } });
     expect(opened[2].extra).toEqual({
@@ -142,6 +143,51 @@ describe('EnvironmentsStore', () => {
     expect(step.state).toBe('failed');
     expect(step.error?.key).toBe('errors.environments.prepareFailed');
   });
+
+  it('copies the login password before the login and uses the gcloud profile everywhere', async () => {
+    checks = [false, true];
+    const calls: string[] = [];
+    const api = TestBed.inject(EnvironmentApi) as unknown as Record<string, unknown>;
+    api['checkLogin'] = async (c: string, _v: unknown, gcloud: string) => {
+      calls.push(`check ${c} @${gcloud}`);
+      return { ok: checks.shift() ?? true, detail: '' };
+    };
+    TestBed.inject(BrowserPrefs).set({ browser: 'firefox', seconds: 90 });
+    api['copyLoginSecret'] = async (id: string, _v: unknown, seconds: number) => {
+      calls.push(`copy ${id} ${seconds}s`);
+      return { user: 'alice-admin@example.com', seconds: 45 };
+    };
+    await store.start(
+      env({
+        gcloud: 'prod-admin',
+        login: { check: 'gcloud auth print-access-token', login: 'gcloud auth login --update-adc', prepare: '', secret: { source: 'cfg-1', address: 'accounts.google.com', user: 'alice-admin@example.com', safe: '' }, privateBrowser: true },
+        localKube: { context: 'gke', namespace: '', tunnelId: '', terminals: 1 },
+      }),
+      {},
+    );
+    expect(calls.slice(0, 2)).toEqual(['check gcloud auth print-access-token @prod-admin', 'copy e1 90s']);
+    expect(opened.map((o) => (o.extra as { gcloud?: string }).gcloud)).toEqual(['prod-admin', 'prod-admin']);
+    expect(opened.map((o) => (o.extra as { browser?: unknown }).browser)).toEqual([{ id: 'firefox', command: '', private: true }, undefined]);
+    expect((opened[0].extra as { openLinks?: boolean }).openLinks).toBe(false);
+    TestBed.inject(BrowserPrefs).set({ browser: '', seconds: 45 });
+    expect(store.runOf('e1')!.steps.every((st) => st.state === 'done' || st.state === 'skipped')).toBe(true);
+  });
+
+  it('logs in anyway when the password cannot be read', async () => {
+    checks = Array(100).fill(false); // still waiting for the login
+    const api = TestBed.inject(EnvironmentApi) as unknown as Record<string, unknown>;
+    api['copyLoginSecret'] = async () => {
+      throw { cause: { code: 'environments.loginSecretEmpty', params: { user: 'alice' } } };
+    };
+    const started = store.start(env({ login: { check: 'c', login: 'gcloud auth login', prepare: '', secret: { source: 'cfg-1', address: 'a', user: 'alice', safe: '' } } }), {});
+    await new Promise((r) => setTimeout(r, 20));
+    const a = store.runOf('e1')!.steps[0].activity;
+    expect(a?.key).toBe('environments.activity.loggingIn');
+    expect(a?.detail?.key).toBe('errors.environments.loginSecretEmpty');
+    store.continueWithoutLogin('e1');
+    await started;
+    expect(opened.length).toBe(1);
+  }, 15000);
 
   it('shows why the login check fails and can go on without it', async () => {
     checks = Array(100).fill(false); // the check never passes

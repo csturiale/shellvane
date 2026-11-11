@@ -1,3 +1,4 @@
+import { BrowserPrefs } from './browser-prefs';
 import { TestBed } from '@angular/core/testing';
 
 import type { Prompt, SessionInfo, SessionState } from '../core/backend/session-api';
@@ -396,6 +397,19 @@ describe('SessionsStore', () => {
     expect(api.openOptions.slice(-2)).toMatchObject(persisted.map((persist) => ({ persist, resume: true })));
     expect(store.active()?.key).toBe(store.tabs()[2].key);
     expect(panesOf(store.tabs()[2].layout)).toHaveLength(2);
+  });
+
+  it('gives local terminals the browser of the settings only when it applies to all of them', async () => {
+    const prefs = TestBed.inject(BrowserPrefs);
+    await store.openLocal('/bin/zsh');
+    expect(api.localOptions[0]).toMatchObject({ browser: null, openLinks: false });
+    prefs.set({ browser: 'edge', allTerminals: true, allPrivate: true, allLinks: true });
+    await store.openLocal('/bin/zsh');
+    expect(api.localOptions[1]).toMatchObject({ browser: { id: 'edge', private: true }, openLinks: true });
+    // An environment's login keeps its own choice.
+    await store.openLocal('/bin/zsh', { browser: { id: 'firefox', command: '', private: false } });
+    expect(api.localOptions[2]).toMatchObject({ browser: { id: 'firefox', private: false }, openLinks: false });
+    prefs.set({ browser: '', allTerminals: false, allPrivate: false, allLinks: false });
   });
 
   it('opens local terminals and switches their kubectl context live', async () => {

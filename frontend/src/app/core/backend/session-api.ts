@@ -3,6 +3,7 @@ import { Events, Stream } from '@wailsio/runtime';
 
 import { SessionService } from '../../../../bindings/github.com/csturiale/shellvane/app';
 import type {
+  BrowserChoice,
   Highlight,
   KubeInfo,
   LocalOptions,
@@ -17,7 +18,7 @@ import type { Program } from '../../../../bindings/github.com/csturiale/shellvan
 import type { File as SessionFile } from '../../../../bindings/github.com/csturiale/shellvane/core/sessionlog';
 import { SessionPrompt, SessionReturn, SessionState as SessionStateEvent } from '../../../../bindings/events';
 
-export type { KubeSelection, Program, SessionFile };
+export type { BrowserChoice, KubeSelection, Program, SessionFile };
 export type { Highlight, KubeInfo, LocalOptions, OpenOptions, Prompt, PromptAnswer, SessionInfo, SessionState };
 
 /** The subset of WebSocket a terminal needs; Wails streams implement it. */

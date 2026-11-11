@@ -30,6 +30,24 @@ Se il jump host non ha una password salvata (né una chiave o un accesso di team
 
 I login necessari sul jump host vanno nei suoi comandi, ad esempio `gcloud auth login --no-launch-browser`.
 
+### Password da CyberArk {#login-secret}
+
+Quando la pagina di accesso che il login apre richiede una password conservata in CyberArk (o in Conjur, o un login del team), imposta **Password per il login**: la configurazione del plugin e l'**indirizzo** e l'**utente** dell'account (ad esempio `accounts.google.com` e `alice-admin@example.com`); **Safe** sostituisce quella del plugin quando l'account si trova altrove. In questi campi funzionano le variabili.
+
+Quando la verifica fallisce, Shellvane legge prima la password dell'account dal plugin, accedendo a CyberArk se serve (con il suo MFA o l'accesso dal browser; la sessione CyberArk viene poi riusata), la copia negli appunti per 45 secondi (configurabili nelle Impostazioni) e solo dopo esegue il login: incolla la password nella pagina di accesso. La password non viene mai salvata, mostrata né scritta nel terminale, e gli appunti vengono svuotati dopo, a meno che tu non abbia copiato altro. Se la password non si può leggere, il passo dice perché e il login parte comunque, così puoi scriverla tu.
+
+**Apri la pagina di accesso in una finestra privata** (attiva per default con i preset Google Cloud e Azure) fa aprire a `gcloud`, `az` e `aws sso` la loro pagina in una finestra in incognito o InPrivate di Chrome, Edge, Brave o Firefox, tramite la variabile `BROWSER` del terminale del login: una sessione Google o Microsoft già aperta nel browser non può così accedere con l'account sbagliato. Safari non ha una finestra privata apribile in questo modo, quindi viene usato un altro browser installato; se non ce ne sono, si apre il browser di sempre.
+
+In **Impostazioni → Login degli ambienti** scegli il browser delle pagine di accesso (automatico, uno dell'elenco, o un **comando personalizzato** con `%s` per il link, ad esempio un browser con un profilo dedicato) e per quanti secondi una password di login resta negli appunti (45 per default). Ogni ambiente può scegliere un altro browser nel suo passo 1.
+
+Non tutti gli strumenti leggono `BROWSER`: molti scritti in Go (kubelogin, `vault login -method=oidc`, `tsh login`) aprono direttamente il browser di sistema, e alcuni stampano solo il link (`gcloud auth login --no-launch-browser`, codici dispositivo). Per questi, attiva **Apri i link di accesso stampati nel terminale del login**: Shellvane riconosce nell'output del terminale i link OAuth, OpenID Connect, SAML e dei codici dispositivo e li apre una volta nel browser scelto (al massimo 5 per terminale). Usa l'opzione dello strumento che stampa il link invece di aprirlo, altrimenti la pagina si apre due volte.
+
+**Usa questo browser in tutti i terminali locali** (Impostazioni) applica la stessa scelta ai terminali locali aperti a mano, con le sue opzioni **finestra privata** e **apri i link di accesso**; il login di un ambiente mantiene la scelta dell'ambiente.
+
+### Account Google diversi nello stesso momento {#gcloud}
+
+gcloud tiene account, progetto e credenziali application default in un'unica cartella di configurazione, quindi per impostazione predefinita tutti i terminali usano lo stesso account Google. Assegna a un ambiente un **profilo gcloud** (es. `prod-admin`): verifica, login, preparazione e terminali locali (con kubectl e il suo plugin GKE) usano una cartella di configurazione propria (`CLOUDSDK_CONFIG`). L'ambiente "prod" può restare collegato come `alice-admin@…` mentre "dev" usa un altro account, entrambi aperti insieme. Gli ambienti con lo stesso profilo condividono il login. Il preset Google Cloud accede con `gcloud auth login --update-adc`, che aggiorna anche le credenziali application default del profilo.
+
 ## Sessioni ripristinate e altri terminali {#terminals}
 
 Ogni terminale aperto da un ambiente mostra il suo badge nell'intestazione: il nome dell'ambiente, e il suo stato quando non è pronto. Quando Shellvane ripristina la sessione precedente, quei terminali tornano come shell semplici: l'ambiente riparte da solo su di essi — verifica del login (aprendo il login se serve), tunnel, route di kubectl — senza riaprirli. Finché non è pronto il badge lo dice, in rosso.

@@ -64,6 +64,16 @@ type LocalOptions struct {
 	Kube    *kube.Selection `json:"kube,omitempty"`
 	// Script is typed after the shell starts (e.g. a login command).
 	Script []string `json:"script,omitempty"`
+	// Gcloud is a gcloud profile: the shell's gcloud (and kubectl's GKE
+	// plugin) use its configuration folder; "" is gcloud's own.
+	Gcloud string `json:"gcloud,omitempty"`
+	// Browser is how the tools of the shell that open a browser (gcloud,
+	// az, aws sso) open it: which browser, a private window (BROWSER).
+	Browser *BrowserChoice `json:"browser,omitempty"`
+	// OpenLinks opens the sign-in links the terminal prints (OAuth,
+	// device code, SAML) in that browser, for tools that do not read
+	// BROWSER (e.g. with their --no-browser option).
+	OpenLinks bool `json:"openLinks,omitempty"`
 
 	// program runs instead of a shell (Mosh); env is added to it.
 	program *localshell.Program
@@ -111,6 +121,16 @@ func (s *SessionService) OpenLocal(ctx context.Context, cols, rows int, opts Loc
 	}
 	file := filepath.Join(s.kubeDir(), kube.SafeName(name)+".yaml")
 	env := append([]string(nil), opts.env...)
+	if dir, err := gcloudDir(s.dataDir, opts.Gcloud); err != nil {
+		return SessionInfo{}, err
+	} else if dir != "" {
+		env = append(env, "CLOUDSDK_CONFIG="+dir)
+	}
+	if opts.Browser != nil {
+		if b := browserEnv(*opts.Browser); b != "" {
+			env = append(env, "BROWSER="+b)
+		}
+	}
 	if err := s.writeLocalKube(ctx, file, sel); err == nil {
 		env = append(env, "KUBECONFIG="+kube.Env(file, kube.Original()))
 	} else {
@@ -126,6 +146,13 @@ func (s *SessionService) OpenLocal(ctx context.Context, cols, rows int, opts Loc
 		matcher:   automation.NewMatcher(active),
 		responses: map[string][]time.Time{},
 		watchers:  map[int]func([]byte){},
+	}
+	if opts.OpenLinks {
+		choice := BrowserChoice{}
+		if opts.Browser != nil {
+			choice = *opts.Browser
+		}
+		sess.auto.watch(newLinkWatcher(func(link string) { openLink(choice, link) }).feed)
 	}
 	s.mu.Lock()
 	s.sessions[sess.id] = sess

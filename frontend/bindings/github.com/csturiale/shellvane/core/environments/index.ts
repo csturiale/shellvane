@@ -5,6 +5,7 @@ export type {
     Environment,
     LocalKube,
     LocalLogin,
+    LoginSecret,
     Remote,
     Variable
 } from "./models.js";

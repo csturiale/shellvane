@@ -89,6 +89,60 @@
       <input id="env-auto-stop" type="checkbox" [checked]="environments.autoStop()" (change)="environments.setAutoStop($any($event.target).checked)" />
     </div>
   </section>
+  <section *transloco="let g">
+    <h2>{{ t('envLogins') }} <app-help-link topic="environments" anchor="login-secret" /></h2>
+    <div class="row">
+      <div class="label">
+        <label for="env-browser">{{ t('envBrowser') }}</label>
+        <small>{{ t('envBrowserHint') }}</small>
+      </div>
+      <select id="env-browser" (change)="browserPrefs.set({ browser: $any($event.target).value })">
+        <option value="" [selected]="!browserPrefs.settings().browser">{{ t('envBrowserAuto') }}</option>
+        @for (b of browsers; track b) {
+          <option [value]="b" [selected]="browserPrefs.settings().browser === b">{{ g('environments.browsers.' + b) }}</option>
+        }
+        <option value="custom" [selected]="browserPrefs.settings().browser === 'custom'">{{ t('envBrowserCustom') }}</option>
+      </select>
+    </div>
+    @if (browserPrefs.settings().browser === 'custom') {
+      <div class="row">
+        <div class="label">
+          <label for="env-browser-cmd">{{ t('envBrowserCommand') }}</label>
+          <small>{{ t('envBrowserCommandHint') }}</small>
+        </div>
+        <input id="env-browser-cmd" class="mono" spellcheck="false" [value]="browserPrefs.settings().command" placeholder='open -na "Google Chrome" --args --incognito %s' (change)="browserPrefs.set({ command: $any($event.target).value })" />
+      </div>
+    }
+    <div class="row">
+      <div class="label">
+        <label for="browser-all">{{ t('browserAll') }}</label>
+        <small>{{ t('browserAllHint') }}</small>
+      </div>
+      <input id="browser-all" type="checkbox" [checked]="browserPrefs.settings().allTerminals" (change)="browserPrefs.set({ allTerminals: $any($event.target).checked })" />
+    </div>
+    @if (browserPrefs.settings().allTerminals) {
+      <div class="row">
+        <div class="label">
+          <label for="browser-all-private">{{ t('browserAllPrivate') }}</label>
+        </div>
+        <input id="browser-all-private" type="checkbox" [checked]="browserPrefs.settings().allPrivate" (change)="browserPrefs.set({ allPrivate: $any($event.target).checked })" />
+      </div>
+      <div class="row">
+        <div class="label">
+          <label for="browser-all-links">{{ t('browserAllLinks') }}</label>
+          <small>{{ t('browserAllLinksHint') }}</small>
+        </div>
+        <input id="browser-all-links" type="checkbox" [checked]="browserPrefs.settings().allLinks" (change)="browserPrefs.set({ allLinks: $any($event.target).checked })" />
+      </div>
+    }
+    <div class="row">
+      <div class="label">
+        <label for="env-clipboard">{{ t('envClipboard') }}</label>
+        <small>{{ t('envClipboardHint') }}</small>
+      </div>
+      <input id="env-clipboard" type="number" min="10" max="600" step="5" [value]="browserPrefs.settings().seconds" (change)="browserPrefs.set({ seconds: +$any($event.target).value || 45 })" />
+    </div>
+  </section>
 
   <section>
     <h2>{{ t('local') }} <app-help-link topic="kubernetes" anchor="local" /></h2>

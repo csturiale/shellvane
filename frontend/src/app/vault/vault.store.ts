@@ -68,8 +68,7 @@ export class VaultStore {
 
   async setKeychain(on: boolean): Promise<void> {
     await (on ? this.api.enableKeychainUnlock() : this.api.disableKeychainUnlock());
-    this.hasKeychain.set(on);
-    this.biometric.set(await this.api.biometric().catch(() => null));
+    await this.loadKeychain();
   }
 
   async setBiometric(on: boolean): Promise<void> {
@@ -109,8 +108,7 @@ export class VaultStore {
     try {
       this.state.set(await this.api.status());
       this.hasRecoveryKey.set(await this.api.hasRecoveryKey());
-      this.hasKeychain.set(await this.api.hasKeychainUnlock().catch(() => false));
-      this.biometric.set(await this.api.biometric().catch(() => null));
+      await this.loadKeychain();
       // At startup the keychain opens the vault without the master password.
       if (!this.triedKeychain && this.state() === 'locked' && this.hasKeychain()) {
         this.triedKeychain = true;

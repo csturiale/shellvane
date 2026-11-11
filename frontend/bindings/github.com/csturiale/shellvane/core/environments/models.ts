@@ -18,6 +18,15 @@ export interface Environment {
      * WorkspaceID opens a saved workspace at the end.
      */
     "workspaceId": string;
+
+    /**
+     * Gcloud is the gcloud profile of the environment: its login checks,
+     * commands and local terminals use their own gcloud configuration
+     * folder (account, project, application default credentials), so
+     * environments can use different Google accounts at the same time.
+     * Environments with the same profile share it; "" is gcloud's own.
+     */
+    "gcloud"?: string;
 }
 
 /**
@@ -54,6 +63,52 @@ export interface LocalLogin {
      * kubectl context exists locally.
      */
     "prepare": string;
+
+    /**
+     * Secret is a password copied to the clipboard just before the login
+     * command runs, to paste in the sign-in page it opens.
+     */
+    "secret"?: LoginSecret;
+
+    /**
+     * PrivateBrowser opens the sign-in page of the login in a private
+     * (incognito) window, so a session already open in the browser does
+     * not sign in with another account.
+     */
+    "privateBrowser"?: boolean;
+
+    /**
+     * Browser opens the sign-in page in this browser ("chrome", "edge",
+     * "brave", "chromium", "firefox", "safari"); "" uses the one chosen in
+     * the settings.
+     */
+    "browser"?: string;
+
+    /**
+     * OpenLinks opens the sign-in links printed in the login terminal in
+     * that browser, for tools that do not open it themselves (e.g. with
+     * --no-browser or --no-launch-browser).
+     */
+    "openLinks"?: boolean;
+}
+
+/**
+ * LoginSecret names an account of a credential plugin (CyberArk, Conjur…):
+ * its password is read when the login runs, never stored. {{variables}}
+ * apply to Address, User and Safe.
+ */
+export interface LoginSecret {
+    /**
+     * Source is the plugin configuration's ID (its name in exports).
+     */
+    "source": string;
+    "address": string;
+    "user": string;
+
+    /**
+     * Safe replaces the configuration's safe or folder when set.
+     */
+    "safe": string;
 }
 
 /**

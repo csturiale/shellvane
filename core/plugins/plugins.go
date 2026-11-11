@@ -85,6 +85,12 @@ type Target struct {
 	Hostname string `json:"hostname"`
 	Port     int    `json:"port"`
 	User     string `json:"user"`
+	// Safe, when set, replaces the configuration's safe or folder (an
+	// environment's login secret may live elsewhere than the hosts').
+	Safe string `json:"safe,omitempty"`
+	// Purpose says what the secret is for when it is not an SSH login,
+	// e.g. "login of environment prod"; brokers that log a reason use it.
+	Purpose string `json:"purpose,omitempty"`
 }
 
 // Credential is what a broker gives for a login. Empty fields keep the

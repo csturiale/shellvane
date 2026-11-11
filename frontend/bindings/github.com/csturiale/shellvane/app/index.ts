@@ -57,7 +57,9 @@ export {
 export type {
     AgentStatus,
     BiometricStatus,
+    BrowserChoice,
     Clients,
+    CopiedSecret,
     DroppedFiles,
     FileEdit,
     GalleryIndex,

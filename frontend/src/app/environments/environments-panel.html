@@ -75,6 +75,9 @@
                     <span class="activity">
                       @if (s.activity; as a) {
                         {{ t(a.key, a.params) }}
+                        @if (a.detail; as d) {
+                          {{ t(d.key, d.params) }}
+                        }
                       }
                       @if (s.since) {
                         <span class="elapsed">{{ t('environments.elapsed', { seconds: elapsed(s.since) }) }}</span>

@@ -24,10 +24,10 @@ func TestCheckLoginUsesTheUserShell(t *testing.T) {
 	t.Setenv("SHELL", shell)
 
 	s := &EnvironmentService{}
-	if r := s.CheckLogin(context.Background(), "fakecloud ok", nil); !r.OK {
+	if r := s.CheckLogin(context.Background(), "fakecloud ok", nil, ""); !r.OK {
 		t.Fatalf("check through the user's shell failed: %+v", r)
 	}
-	r := s.CheckLogin(context.Background(), "fakecloud {{state}}", map[string]string{"state": "expired"})
+	r := s.CheckLogin(context.Background(), "fakecloud {{state}}", map[string]string{"state": "expired"}, "")
 	if r.OK || r.Detail != "not logged in: run fakecloud login" {
 		t.Fatalf("failing check = %+v", r)
 	}
@@ -44,7 +44,7 @@ func TestCheckLoginDoesNotWaitForBackgroundProcesses(t *testing.T) {
 	os.WriteFile(shell, []byte("#!/bin/sh\nsleep 30 &\nshift\nexec /bin/sh -c \"$1\"\n"), 0o755)
 	t.Setenv("SHELL", shell)
 	done := make(chan LoginCheck, 1)
-	go func() { done <- (&EnvironmentService{}).CheckLogin(context.Background(), "true", nil) }()
+	go func() { done <- (&EnvironmentService{}).CheckLogin(context.Background(), "true", nil, "") }()
 	select {
 	case r := <-done:
 		if !r.OK {
@@ -52,5 +52,32 @@ func TestCheckLoginDoesNotWaitForBackgroundProcesses(t *testing.T) {
 		}
 	case <-time.After(10 * time.Second):
 		t.Fatal("the check waited for a background process of the shell")
+	}
+}
+
+// A gcloud profile gives the check its own gcloud configuration folder.
+func TestCheckLoginUsesTheGcloudProfile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("cmd /C")
+	}
+	dir := t.TempDir()
+	shell := filepath.Join(dir, "zsh")
+	os.WriteFile(shell, []byte("#!/bin/sh\nshift\nexec /bin/sh -c \"$1\"\n"), 0o755)
+	t.Setenv("SHELL", shell)
+	t.Setenv("CLOUDSDK_CONFIG", "")
+	data := t.TempDir()
+	s := &EnvironmentService{dataDir: data}
+	want := filepath.Join(data, "gcloud", "prod-admin")
+	if r := s.CheckLogin(context.Background(), `[ "$CLOUDSDK_CONFIG" = "`+want+`" ]`, nil, "prod admin"); !r.OK {
+		t.Fatalf("CLOUDSDK_CONFIG not set to the profile: %+v", r)
+	}
+	if st, err := os.Stat(want); err != nil || !st.IsDir() || st.Mode().Perm() != 0o700 {
+		t.Fatalf("profile folder: %v %v", st, err)
+	}
+	if r := s.CheckLogin(context.Background(), `[ -z "$CLOUDSDK_CONFIG" ]`, nil, ""); !r.OK {
+		t.Fatalf("no profile must keep gcloud's own configuration: %+v", r)
+	}
+	if got := s.GcloudProfiles(); len(got) != 1 || got[0] != "prod-admin" {
+		t.Fatalf("profiles = %v", got)
 	}
 }

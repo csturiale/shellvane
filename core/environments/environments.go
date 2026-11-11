@@ -42,6 +42,33 @@ type LocalLogin struct {
 	// e.g. `gcloud container clusters get-credentials …` so that the
 	// kubectl context exists locally.
 	Prepare string `json:"prepare" yaml:"prepare,omitempty"`
+	// Secret is a password copied to the clipboard just before the login
+	// command runs, to paste in the sign-in page it opens.
+	Secret LoginSecret `json:"secret,omitempty" yaml:"secret,omitempty"`
+	// PrivateBrowser opens the sign-in page of the login in a private
+	// (incognito) window, so a session already open in the browser does
+	// not sign in with another account.
+	PrivateBrowser bool `json:"privateBrowser,omitempty" yaml:"privateBrowser,omitempty"`
+	// Browser opens the sign-in page in this browser ("chrome", "edge",
+	// "brave", "chromium", "firefox", "safari"); "" uses the one chosen in
+	// the settings.
+	Browser string `json:"browser,omitempty" yaml:"browser,omitempty"`
+	// OpenLinks opens the sign-in links printed in the login terminal in
+	// that browser, for tools that do not open it themselves (e.g. with
+	// --no-browser or --no-launch-browser).
+	OpenLinks bool `json:"openLinks,omitempty" yaml:"openLinks,omitempty"`
+}
+
+// LoginSecret names an account of a credential plugin (CyberArk, Conjur…):
+// its password is read when the login runs, never stored. {{variables}}
+// apply to Address, User and Safe.
+type LoginSecret struct {
+	// Source is the plugin configuration's ID (its name in exports).
+	Source  string `json:"source" yaml:"source,omitempty"`
+	Address string `json:"address" yaml:"address,omitempty"`
+	User    string `json:"user" yaml:"user,omitempty"`
+	// Safe replaces the configuration's safe or folder when set.
+	Safe string `json:"safe" yaml:"safe,omitempty"`
 }
 
 // Remote is the jump host and what runs there.
@@ -79,6 +106,23 @@ type Environment struct {
 	LocalKube   LocalKube  `json:"localKube" yaml:"localKube,omitempty"`
 	// WorkspaceID opens a saved workspace at the end.
 	WorkspaceID string `json:"workspaceId" yaml:"workspace,omitempty"`
+	// Gcloud is the gcloud profile of the environment: its login checks,
+	// commands and local terminals use their own gcloud configuration
+	// folder (account, project, application default credentials), so
+	// environments can use different Google accounts at the same time.
+	// Environments with the same profile share it; "" is gcloud's own.
+	Gcloud string `json:"gcloud,omitempty" yaml:"gcloud,omitempty"`
+}
+
+var unsafeProfile = regexp.MustCompile(`[^A-Za-z0-9._-]+`)
+
+// GcloudProfile cleans a profile name for use as a folder name.
+func GcloudProfile(name string) string {
+	p := strings.Trim(unsafeProfile.ReplaceAllString(strings.TrimSpace(name), "-"), ".-")
+	if len(p) > 64 {
+		p = p[:64]
+	}
+	return p
 }
 
 // Repo stores environments.
@@ -171,6 +215,7 @@ func Export(e Environment, resolve func(kind, id string) string) (string, error)
 	}
 	x.LocalKube.TunnelID = resolve("tunnel", e.LocalKube.TunnelID)
 	x.WorkspaceID = resolve("workspace", e.WorkspaceID)
+	x.Login.Secret.Source = resolve("plugin", e.Login.Secret.Source)
 	b, err := yaml.Marshal(x)
 	return "# Shellvane environment\n" + string(b), err
 }
@@ -192,6 +237,7 @@ func Import(text string, lookup func(kind, name string) string) (Environment, er
 	e.TunnelIDs = tunnels
 	e.LocalKube.TunnelID = lookup("tunnel", e.LocalKube.TunnelID)
 	e.WorkspaceID = lookup("workspace", e.WorkspaceID)
+	e.Login.Secret.Source = lookup("plugin", e.Login.Secret.Source)
 	e.ID = ""
 	e = normalize(e)
 	if e.Name == "" {
@@ -202,6 +248,7 @@ func Import(text string, lookup func(kind, name string) string) (Environment, er
 
 func normalize(e Environment) Environment {
 	e.Name = strings.TrimSpace(e.Name)
+	e.Gcloud = GcloudProfile(e.Gcloud)
 	if e.Variables == nil {
 		e.Variables = []Variable{}
 	}

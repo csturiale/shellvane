@@ -30,6 +30,24 @@ When the jump host has no saved password (and no key or team login), its passwor
 
 Logins needed on the jump host go in its commands, e.g. `gcloud auth login --no-launch-browser`.
 
+### Password from CyberArk {#login-secret}
+
+When the sign-in page that the login opens needs a password kept in CyberArk (or Conjur, or a team login), set **Password for the login**: the plugin configuration, and the account's **address** and **user** (for example `accounts.google.com` and `alice-admin@example.com`); **Safe** replaces the plugin's own when the account is elsewhere. Variables work in these fields.
+
+When the check fails, Shellvane first reads the account's password from the plugin, signing in to CyberArk if needed (with its MFA or the browser sign-in; the CyberArk session is then reused), copies it to the clipboard for 45 seconds (configurable in Settings) and only then runs the login: paste the password in the sign-in page. The password is never saved, shown or written in the terminal, and the clipboard is cleared afterwards unless you copied something else. If the password cannot be read, the step says why and the login runs anyway, so you can type it.
+
+**Open the sign-in page in a private window** (on by default with the Google Cloud and Azure presets) makes `gcloud`, `az` and `aws sso` open their page in an incognito or InPrivate window of Chrome, Edge, Brave or Firefox, through the `BROWSER` variable of the login terminal: a Google or Microsoft session already open in your browser then cannot sign in with the wrong account. Safari has no private window that can be opened this way, so another installed browser is used; without any, the usual browser opens.
+
+In **Settings → Environment logins** choose the browser of sign-in pages (automatic, one of the list, or a **custom command** with `%s` for the link, e.g. a browser with a dedicated profile) and how many seconds a login password stays on the clipboard (45 by default). Each environment can pick another browser in its step 1.
+
+Not every tool reads `BROWSER`: many written in Go (kubelogin, `vault login -method=oidc`, `tsh login`) open the system's browser directly, and some only print the link (`gcloud auth login --no-launch-browser`, device codes). For those, tick **Open the sign-in links printed in the login terminal**: Shellvane recognizes OAuth, OpenID Connect, SAML and device-code links in the terminal's output and opens each once in the chosen browser (at most 5 per terminal). Use the tool's option to print the link instead of opening it, or the page opens twice.
+
+**Use this browser in every local terminal** (Settings) applies the same choice to the local terminals you open by hand, with its own **private window** and **open sign-in links** options; an environment's login keeps the environment's choice.
+
+### Different Google accounts at the same time {#gcloud}
+
+gcloud keeps its account, project and application default credentials in one configuration folder, so by default every terminal uses the same Google account. Give an environment a **gcloud profile** (e.g. `prod-admin`) and its check, login, preparation and local terminals (with kubectl and its GKE plugin) use a configuration folder of their own (`CLOUDSDK_CONFIG`): the environment "prod" can stay signed in as `alice-admin@…` while "dev" uses another account, both open together. Environments with the same profile share the login. The Google Cloud preset logs in with `gcloud auth login --update-adc`, which also refreshes the application default credentials of the profile.
+
 ## Restored sessions and more terminals {#terminals}
 
 Every terminal an environment opens shows its badge in the header — the environment's name, and its state when it is not ready. When Shellvane restores the previous session, those terminals come back as plain shells: the environment then starts again on them by itself — login check (opening the login if needed), tunnels, kubectl route — without opening them twice. Until it is ready the badge says so, in red.

@@ -90,7 +90,21 @@
     "showStatus": "Show which hosts answer",
     "showStatusHint": "Checks the SSH port of directly reachable hosts every minute while the hosts panel is open.",
     "uiScale": "Interface size",
-    "uiScaleHint": "Text and controls of the whole app. Terminals keep their own font size (Terminal settings)."
+    "uiScaleHint": "Text and controls of the whole app. Terminals keep their own font size (Terminal settings).",
+    "envLogins": "Environment logins",
+    "envBrowser": "Browser for sign-in pages",
+    "envBrowserHint": "Where gcloud, az and aws sso open their sign-in page during an environment’s login. Automatic uses your usual browser, or the first of Chrome, Edge, Brave, Chromium and Firefox when the environment asks for a private window. An environment can choose another one.",
+    "envBrowserAuto": "Automatic",
+    "envBrowserCustom": "Custom command",
+    "envBrowserCommand": "Command",
+    "envBrowserCommandHint": "Opens the link given as %s (added at the end when missing), e.g. a browser with a dedicated profile. The environment’s private window option does not change it.",
+    "envClipboard": "Seconds a login password stays on the clipboard",
+    "envClipboardHint": "A password read from CyberArk or another credential plugin for a login is cleared from the clipboard after this time (10–600), unless you copied something else.",
+    "browserAll": "Use this browser in every local terminal",
+    "browserAllHint": "Not only in environment logins: tools started by hand in a local terminal (gcloud, az, aws sso…) open sign-in pages in the browser above. New terminals only.",
+    "browserAllPrivate": "In a private window",
+    "browserAllLinks": "Open sign-in links printed in the terminal",
+    "browserAllLinksHint": "For tools that print the link instead of opening the browser (--no-browser, device codes): Shellvane opens it in the browser above, at most 5 per terminal."
   },
   "status": {
     "version": "Version {{version}} · {{os}}/{{arch}}",
@@ -233,7 +247,10 @@
       "cancelled": "Stopped.",
       "timeout": "This step took too long.",
       "prepareFailed": "The preparation command failed: {{detail}}",
-      "reviewNeeded": "Its commands were changed in the team: review and approve them first."
+      "reviewNeeded": "Its commands were changed in the team: review and approve them first.",
+      "noLoginSecret": "This environment has no password source for its login.",
+      "loginSecretEmpty": "The account {{user}} has no password in the credential plugin.",
+      "clipboard": "The clipboard is not available."
     },
     "sessionlog": {
       "createFailed": "Cannot create {{path}}.",
@@ -1498,9 +1515,33 @@
       "loggingIn": "Log in in the terminal that opened; this step goes on by itself afterwards.",
       "preparing": "Preparing: {{command}}",
       "connecting": "Connecting {{names}} through the jump host (a password may be asked)…",
-      "opening": "Opening {count, plural, one {1 terminal} other {# terminals}}…"
+      "opening": "Opening {count, plural, one {1 terminal} other {# terminals}}…",
+      "fetchingSecret": "Reading the login password from the credential plugin (it may ask for MFA)…"
     },
-    "elapsed": "{{seconds}} s"
+    "elapsed": "{{seconds}} s",
+    "gcloud": "gcloud profile",
+    "gcloudHint": "Leave empty to use gcloud's own configuration. With a profile, this environment's checks, commands and local terminals use their own gcloud configuration (account, project, application default credentials): environments with different profiles stay signed in to different Google accounts at the same time, and environments with the same profile share the login.",
+    "secret": "Password for the login",
+    "secretNone": "None (type it yourself)",
+    "secretAddress": "Address of the account (e.g. accounts.google.com)",
+    "secretUser": "User of the account",
+    "secretSafe": "Safe (optional, replaces the plugin’s)",
+    "secretHint": "When the login runs, Shellvane reads this account’s password from the plugin (CyberArk with its MFA, Conjur, a team login…) and copies it to the clipboard for 45 seconds, to paste in the sign-in page the login opens. The password is never saved or shown. Variables work here too.",
+    "secretCopied": "Password of {{user}} copied to the clipboard for {{seconds}} seconds: paste it in the sign-in page.",
+    "privateBrowser": "Open the sign-in page in a private window",
+    "privateBrowserHint": "For logins that open the browser (gcloud, az, aws sso): the page opens in an incognito, InPrivate or private window, so a Google or Microsoft session already open in the browser does not sign in with the wrong account. Safari has no private window that can be opened this way.",
+    "browser": "Browser for the sign-in page",
+    "browserDefault": "As in Settings",
+    "browsers": {
+      "chrome": "Google Chrome",
+      "edge": "Microsoft Edge",
+      "brave": "Brave",
+      "chromium": "Chromium",
+      "firefox": "Firefox",
+      "safari": "Safari (no private window)"
+    },
+    "openLinks": "Open the sign-in links printed in the login terminal",
+    "openLinksHint": "For tools that print the link instead of opening the browser, or that ignore the browser chosen here (Go tools such as kubelogin, vault, tsh; gcloud with --no-launch-browser): Shellvane recognizes OAuth, OpenID Connect, SAML and device-code links and opens each once in this browser. Do not use it with tools that open the browser themselves, or the page opens twice."
   },
   "logs": {
     "title": "Logs and recordings",

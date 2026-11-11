@@ -90,7 +90,21 @@
     "showStatus": "Mostra quali host rispondono",
     "showStatusHint": "Controlla la porta SSH degli host raggiungibili direttamente ogni minuto mentre il pannello host è aperto.",
     "uiScale": "Dimensione dell'interfaccia",
-    "uiScaleHint": "Testo e controlli di tutta l'app. I terminali mantengono la propria dimensione del carattere (impostazioni Terminale)."
+    "uiScaleHint": "Testo e controlli di tutta l'app. I terminali mantengono la propria dimensione del carattere (impostazioni Terminale).",
+    "envLogins": "Login degli ambienti",
+    "envBrowser": "Browser per le pagine di accesso",
+    "envBrowserHint": "Dove gcloud, az e aws sso aprono la pagina di accesso durante il login di un ambiente. Automatico usa il browser di sempre, oppure il primo tra Chrome, Edge, Brave, Chromium e Firefox quando l’ambiente chiede una finestra privata. Un ambiente può sceglierne un altro.",
+    "envBrowserAuto": "Automatico",
+    "envBrowserCustom": "Comando personalizzato",
+    "envBrowserCommand": "Comando",
+    "envBrowserCommandHint": "Apre il link indicato come %s (aggiunto in fondo se manca), ad esempio un browser con un profilo dedicato. L’opzione finestra privata dell’ambiente non lo modifica.",
+    "envClipboard": "Secondi in cui una password di login resta negli appunti",
+    "envClipboardHint": "Una password letta da CyberArk o da un altro plugin delle credenziali per un login viene tolta dagli appunti dopo questo tempo (10–600), a meno che tu non abbia copiato altro.",
+    "browserAll": "Usa questo browser in tutti i terminali locali",
+    "browserAllHint": "Non solo nei login degli ambienti: gli strumenti avviati a mano in un terminale locale (gcloud, az, aws sso…) aprono le pagine di accesso nel browser qui sopra. Vale per i nuovi terminali.",
+    "browserAllPrivate": "In una finestra privata",
+    "browserAllLinks": "Apri i link di accesso stampati nel terminale",
+    "browserAllLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser (--no-browser, codici dispositivo): Shellvane lo apre nel browser qui sopra, al massimo 5 per terminale."
   },
   "status": {
     "version": "Versione {{version}} · {{os}}/{{arch}}",
@@ -233,7 +247,10 @@
       "cancelled": "Fermato.",
       "timeout": "Questo passo ha richiesto troppo tempo.",
       "prepareFailed": "Il comando di preparazione è fallito: {{detail}}",
-      "reviewNeeded": "I suoi comandi sono stati modificati nel team: rivedili e approvali prima."
+      "reviewNeeded": "I suoi comandi sono stati modificati nel team: rivedili e approvali prima.",
+      "noLoginSecret": "Questo ambiente non ha una sorgente per la password del login.",
+      "loginSecretEmpty": "L'account {{user}} non ha una password nel plugin delle credenziali.",
+      "clipboard": "Gli appunti non sono disponibili."
     },
     "sessionlog": {
       "createFailed": "Impossibile creare {{path}}.",
@@ -1498,9 +1515,33 @@
       "loggingIn": "Completa il login nel terminale che si è aperto; poi questo passo prosegue da solo.",
       "preparing": "Preparazione: {{command}}",
       "connecting": "Avvio {{names}} attraverso il jump host (potrebbe essere chiesta una password)…",
-      "opening": "Apro {count, plural, one {1 terminale} other {# terminali}}…"
+      "opening": "Apro {count, plural, one {1 terminale} other {# terminali}}…",
+      "fetchingSecret": "Lettura della password del login dal plugin delle credenziali (può chiedere l’MFA)…"
     },
-    "elapsed": "{{seconds}} s"
+    "elapsed": "{{seconds}} s",
+    "gcloud": "Profilo gcloud",
+    "gcloudHint": "Lascialo vuoto per usare la configurazione di gcloud. Con un profilo, verifiche, comandi e terminali locali di questo ambiente usano una configurazione gcloud propria (account, progetto, credenziali application default): ambienti con profili diversi restano collegati ad account Google diversi nello stesso momento, e ambienti con lo stesso profilo condividono il login.",
+    "secret": "Password per il login",
+    "secretNone": "Nessuna (la scrivi tu)",
+    "secretAddress": "Indirizzo dell'account (es. accounts.google.com)",
+    "secretUser": "Utente dell'account",
+    "secretSafe": "Safe (facoltativa, sostituisce quella del plugin)",
+    "secretHint": "Quando parte il login, Shellvane legge la password di questo account dal plugin (CyberArk con il suo MFA, Conjur, un login del team…) e la copia negli appunti per 45 secondi, da incollare nella pagina di accesso che il login apre. La password non viene mai salvata né mostrata. Anche qui funzionano le variabili.",
+    "secretCopied": "Password di {{user}} copiata negli appunti per {{seconds}} secondi: incollala nella pagina di accesso.",
+    "privateBrowser": "Apri la pagina di accesso in una finestra privata",
+    "privateBrowserHint": "Per i login che aprono il browser (gcloud, az, aws sso): la pagina si apre in una finestra in incognito, InPrivate o privata, così una sessione Google o Microsoft già aperta nel browser non accede con l’account sbagliato. Safari non ha una finestra privata apribile in questo modo.",
+    "browser": "Browser per la pagina di accesso",
+    "browserDefault": "Come nelle Impostazioni",
+    "browsers": {
+      "chrome": "Google Chrome",
+      "edge": "Microsoft Edge",
+      "brave": "Brave",
+      "chromium": "Chromium",
+      "firefox": "Firefox",
+      "safari": "Safari (senza finestra privata)"
+    },
+    "openLinks": "Apri i link di accesso stampati nel terminale del login",
+    "openLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser, o che ignorano il browser scelto qui (strumenti in Go come kubelogin, vault, tsh; gcloud con --no-launch-browser): Shellvane riconosce i link OAuth, OpenID Connect, SAML e dei codici dispositivo e li apre una volta in questo browser. Non usarlo con strumenti che aprono il browser da soli, altrimenti la pagina si apre due volte."
   },
   "logs": {
     "title": "Log e registrazioni",

@@ -1,7 +1,8 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 
 import { toTranslatableError, TranslatableError } from '../core/backend/errors';
-import { Highlight, KubeInfo, KubeSelection, Prompt, PromptAnswer, SessionApi, SessionInfo, SessionState } from '../core/backend/session-api';
+import { BrowserChoice, Highlight, KubeInfo, KubeSelection, LocalOptions, Prompt, PromptAnswer, SessionApi, SessionInfo, SessionState } from '../core/backend/session-api';
+import { BrowserPrefs } from './browser-prefs';
 import { LaunchApi } from '../core/backend/launch-api';
 import { DropZone, Layout, SplitDir, grid, leaf, mapPanes, neighbour, panesOf, remove, replace, setRatio, split, swap } from './layout';
 import { writePreference } from '../core/preferences';
@@ -14,7 +15,8 @@ export type PaneState = 'connecting' | 'connected' | 'closed' | 'failed';
 export type PaneSource =
   | { kind: 'host'; hostId: string }
   | { kind: 'target'; spec: string }
-  | { kind: 'local'; program: string }
+  /** gcloud: the pane's gcloud profile (its own gcloud configuration). */
+  | { kind: 'local'; program: string; gcloud?: string; browser?: BrowserChoice; openLinks?: boolean }
   | { kind: 'mosh'; hostId: string }
   /** Measures the terminal: generated output, timed until drawn. */
   | { kind: 'benchmark'; megabytes: number; transportOnly?: boolean };
@@ -103,6 +105,12 @@ export interface OpenExtra {
   /** Typed after login (after the host's own startup script). */
   script?: string[];
   kube?: KubeSelection | null;
+  /** gcloud profile of a local pane ('' or absent: gcloud's own configuration). */
+  gcloud?: string;
+  /** How the shell's tools (gcloud, az, aws sso) open the browser. */
+  browser?: BrowserChoice;
+  /** Sign-in links printed in the terminal open in that browser. */
+  openLinks?: boolean;
 }
 
 /** A pane as saved in a workspace. */
@@ -165,6 +173,7 @@ export class SessionsStore {
   /** Log format of panes logged by hand, to log again after a reconnection. */
   private readonly logFormats = new Map<number, string>();
   private readonly prefs = inject(SessionPrefs);
+  private readonly browserPrefs = inject(BrowserPrefs);
   /** Sessions last reported to Go as receiving broadcast input. */
   private broadcasting = new Set<string>();
 
@@ -266,7 +275,8 @@ export class SessionsStore {
 
   async openLocal(program = this.prefs.localShell(), extra: OpenExtra = {}): Promise<number> {
     this.usage.count('session.local');
-    const pane = await this.createPane({ kind: 'local', program }, '', undefined, false, extra.kube ?? null, extra.script, extra.env);
+    const source: PaneSource = { kind: 'local', program, gcloud: extra.gcloud, browser: extra.browser, openLinks: extra.openLinks };
+    const pane = await this.createPane(source, '', undefined, false, extra.kube ?? null, extra.script, extra.env);
     this.addTab(pane.key);
     return pane.key;
   }
@@ -855,7 +865,7 @@ export class SessionsStore {
       case 'local': {
         const context = this.prefs.localKubeContext();
         const fallback = context ? { context, namespace: this.prefs.localKubeNamespace() } : undefined;
-        return this.api.openLocal(INITIAL_COLS, INITIAL_ROWS, { program: source.program, dir: '', persist, kube: kube ?? fallback, script });
+        return this.api.openLocal(INITIAL_COLS, INITIAL_ROWS, { program: source.program, dir: '', persist, kube: kube ?? fallback, script, ...this.browserOf(source) });
       }
       case 'mosh':
         return this.launch.openMosh(source.hostId, INITIAL_COLS, INITIAL_ROWS);
@@ -864,6 +874,17 @@ export class SessionsStore {
       default:
         return this.api.openTarget(source.spec, INITIAL_COLS, INITIAL_ROWS);
     }
+  }
+
+  /** The browser of a local terminal: its own (an environment's login), else the settings' when they apply to every terminal. */
+  private browserOf(source: { gcloud?: string; browser?: BrowserChoice; openLinks?: boolean }): Partial<LocalOptions> {
+    const s = this.browserPrefs.settings();
+    const all = s.allTerminals && !source.browser;
+    return {
+      gcloud: source.gcloud ?? '',
+      browser: source.browser ?? (all ? this.browserPrefs.choice('', s.allPrivate) : null),
+      openLinks: !!source.openLinks || (all && s.allLinks),
+    };
   }
 
   private applyEarly(sessionId: string): void {

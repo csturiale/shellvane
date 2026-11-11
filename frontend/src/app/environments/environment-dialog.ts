@@ -14,7 +14,11 @@ import { Modal } from '../shared/modal';
 import { describeTunnel } from '../tunnels/describe';
 import { TunnelsStore } from '../tunnels/tunnels.store';
 import { EnvironmentsStore } from './environments.store';
+import { BROWSERS } from '../sessions/browser-prefs';
 import { Literals } from '../core/i18n/literals';
+import { EnvironmentApi } from '../core/backend/environment-api';
+import { PluginApi } from '../core/backend/plugin-api';
+import { CredentialSource } from '../extensions/extension';
 
 interface VariableRow {
   name: string;
@@ -64,12 +68,32 @@ export class EnvironmentDialog {
   protected localTunnel = '';
   protected localTerminals = 0;
   protected workspaceId = '';
+  /** gcloud profile: its own gcloud configuration for this environment. */
+  protected gcloud = '';
+  /** The login's sign-in page opens in a private window. */
+  protected privateBrowser = false;
+  /** Browser of the sign-in page; '' uses the one of the settings. */
+  protected browser = '';
+  /** Sign-in links printed in the login terminal open in that browser. */
+  protected openLinks = false;
+  protected readonly browsers = BROWSERS;
+  /** Login secret: a credential plugin configuration (or a team login) and its account. */
+  protected secretSource = '';
+  protected secretAddress = '';
+  protected secretUser = '';
+  protected secretSafe = '';
+  protected readonly gcloudProfiles = signal<string[]>([]);
+  protected readonly brokers = signal<{ id: string; name: string }[]>([]);
+  protected readonly sharedLogins = signal<CredentialSource[]>([]);
+  private readonly envApi = inject(EnvironmentApi);
+  private readonly pluginApi = inject(PluginApi);
   protected readonly saving = signal(false);
   protected readonly error = signal<TranslatableError | null>(null);
 
   ngOnInit(): void {
     void this.tunnels.load().catch(() => undefined);
     void this.workspaces.load().catch(() => undefined);
+    void this.loadSources();
     const e = this.environment();
     if (!e) {
       return;
@@ -80,6 +104,12 @@ export class EnvironmentDialog {
     this.check = e.login.check;
     this.login = e.login.login;
     this.prepare = e.login.prepare ?? '';
+    this.gcloud = e.gcloud ?? '';
+    this.privateBrowser = !!e.login.privateBrowser;
+    this.browser = e.login.browser ?? '';
+    this.openLinks = !!e.login.openLinks;
+    const s = e.login.secret;
+    [this.secretSource, this.secretAddress, this.secretUser, this.secretSafe] = [s?.source ?? '', s?.address ?? '', s?.user ?? '', s?.safe ?? ''];
     this.hostId = e.remote.hostId;
     this.terminal = e.remote.terminal;
     this.script = (e.remote.script ?? []).join('\n');
@@ -93,6 +123,19 @@ export class EnvironmentDialog {
     this.workspaceId = e.workspaceId;
   }
 
+  /** Credential plugins and team logins that can give the login's password; gcloud profiles in use. */
+  private async loadSources(): Promise<void> {
+    try {
+      const [plugins, configs] = await Promise.all([this.pluginApi.plugins(), this.pluginApi.configs()]);
+      const brokering = new Set(plugins.filter((p) => p.installed && p.capabilities?.includes('credentials')).map((p) => p.id));
+      this.brokers.set(configs.filter((c) => brokering.has(c.pluginId)).map((c) => ({ id: c.id, name: c.name })));
+    } catch {
+      // Plugins unavailable (tests, browser without backend).
+    }
+    this.sharing.credentialSources().then((l) => this.sharedLogins.set(l), () => undefined);
+    this.envApi.gcloudProfiles().then((p) => this.gcloudProfiles.set(p), () => undefined);
+  }
+
   protected toggleTunnel(id: string, on: boolean): void {
     this.tunnelIds = on ? [...this.tunnelIds, id] : this.tunnelIds.filter((t) => t !== id);
   }
@@ -100,11 +143,13 @@ export class EnvironmentDialog {
   /** Presets for the usual cloud logins. */
   protected preset(kind: 'gcloud' | 'aws' | 'azure'): void {
     const presets = {
-      gcloud: ['gcloud auth print-access-token', 'gcloud auth login'],
+      gcloud: ['gcloud auth print-access-token', 'gcloud auth login --update-adc'],
       aws: ['aws sts get-caller-identity --profile {{profile}}', 'aws sso login --profile {{profile}}'],
       azure: ['az account show', 'az login'],
     };
     [this.check, this.login] = presets[kind];
+    // Browser sign-ins: a session already open in the browser could pick the wrong account.
+    this.privateBrowser = kind !== 'aws' || this.privateBrowser;
   }
 
   /**
@@ -140,7 +185,18 @@ export class EnvironmentDialog {
             .map((c) => c.trim())
             .filter(Boolean),
         })),
-      login: { check: this.check.trim(), login: this.login.trim(), prepare: this.prepare.trim() },
+      login: {
+        check: this.check.trim(),
+        login: this.login.trim(),
+        prepare: this.prepare.trim(),
+        secret: this.secretSource
+          ? { source: this.secretSource, address: this.secretAddress.trim(), user: this.secretUser.trim(), safe: this.secretSafe.trim() }
+          : { source: '', address: '', user: '', safe: '' },
+        privateBrowser: this.privateBrowser,
+        browser: this.browser,
+        openLinks: this.openLinks,
+      },
+      gcloud: this.gcloud.trim(),
       remote: {
         hostId: this.hostId,
         terminal: this.terminal,

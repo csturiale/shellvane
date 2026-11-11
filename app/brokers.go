@@ -39,30 +39,7 @@ func (s *SessionService) applyBrokers(ctx context.Context, ht *resolvedHost, own
 		return errs.New(plugins.ErrUnsupported, nil)
 	}
 	t := plugins.Target{HostID: ht.id, Name: ht.name, Hostname: ht.target.Host, Port: ht.target.Port, User: ht.target.User}
-	// A plugin may need the user, e.g. for a one-time code: it is asked
-	// like a keyboard-interactive question of the connection.
-	ctx = plugins.WithAsker(ctx, func(ctx context.Context, title, question string, secret bool) (string, error) {
-		a, err := s.ask(ctx, Prompt{SessionID: owner, Kind: "challenge", Target: ht.target, Attempt: 1,
-			Challenge: &sshengine.Challenge{Name: title, Questions: []string{question}, Echo: []bool{!secret}, Round: 1}, Autofilled: []bool{false}})
-		if err != nil {
-			return "", err
-		}
-		if len(a.Answers) == 0 {
-			return "", errs.New(sshengine.ErrCancelled, nil)
-		}
-		return a.Answers[0], nil
-	})
-	// Or a sign-in in a browser window (SAML, OpenID Connect).
-	ctx = plugins.WithWebLogin(ctx, WebLoginWindow)
-	cred, err := broker(ctx, ht.credentialPlugin, t)
-	if errs.CodeOf(err) == vault.ErrLocked && s.vault != nil {
-		// The plugin's token is in the vault: open it (keychain, Touch ID
-		// or the master password) and ask again.
-		pr := &prompter{svc: s, sessionID: owner, host: *ht, tried: map[string]bool{}}
-		if pr.unlock(ctx, ht.target) {
-			cred, err = broker(ctx, ht.credentialPlugin, t)
-		}
-	}
+	cred, err := s.askBroker(ctx, broker, ht.credentialPlugin, t, *ht, owner)
 	if err != nil {
 		p := errs.ToPayload(err)
 		detail, _ := p.Params["detail"].(string)
@@ -83,6 +60,33 @@ func (s *SessionService) applyBrokers(ctx context.Context, ht *resolvedHost, own
 	}
 	ht.brokered = &cred
 	return nil
+}
+
+// askBroker asks a credential plugin for t. The plugin may need the user,
+// e.g. for a one-time code (asked like a keyboard-interactive question of
+// owner's connection) or a sign-in in a browser window (SAML, OpenID
+// Connect); a plugin token kept in the locked vault opens it first.
+func (s *SessionService) askBroker(ctx context.Context, broker Broker, ref string, t plugins.Target, ht resolvedHost, owner string) (plugins.Credential, error) {
+	ctx = plugins.WithAsker(ctx, func(ctx context.Context, title, question string, secret bool) (string, error) {
+		a, err := s.ask(ctx, Prompt{SessionID: owner, Kind: "challenge", Target: ht.target, Attempt: 1,
+			Challenge: &sshengine.Challenge{Name: title, Questions: []string{question}, Echo: []bool{!secret}, Round: 1}, Autofilled: []bool{false}})
+		if err != nil {
+			return "", err
+		}
+		if len(a.Answers) == 0 {
+			return "", errs.New(sshengine.ErrCancelled, nil)
+		}
+		return a.Answers[0], nil
+	})
+	ctx = plugins.WithWebLogin(ctx, WebLoginWindow)
+	cred, err := broker(ctx, ref, t)
+	if errs.CodeOf(err) == vault.ErrLocked && s.vault != nil {
+		pr := &prompter{svc: s, sessionID: owner, host: ht, tried: map[string]bool{}}
+		if pr.unlock(ctx, ht.target) {
+			cred, err = broker(ctx, ref, t)
+		}
+	}
+	return cred, err
 }
 
 // brokeredSigner is the broker's key, with its certificate when given.

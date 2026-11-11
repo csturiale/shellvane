@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 
 import { EnvironmentService } from '../../../../bindings/github.com/csturiale/shellvane/app';
-import type { LoginCheck } from '../../../../bindings/github.com/csturiale/shellvane/app';
+import type { CopiedSecret, LoginCheck } from '../../../../bindings/github.com/csturiale/shellvane/app';
 import type { Environment } from '../../../../bindings/github.com/csturiale/shellvane/core/environments';
 
-export type { Environment, LoginCheck };
+export type { CopiedSecret, Environment, LoginCheck };
 
 /** Environments. Tests replace this class with a fake. */
 @Injectable({ providedIn: 'root' })
@@ -18,8 +18,15 @@ export class EnvironmentApi {
   delete(id: string): Promise<void> {
     return EnvironmentService.Delete(id);
   }
-  checkLogin(command: string, values: Record<string, string>): Promise<LoginCheck> {
-    return EnvironmentService.CheckLogin(command, values);
+  checkLogin(command: string, values: Record<string, string>, gcloud = ''): Promise<LoginCheck> {
+    return EnvironmentService.CheckLogin(command, values, gcloud);
+  }
+  /** Copies the login secret's password to the clipboard (it never reaches the UI). */
+  copyLoginSecret(envId: string, values: Record<string, string>, seconds = 0): Promise<CopiedSecret> {
+    return EnvironmentService.CopyLoginSecret(envId, values, seconds);
+  }
+  async gcloudProfiles(): Promise<string[]> {
+    return (await EnvironmentService.GcloudProfiles()) ?? [];
   }
   export(id: string): Promise<string> {
     return EnvironmentService.Export(id);

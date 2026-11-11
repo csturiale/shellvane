@@ -61,12 +61,40 @@ export interface BiometricStatus {
 }
 
 /**
+ * BrowserChoice is how the login terminal opens sign-in pages.
+ */
+export interface BrowserChoice {
+    /**
+     * ID is BrowserAuto, BrowserCustom or a browser of the list.
+     */
+    "id"?: string;
+
+    /**
+     * Command is the custom command (BrowserCustom), %s for the link.
+     */
+    "command"?: string;
+
+    /**
+     * Private opens a private (incognito) window where the browser can.
+     */
+    "private"?: boolean;
+}
+
+/**
  * Clients tells which external clients are installed.
  */
 export interface Clients {
     "mosh": boolean;
     "rdp": boolean;
     "vnc": boolean;
+}
+
+/**
+ * CopiedSecret tells the frontend what was copied (never the secret).
+ */
+export interface CopiedSecret {
+    "user": string;
+    "seconds": number;
 }
 
 /**
@@ -281,6 +309,25 @@ export interface LocalOptions {
      * Script is typed after the shell starts (e.g. a login command).
      */
     "script"?: string[] | null;
+
+    /**
+     * Gcloud is a gcloud profile: the shell's gcloud (and kubectl's GKE
+     * plugin) use its configuration folder; "" is gcloud's own.
+     */
+    "gcloud"?: string;
+
+    /**
+     * Browser is how the tools of the shell that open a browser (gcloud,
+     * az, aws sso) open it: which browser, a private window (BROWSER).
+     */
+    "browser"?: BrowserChoice | null;
+
+    /**
+     * OpenLinks opens the sign-in links the terminal prints (OAuth,
+     * device code, SAML) in that browser, for tools that do not read
+     * BROWSER (e.g. with their --no-browser option).
+     */
+    "openLinks"?: boolean;
 }
 
 /**

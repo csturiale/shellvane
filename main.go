@@ -111,6 +111,8 @@ func main() {
 		AddBroker: func(prefix string, b app.Broker) { brokers[prefix] = b },
 	})
 	app.EnableBrokers(sessions, app.RouteBrokers(app.PluginBroker(pluginService), brokers))
+	environmentService := app.NewEnvironmentService(environments.New(db), repo, tunnel.NewRepo(db), workspaces.New(db))
+	app.EnableEnvironmentLogin(environmentService, sessions, plugins.NewConfigs(db), dataDir)
 
 	wailsApp := application.New(application.Options{
 		Name:        "Shellvane",
@@ -131,7 +133,7 @@ func main() {
 			application.NewServiceWithOptions(app.NewAutomationService(rules, auditLog), serviceOptions),
 			application.NewServiceWithOptions(app.NewRunbookService(runbooks.NewRepo(db), repo, sessions, auditLog, emitter), serviceOptions),
 			application.NewServiceWithOptions(app.NewWorkspaceService(workspaces.New(db)), serviceOptions),
-			application.NewServiceWithOptions(app.NewEnvironmentService(environments.New(db), repo, tunnel.NewRepo(db), workspaces.New(db)), serviceOptions),
+			application.NewServiceWithOptions(environmentService, serviceOptions),
 			application.NewServiceWithOptions(app.NewUpdateService(), serviceOptions),
 			application.NewServiceWithOptions(app.NewSyncService(db, vaultStore, dataDir, emitter), serviceOptions),
 			application.NewServiceWithOptions(app.NewLaunchService(sessions, tunnelService), serviceOptions),

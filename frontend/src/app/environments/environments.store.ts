@@ -5,6 +5,7 @@ import { toTranslatableError, TranslatableError } from '../core/backend/errors';
 import { readPreference, writePreference } from '../core/preferences';
 import { KubeSelection } from '../core/backend/session-api';
 import { PaneEnv, SessionsStore } from '../sessions/sessions.store';
+import { BrowserPrefs } from '../sessions/browser-prefs';
 import { WorkspacesStore } from '../sessions/workspaces.store';
 import { TunnelsStore } from '../tunnels/tunnels.store';
 import { Sharing } from '../extensions/sharing';
@@ -20,7 +21,7 @@ export interface StepStatus {
   /** While a step waits: why its check does not pass yet. */
   waiting?: string;
   /** What a running step is doing now (translation key and values). */
-  activity?: { key: string; params: Record<string, unknown> };
+  activity?: { key: string; params: Record<string, unknown>; detail?: TranslatableError };
   /** When the step started (ms), to show how long it has been running. */
   since?: number;
 }
@@ -103,6 +104,7 @@ export function routeFor(kind: string, addr: string): KubeSelection['route'] {
 export class EnvironmentsStore {
   private readonly usage = inject(UsageStore);
   private readonly api = inject(EnvironmentApi);
+  private readonly browserPrefs = inject(BrowserPrefs);
   private readonly sessions = inject(SessionsStore);
   private readonly tunnels = inject(TunnelsStore);
   private readonly workspaces = inject(WorkspacesStore);
@@ -327,7 +329,7 @@ export class EnvironmentsStore {
     const k = env.localKube;
     let key: number;
     if (k.terminals || k.context || !env.remote.hostId) {
-      key = await this.sessions.openLocal(undefined, { kube: this.localKube(env, run.values), env: tag });
+      key = await this.sessions.openLocal(undefined, { kube: this.localKube(env, run.values), env: tag, gcloud: env.gcloud });
     } else {
       const r = env.remote;
       const kube = r.kubeContext ? { context: expand(r.kubeContext, run.values), namespace: expand(r.kubeNamespace, run.values) } : null;
@@ -367,7 +369,7 @@ export class EnvironmentsStore {
       if (!env?.login.check || this.stateOf(run.envId) === 'starting') {
         continue;
       }
-      const res = await this.api.checkLogin(env.login.check, run.values).catch(() => ({ ok: true, detail: '' }));
+      const res = await this.api.checkLogin(env.login.check, run.values, env.gcloud).catch(() => ({ ok: true, detail: '' }));
       if (this.runOf(run.envId) !== run) {
         continue;
       }
@@ -401,9 +403,27 @@ export class EnvironmentsStore {
     }
   }
 
+  /**
+   * Puts the login secret's password on the clipboard (from CyberArk or
+   * another credential plugin, with its MFA when needed) for the sign-in
+   * page the login opens. A failure is shown and the login goes on: the
+   * password can still be typed.
+   */
+  private async copySecret(env: Environment, values: Record<string, string>, run: Run): Promise<void> {
+    let note: TranslatableError | undefined;
+    if (env.login.secret?.source) {
+      this.act(run, 'login', 'fetchingSecret');
+      note = await this.api.copyLoginSecret(env.id, values, this.browserPrefs.settings().seconds).then(
+        (c) => ({ key: 'environments.secretCopied', params: { ...c } }),
+        toTranslatableError,
+      );
+    }
+    this.act(run, 'login', 'loggingIn', {}, note);
+  }
+
   /** Tells what a running step is doing. */
-  private act(run: Run, id: StepId, key: string, params: Record<string, unknown> = {}): void {
-    run.steps = run.steps.map((s) => (s.id === id ? { ...s, activity: { key: 'environments.activity.' + key, params } } : s));
+  private act(run: Run, id: StepId, key: string, params: Record<string, unknown> = {}, detail?: TranslatableError): void {
+    run.steps = run.steps.map((s) => (s.id === id ? { ...s, activity: { key: 'environments.activity.' + key, params, detail } } : s));
     this.runs.update((list) => [...list]);
   }
 
@@ -495,7 +515,7 @@ export class EnvironmentsStore {
         }
         this.act(run, 'localKube', 'opening', { count: k.terminals });
         for (let i = 0; i < k.terminals; i++) {
-          run.panes.push(await this.sessions.openLocal(undefined, { kube, env: this.tag(env, values) }));
+          run.panes.push(await this.sessions.openLocal(undefined, { kube, env: this.tag(env, values), gcloud: env.gcloud }));
         }
         return true;
       }
@@ -525,11 +545,16 @@ export class EnvironmentsStore {
     if (check) {
       this.act(run, 'login', 'checking', { command: short(expand(check, values)) });
     }
-    if (check && (await this.api.checkLogin(check, values)).ok) {
+    if (check && (await this.api.checkLogin(check, values, env.gcloud)).ok) {
       // Logged in already.
     } else if (login) {
-      this.act(run, 'login', 'loggingIn');
-      run.panes.push(await this.sessions.openLocal(undefined, { script: [expand(login, values)] }));
+      await this.copySecret(env, values, run);
+      run.panes.push(await this.sessions.openLocal(undefined, {
+          script: [expand(login, values)],
+          gcloud: env.gcloud,
+          browser: this.browserPrefs.choice(env.login.browser ?? '', !!env.login.privateBrowser),
+          openLinks: !!env.login.openLinks,
+        }));
       if (check) {
         await this.until(
           run,
@@ -538,7 +563,7 @@ export class EnvironmentsStore {
             if (run.skipLogin) {
               return true;
             }
-            const res = await this.api.checkLogin(check, values);
+            const res = await this.api.checkLogin(check, values, env.gcloud);
             this.wait(run, 'login', res.ok ? undefined : res.detail);
             return res.ok;
           },
@@ -551,7 +576,7 @@ export class EnvironmentsStore {
     }
     if (prepare) {
       this.act(run, 'login', 'preparing', { command: short(expand(prepare, values)) });
-      const res = await this.api.checkLogin(prepare, values);
+      const res = await this.api.checkLogin(prepare, values, env.gcloud);
       if (!res.ok) {
         throw { cause: { code: 'environments.prepareFailed', params: { detail: res.detail } } };
       }

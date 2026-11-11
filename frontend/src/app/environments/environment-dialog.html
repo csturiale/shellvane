@@ -48,6 +48,59 @@
           <input name="prepare" spellcheck="false" class="mono" [(ngModel)]="prepare" [placeholder]="prepareExample" />
         </label>
         <p class="hint">{{ t('environments.loginHint') }} {{ t('environments.prepareHint') }}</p>
+        <label class="field">
+          <span>{{ t('environments.browser') }}</span>
+          <select name="browser" [(ngModel)]="browser">
+            <option value="">{{ t('environments.browserDefault') }}</option>
+            @for (b of browsers; track b) {
+              <option [value]="b">{{ t('environments.browsers.' + b) }}</option>
+            }
+          </select>
+        </label>
+        <label class="check">
+          <input name="privateBrowser" type="checkbox" [(ngModel)]="privateBrowser" />
+          {{ t('environments.privateBrowser') }}
+        </label>
+        <p class="hint">{{ t('environments.privateBrowserHint') }}</p>
+        <label class="check">
+          <input name="openLinks" type="checkbox" [(ngModel)]="openLinks" />
+          {{ t('environments.openLinks') }}
+        </label>
+        <p class="hint">{{ t('environments.openLinksHint') }}</p>
+        <label class="field">
+          <span>{{ t('environments.gcloud') }}</span>
+          <input name="gcloud" spellcheck="false" class="mono" list="gcloud-profiles" [(ngModel)]="gcloud" placeholder="prod-admin" />
+          <datalist id="gcloud-profiles">
+            @for (p of gcloudProfiles(); track p) {
+              <option [value]="p"></option>
+            }
+          </datalist>
+        </label>
+        <p class="hint">{{ t('environments.gcloudHint') }} <app-help-link topic="environments" anchor="gcloud" /></p>
+        <label class="field">
+          <span>{{ t('environments.secret') }}</span>
+          <select name="secretSource" [(ngModel)]="secretSource">
+            <option value="">{{ t('environments.secretNone') }}</option>
+            @for (b of brokers(); track b.id) {
+              <option [value]="b.id">{{ b.name }}</option>
+            }
+            @if (sharedLogins().length > 0) {
+              <optgroup [label]="t('hosts.sharedLogins')">
+                @for (l of sharedLogins(); track l.ref) {
+                  <option [value]="l.ref">{{ l.group }} · {{ l.label }}</option>
+                }
+              </optgroup>
+            }
+          </select>
+        </label>
+        @if (secretSource) {
+          <div class="row">
+            <input name="secretAddress" spellcheck="false" [(ngModel)]="secretAddress" placeholder="accounts.google.com" [attr.aria-label]="t('environments.secretAddress')" [title]="t('environments.secretAddress')" />
+            <input name="secretUser" spellcheck="false" [(ngModel)]="secretUser" placeholder="alice-admin@example.com" [attr.aria-label]="t('environments.secretUser')" [title]="t('environments.secretUser')" />
+            <input name="secretSafe" spellcheck="false" [(ngModel)]="secretSafe" [placeholder]="t('environments.secretSafe')" [attr.aria-label]="t('environments.secretSafe')" [title]="t('environments.secretSafe')" />
+          </div>
+        }
+        <p class="hint">{{ t('environments.secretHint') }} <app-help-link topic="environments" anchor="login-secret" /></p>
       </fieldset>
 
       <fieldset>

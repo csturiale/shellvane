@@ -22,10 +22,22 @@ import * as $models from "./models.js";
 /**
  * CheckLogin runs a check command on this computer (e.g.
  * `gcloud auth print-access-token`): a zero exit status means logged in.
- * {{variables}} are expanded first.
+ * {{variables}} are expanded first; gcloud is the environment's gcloud
+ * profile ("" for gcloud's own configuration).
  */
-export function CheckLogin(command: string, values: { [_ in string]?: string } | null): $CancellablePromise<$models.LoginCheck> {
-    return $Call.ByID(1718215890, command, values);
+export function CheckLogin(command: string, values: { [_ in string]?: string } | null, gcloud: string): $CancellablePromise<$models.LoginCheck> {
+    return $Call.ByID(1718215890, command, values, gcloud);
+}
+
+/**
+ * CopyLoginSecret reads the password of the environment's login secret
+ * from its credential plugin (signing in to it, with MFA, when needed)
+ * and puts it on the clipboard for the sign-in page the login opens. The
+ * clipboard is cleared after seconds (0: the default) unless something
+ * else was copied meanwhile. The password never reaches the frontend.
+ */
+export function CopyLoginSecret(envID: string, values: { [_ in string]?: string } | null, seconds: number): $CancellablePromise<$models.CopiedSecret> {
+    return $Call.ByID(3301590679, envID, values, seconds);
 }
 
 /**
@@ -40,6 +52,13 @@ export function Delete(id: string): $CancellablePromise<void> {
  */
 export function Export(id: string): $CancellablePromise<string> {
     return $Call.ByID(300491993, id);
+}
+
+/**
+ * GcloudProfiles lists the gcloud profiles already used, for suggestions.
+ */
+export function GcloudProfiles(): $CancellablePromise<string[] | null> {
+    return $Call.ByID(648568167);
 }
 
 /**
