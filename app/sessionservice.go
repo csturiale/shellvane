@@ -130,6 +130,9 @@ type Prompt struct {
 	Sign       *sshengine.SignRequest `json:"sign,omitempty"`
 	// CanSave is true when the answer can be saved in the (unlocked) vault.
 	CanSave bool `json:"canSave"`
+	// Keychain tells a vaultUnlock prompt why the keychain unlock (Touch
+	// ID, Windows Hello) did not open the vault; nil when it is not set up.
+	Keychain *errs.Payload `json:"keychain,omitempty"`
 }
 
 // PromptAnswer is the user's reply. Decision applies to host keys:
@@ -746,6 +749,9 @@ func (s *SessionService) handleStream(c *application.StreamConn) {
 			if sess.auto != nil {
 				sess.auto.typed()
 			}
+			if s.vault != nil {
+				s.vault.activity()
+			}
 			if _, err := sess.shell.Write(frame); err != nil {
 				return
 			}
@@ -1064,11 +1070,17 @@ func (p *prompter) unlock(ctx context.Context, t sshengine.Target) bool {
 	if open() {
 		return true
 	}
-	if has, _ := p.svc.vault.HasKeychainUnlock(ctx); has && p.svc.vault.UnlockWithKeychain(ctx) == nil {
-		return true
+	var keychain *errs.Payload
+	if has, _ := p.svc.vault.HasKeychainUnlock(ctx); has {
+		err := p.svc.vault.UnlockWithKeychain(ctx)
+		if err == nil {
+			return true
+		}
+		pl := errs.ToPayload(err)
+		keychain = &pl
 	}
 	for attempt := 1; attempt <= 3; attempt++ {
-		a, err := p.svc.ask(ctx, Prompt{SessionID: p.sessionID, Kind: "vaultUnlock", Target: t, Attempt: attempt})
+		a, err := p.svc.ask(ctx, Prompt{SessionID: p.sessionID, Kind: "vaultUnlock", Target: t, Attempt: attempt, Keychain: keychain})
 		if err != nil {
 			return false
 		}

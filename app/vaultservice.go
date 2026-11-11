@@ -42,7 +42,17 @@ type VaultService struct {
 	autoLock    time.Duration // 0 never locks for inactivity
 	lockOnSleep bool
 	timer       *time.Timer
+	// lastActivity is when the auto-lock timer last restarted (rate limit
+	// of activity).
+	lastActivity time.Time
+	// relink: the keychain lost its secret, so the keychain unlock was
+	// turned off; the next master password turns it on again (with Touch
+	// ID or Windows Hello if it was required).
+	relink, relinkBiometric bool
 }
+
+// activityEvery limits how often activity restarts the auto-lock timer.
+const activityEvery = 30 * time.Second
 
 // NewVaultService returns a service over v. It watches for the computer
 // going to sleep, to lock the vault when asked to.
@@ -154,8 +164,12 @@ func (s *VaultService) UnlockWithKeychain(ctx context.Context) error {
 	store := s.keychain()
 	if err := s.v.DeviceSecretPresent(ctx, store); err != nil {
 		if errs.CodeOf(err) == vault.ErrDeviceSecretGone {
+			bio, _ := s.v.DeviceBiometric(ctx)
 			s.v.SetDeviceBiometric(ctx, false)
 			s.v.DisableDeviceUnlock(ctx, store)
+			s.mu.Lock()
+			s.relink, s.relinkBiometric = true, bio
+			s.mu.Unlock()
 			s.notify(ctx)
 		}
 		return err
@@ -258,14 +272,35 @@ func (s *VaultService) Setup(ctx context.Context, password string) error {
 	return nil
 }
 
-// Unlock opens the vault.
+// Unlock opens the vault. If the keychain lost its secret since the app
+// started, the keychain unlock is turned on again with a new one.
 func (s *VaultService) Unlock(ctx context.Context, password string) error {
 	if err := s.v.Unlock(ctx, []byte(password)); err != nil {
 		return err
 	}
 	s.touch()
+	s.restoreKeychain(ctx)
 	s.notify(ctx)
 	return nil
+}
+
+// restoreKeychain turns the keychain unlock on again after the keychain
+// lost its secret (another build of the app, a reset keychain). Touch ID
+// or Windows Hello is required again only where it is still available.
+func (s *VaultService) restoreKeychain(ctx context.Context) {
+	s.mu.Lock()
+	relink, bio := s.relink, s.relinkBiometric
+	s.relink, s.relinkBiometric = false, false
+	s.mu.Unlock()
+	if !relink {
+		return
+	}
+	if err := s.v.EnableDeviceUnlock(ctx, s.keychain()); err != nil {
+		return
+	}
+	if bio && s.verifier().Available(ctx) {
+		s.v.SetDeviceBiometric(ctx, true)
+	}
 }
 
 // Lock closes the vault.
@@ -274,6 +309,7 @@ func (s *VaultService) Lock(ctx context.Context) {
 	s.mu.Lock()
 	if s.timer != nil {
 		s.timer.Stop()
+		s.timer = nil
 	}
 	s.mu.Unlock()
 	s.notify(ctx)
@@ -321,7 +357,21 @@ func (s *VaultService) touch() {
 	}
 	if s.autoLock > 0 {
 		s.timer = time.AfterFunc(s.autoLock, func() { s.Lock(context.Background()) })
+		s.lastActivity = time.Now()
 	}
+}
+
+// activity counts the user's work in the app (typing in a terminal) as
+// use for the auto-lock: the vault locks after that long without either,
+// not while the user works in panes that need no secret.
+func (s *VaultService) activity() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.timer == nil || time.Since(s.lastActivity) < activityEvery {
+		return
+	}
+	s.lastActivity = time.Now()
+	s.timer.Reset(s.autoLock)
 }
 
 func (s *VaultService) notify(ctx context.Context) {

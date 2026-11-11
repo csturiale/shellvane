@@ -28,6 +28,9 @@ export class VaultStore {
       this.api.onState((s) => {
         this.state.set(s);
         void this.loadCredentials();
+        // An unlock may have turned the keychain unlock off (its secret
+        // was gone) or on again (with the master password).
+        void this.loadKeychain();
       });
     } catch {
       // No event bus outside the desktop app.
@@ -91,6 +94,15 @@ export class VaultStore {
   async recover(recoveryKey: string, newPassword: string): Promise<void> {
     await this.api.recover(recoveryKey, newPassword);
     await this.refresh();
+  }
+
+  private async loadKeychain(): Promise<void> {
+    try {
+      this.hasKeychain.set(await this.api.hasKeychainUnlock().catch(() => false));
+      this.biometric.set(await this.api.biometric().catch(() => null));
+    } catch {
+      // Outside the desktop app.
+    }
   }
 
   async refresh(): Promise<void> {

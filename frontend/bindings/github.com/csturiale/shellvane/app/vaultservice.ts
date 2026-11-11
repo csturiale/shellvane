@@ -152,7 +152,8 @@ export function Status(): $CancellablePromise<$models.VaultStatus> {
 }
 
 /**
- * Unlock opens the vault.
+ * Unlock opens the vault. If the keychain lost its secret since the app
+ * started, the keychain unlock is turned on again with a new one.
  */
 export function Unlock(password: string): $CancellablePromise<void> {
     return $Call.ByID(509087114, password);

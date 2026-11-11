@@ -9,9 +9,9 @@ La password principale viene trasformata in una chiave con Argon2id; quella chia
 ## Blocca e sblocca {#lock}
 
 - L'icona del lucchetto nella barra del titolo la blocca o sblocca; si blocca anche da sola dopo un periodo di inattività.
-- Quando una connessione ha bisogno di un segreto salvato e la cassaforte è bloccata, Shellvane la apre con il portachiavi di sistema (Touch ID, Windows Hello) se è attivo, altrimenti chiede la password principale (oppure puoi saltare e scrivere la password).
+- Quando una connessione ha bisogno di un segreto salvato e la cassaforte è bloccata, Shellvane la apre con il portachiavi di sistema (Touch ID, Windows Hello) se è attivo, altrimenti chiede la password principale (oppure puoi saltare e scrivere la password). Quando lo sblocco con il portachiavi è attivo ma non ha aperto la cassaforte, la finestra dice perché (Touch ID annullato o non disponibile, segreto non più nel portachiavi).
 - Tutto il resto che ha bisogno della cassaforte mentre è bloccata (salvare il token di un plugin, Sincronizza ora, un'azione del team, aggiungere una chiave, le impostazioni dell'assistente) la apre allo stesso modo — prima con il portachiavi di sistema, dopo Touch ID o Windows Hello se attivi, la password principale solo se non è impostato o lo annulli — e poi prosegue; i messaggi sulla cassaforte bloccata hanno un pulsante **Sblocca il vault**, come lo stato in fondo alla finestra.
-- Si sblocca una volta sola: quando più pannelli di un ambiente, l'avvio dell'app e una finestra hanno bisogno della cassaforte insieme, Touch ID o Windows Hello vengono chiesti una volta e gli altri proseguono. Se il portachiavi di sistema non ha più il segreto di Shellvane (eliminato, o portachiavi reimpostato), Touch ID non viene chiesto inutilmente: lo sblocco con il portachiavi si disattiva da solo e la finestra di sblocco propone di riattivarlo dopo la password principale.
+- Si sblocca una volta sola: quando più pannelli di un ambiente, l'avvio dell'app e una finestra hanno bisogno della cassaforte insieme, Touch ID o Windows Hello vengono chiesti una volta e gli altri proseguono. Se il portachiavi di sistema non ha più il segreto di Shellvane (eliminato, o portachiavi reimpostato), Touch ID non viene chiesto inutilmente: lo sblocco con il portachiavi si disattiva da solo e la successiva password principale lo riattiva con un nuovo segreto (di nuovo con Touch ID o Windows Hello, se erano richiesti). Succede anche dopo aver installato una build di Shellvane firmata in modo diverso.
 - Quando un login chiede una password, una passphrase o un PIN, **Salva nel vault** funziona anche se la cassaforte è bloccata o non ancora creata: la finestra chiede lì la password principale (o crea la cassaforte) e salva il segreto dopo un login riuscito.
 
 ## Cosa contiene {#content}
@@ -22,7 +22,7 @@ Impostazioni › Cassaforte elenca le credenziali salvate (mai i loro valori) e 
 
 ## Blocco automatico e recupero {#recovery}
 
-Il vault si blocca dopo un periodo di inattività (15 minuti per impostazione predefinita, o mai) e quando il computer va in sospensione; entrambi si impostano in **Impostazioni → Vault**. **Non proporre mai di salvare le password** nasconde l'opzione "salva nel vault" delle richieste di password.
+Il vault si blocca dopo un periodo di inattività (15 minuti per impostazione predefinita, o mai): usare il vault o scrivere in un terminale conta come attività e quando il computer va in sospensione; entrambi si impostano in **Impostazioni → Vault**. **Non proporre mai di salvare le password** nasconde l'opzione "salva nel vault" delle richieste di password.
 
 Una **chiave di recupero** è un codice casuale che permette di impostare una nuova master password se la dimentichi. Viene mostrata una sola volta alla creazione: annotala e conservala lontano da questo computer. Crearne una nuova sostituisce la precedente; si può rimuovere in qualsiasi momento. Senza chiave di recupero, una master password dimenticata significa perdere i segreti salvati.
 

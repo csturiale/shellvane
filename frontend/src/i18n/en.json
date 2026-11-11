@@ -146,7 +146,7 @@
       "noRecoveryKey": "This vault has no recovery key.",
       "wrongRecoveryKey": "The recovery key is not correct.",
       "noKeychainUnlock": "The keychain unlock is not set up.",
-      "keychainSecretGone": "The system keychain no longer has Shellvane's secret: unlock with the master password, then turn the option on again."
+      "keychainSecretGone": "The system keychain no longer has Shellvane's secret (for example after installing another build of the app): unlock with the master password and the keychain unlock is turned on again."
     },
     "snippets": {
       "nameRequired": "Enter a name.",
@@ -680,7 +680,8 @@
     "vaultUnlock": {
       "title": "Unlock the vault",
       "intro": "A saved credential is available for {{title}}. Enter the master password to use it.",
-      "skip": "Type it instead"
+      "skip": "Type it instead",
+      "keychainFailed": "The keychain unlock did not open the vault: {{reason}}"
     },
     "dragHint": "drag to move the pane",
     "via": "via {{hops}}",

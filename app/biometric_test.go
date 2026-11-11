@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/csturiale/shellvane/core/biometric"
 	"github.com/csturiale/shellvane/core/errs"
@@ -162,5 +163,71 @@ func TestKeychainUnlockAsksOnceAndStopsWhenTheSecretIsGone(t *testing.T) {
 	}
 	if st := vs.Biometric(ctx); st.Required {
 		t.Fatal("Touch ID must be turned off with it")
+	}
+
+	// The master password turns both on again, with a new secret.
+	if err := vs.Unlock(ctx, "master password"); err != nil {
+		t.Fatal(err)
+	}
+	if has, _ := vs.HasKeychainUnlock(ctx); !has || len(secrets.memSecrets) != 1 {
+		t.Fatal("the master password must turn the keychain unlock on again")
+	}
+	if st := vs.Biometric(ctx); !st.Required {
+		t.Fatal("Touch ID must be required again")
+	}
+	vs.Lock(ctx)
+	if err := vs.UnlockWithKeychain(ctx); err != nil {
+		t.Fatalf("keychain unlock after the relink: %v", err)
+	}
+}
+
+func TestActivityPostponesTheAutoLock(t *testing.T) {
+	ctx := context.Background()
+	db, err := store.Open(ctx, ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	vs := NewVaultService(vault.New(db, vault.KDFParams{Time: 1, Memory: 1024, Threads: 1}), func(string, any) {})
+	vs.activity() // locked vault, no timer: nothing to do
+	if err := vs.Setup(ctx, "master password"); err != nil {
+		t.Fatal(err)
+	}
+	vs.mu.Lock()
+	vs.autoLock = time.Hour
+	vs.mu.Unlock()
+	vs.touch()
+
+	// Within activityEvery of the last restart nothing changes; later the
+	// timer starts again.
+	vs.mu.Lock()
+	first := vs.lastActivity
+	vs.mu.Unlock()
+	vs.activity()
+	vs.mu.Lock()
+	if !vs.lastActivity.Equal(first) {
+		t.Fatal("activity must be rate limited")
+	}
+	vs.lastActivity = first.Add(-time.Minute)
+	vs.mu.Unlock()
+	vs.activity()
+	vs.mu.Lock()
+	restarted := vs.lastActivity.After(first)
+	vs.mu.Unlock()
+	if !restarted {
+		t.Fatal("activity must restart the auto-lock timer")
+	}
+
+	vs.Lock(ctx)
+	vs.mu.Lock()
+	if vs.timer != nil {
+		t.Fatal("locking must drop the timer")
+	}
+	vs.mu.Unlock()
+	vs.activity() // must not start a timer on a locked vault
+	vs.mu.Lock()
+	defer vs.mu.Unlock()
+	if vs.timer != nil {
+		t.Fatal("no timer on a locked vault")
 	}
 }

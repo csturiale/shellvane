@@ -65,6 +65,9 @@
       <app-modal [heading]="t('sessions.vaultUnlock.title')" (closed)="cancel()">
         <form id="unlock-form" class="form" (ngSubmit)="submitPassword()">
           <p class="info">{{ t('sessions.vaultUnlock.intro', { title: store.titleOf(p.sessionId) || p.target.host }) }}</p>
+          @if (p.keychain; as k) {
+            <p class="hint">{{ t('sessions.vaultUnlock.keychainFailed', { reason: t('errors.' + k.code, k.params ?? {}) }) }}</p>
+          }
           @if (p.attempt > 1) {
             <p class="error" role="alert">{{ t('errors.vault.wrongPassword') }}</p>
           }

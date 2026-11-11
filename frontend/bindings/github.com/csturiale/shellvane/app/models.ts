@@ -429,6 +429,12 @@ export interface Prompt {
      * CanSave is true when the answer can be saved in the (unlocked) vault.
      */
     "canSave": boolean;
+
+    /**
+     * Keychain tells a vaultUnlock prompt why the keychain unlock (Touch
+     * ID, Windows Hello) did not open the vault; nil when it is not set up.
+     */
+    "keychain"?: errs$0.Payload | null;
 }
 
 /**

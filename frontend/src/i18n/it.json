@@ -146,7 +146,7 @@
       "noRecoveryKey": "Questo vault non ha una chiave di recupero.",
       "wrongRecoveryKey": "La chiave di recupero non è corretta.",
       "noKeychainUnlock": "Lo sblocco con il portachiavi non è configurato.",
-      "keychainSecretGone": "Il portachiavi di sistema non ha più il segreto di Shellvane: sblocca con la master password, poi riattiva l'opzione."
+      "keychainSecretGone": "Il portachiavi di sistema non ha più il segreto di Shellvane (ad esempio dopo aver installato un'altra build dell'app): sblocca con la master password e lo sblocco col portachiavi si riattiva da solo."
     },
     "snippets": {
       "nameRequired": "Inserisci un nome.",
@@ -680,7 +680,8 @@
     "vaultUnlock": {
       "title": "Sblocca il vault",
       "intro": "È disponibile una credenziale salvata per {{title}}. Inserisci la master password per usarla.",
-      "skip": "Inseriscila a mano"
+      "skip": "Inseriscila a mano",
+      "keychainFailed": "Lo sblocco col portachiavi non ha aperto il vault: {{reason}}"
     },
     "dragHint": "trascina per spostare il pannello",
     "via": "via {{hops}}",
