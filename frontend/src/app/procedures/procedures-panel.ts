@@ -13,7 +13,8 @@ import { toTerminalInput } from '../snippets/variables';
 import { CodeBlock, fill, placeholders, renderProcedure } from './markdown';
 import { ProceduresStore, SavedSource } from './procedures.store';
 import { SourceDialog } from './source-dialog';
-import { ValuesDialog } from './values-dialog';
+import { ValuesAnswer, ValuesDialog } from './values-dialog';
+import { PersonalValues } from '../core/personal-values';
 import { WebPageDialog } from './web-page-dialog';
 
 /**
@@ -46,6 +47,7 @@ import { WebPageDialog } from './web-page-dialog';
 })
 export class ProceduresPanel {
   protected readonly store = inject(ProceduresStore);
+  private readonly personal = inject(PersonalValues);
   private readonly sessions = inject(SessionsStore);
   private readonly danger = inject(DangerousCommands);
   private readonly transloco = inject(TranslocoService);
@@ -164,28 +166,39 @@ export class ProceduresPanel {
 
   /** Fills the placeholders, asking those without a value first. */
   private withValues(text: string, then: (filled: string) => void): void {
-    const missing = placeholders(fill(text, this.store.values()));
+    const missing = placeholders(fill(text, this.values(placeholders(text))));
     if (missing.length === 0) {
-      then(fill(text, this.store.values()));
+      then(fill(text, this.values(placeholders(text))));
       return;
     }
     this.asking.set({
       names: missing,
-      then: (values) => {
-        this.store.setValues(values);
-        then(fill(text, this.store.values()));
-      },
+      then: () => then(fill(text, this.values(placeholders(text)))),
     });
   }
 
-  protected answer(values: Record<string, string>): void {
+  /** The source's scope for its own personal values. */
+  protected scope(): string {
+    return `procedure:${this.store.current()?.id ?? ''}`;
+  }
+
+  /** Values of names: typed in this session first, then personal ones. */
+  private values(names: string[]): Record<string, string> {
+    return { ...this.personal.resolve(names, this.scope()), ...nonEmpty(this.store.values()) };
+  }
+
+  protected answer(answer: ValuesAnswer): void {
     const a = this.asking();
     this.asking.set(null);
-    a?.then(values);
+    this.store.setValues(answer.values);
+    for (const [name, value] of Object.entries(answer.values)) {
+      this.personal.remember(name, value, answer.where[name] ?? 'none', this.scope());
+    }
+    a?.then(answer.values);
   }
 
   protected editValues(): void {
-    this.asking.set({ names: this.names(), then: (values) => this.store.setValues(values) });
+    this.asking.set({ names: this.names(), then: () => undefined });
   }
 
   private send(text: string, run: boolean, index: number): void {
@@ -224,7 +237,7 @@ export class ProceduresPanel {
         id: '',
         name: doc.title,
         description: this.transloco.translate('procedures.runbookFrom', { path: doc.path }),
-        variables: this.names().map((name) => ({ name, default: this.store.values()[name] ?? '', choices: [] })),
+        variables: this.names().map((name) => ({ name, default: this.values([name])[name] ?? '', choices: [] })),
         steps: blocks.map((b, i) => ({ name: `step${i + 1}`, command: asVariable(b.command), when: '', pattern: '', continueOnError: false, confirm: false, timeoutSec: 0 })),
         targets: { hostIds: [], groupIds: [], tags: [] },
         parallel: false,
@@ -236,4 +249,8 @@ export class ProceduresPanel {
       this.message.set(String((err as { message?: string })?.message ?? err));
     }
   }
+}
+
+function nonEmpty(values: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''));
 }

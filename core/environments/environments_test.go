@@ -93,3 +93,22 @@ func TestLoginSecretAndGcloudProfile(t *testing.T) {
 		}
 	}
 }
+
+// Personal variables travel without a value: each person has their own.
+func TestPersonalVariablesAreNotExported(t *testing.T) {
+	e := normalize(Environment{Name: "prod", Variables: []Variable{
+		{Name: "googleEmail", Default: "alice@example.com", Personal: true},
+		{Name: "region", Default: "europe-west8"},
+	}})
+	text, err := Export(e, func(string, string) string { return "" })
+	if err != nil || strings.Contains(text, "alice@example.com") || !strings.Contains(text, "personal: true") || !strings.Contains(text, "europe-west8") {
+		t.Fatalf("yaml:\n%s", text)
+	}
+	if e.Variables[0].Default != "alice@example.com" {
+		t.Fatal("export changed the environment")
+	}
+	in, err := Import(text, func(string, string) string { return "" })
+	if err != nil || !in.Variables[0].Personal || in.Variables[0].Default != "" {
+		t.Fatalf("import = %+v, %v", in.Variables, err)
+	}
+}

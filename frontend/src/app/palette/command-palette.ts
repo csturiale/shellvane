@@ -17,7 +17,8 @@ import { search as guideSearch } from '../guide/guide';
 import { GuideStore } from '../guide/guide.store';
 import { EnvironmentsStore } from '../environments/environments.store';
 import { SnippetsStore } from '../snippets/snippets.store';
-import { systemValues, render, toTerminalInput, userVariables } from '../snippets/variables';
+import { snippetScope, systemValues, render, toTerminalInput, userVariables } from '../snippets/variables';
+import { PersonalValues } from '../core/personal-values';
 import { VaultStore } from '../vault/vault.store';
 import { fuzzyFilter } from './fuzzy';
 import { DangerousCommands } from '../broadcast/dangerous-commands';
@@ -47,6 +48,7 @@ export class CommandPalette {
 
   private readonly hosts = inject(HostsStore);
   private readonly snippets = inject(SnippetsStore);
+  private readonly personal = inject(PersonalValues);
   private readonly sessions = inject(SessionsStore);
   private readonly workspaces = inject(WorkspacesStore);
   private readonly guide = inject(GuideStore);
@@ -134,10 +136,12 @@ export class CommandPalette {
       detail: s.body,
       run: () => {
         const focused = this.sessions.focused();
-        const text = render(s.body, systemValues(focused?.target ?? null));
+        const names = userVariables(s.body).map((v) => v.name);
+        const known = this.personal.resolve(names, snippetScope(s.id));
+        const text = render(s.body, { ...systemValues(focused?.target ?? null), ...known });
         const needsDialog =
           !focused ||
-          userVariables(s.body).length > 0 ||
+          names.some((n) => known[n] === undefined) ||
           (this.sessions.receivers(focused.key).length > 1 && this.danger.test(text));
         if (needsDialog) {
           // Variables and confirmations live in the Snippets panel.

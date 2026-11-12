@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,21 +18,85 @@ const (
 )
 
 type browserInfo struct {
-	id      string
-	macApp  string   // under /Applications
-	winPath string   // under Program Files or LocalAppData
-	linux   []string // commands on the PATH
-	private string   // flag of a private window; "" when there is none
+	id string
+	// ids of the browser in the system's default-browser setting: macOS
+	// bundle ids, Windows ProgIds (prefix), Linux .desktop names.
+	defaults []string
+	macApp   string   // under /Applications
+	winPath  string   // under Program Files or LocalAppData
+	linux    []string // commands on the PATH
+	private  string   // flag of a private window; "" when there is none
 }
 
 // browsers in the order tried by BrowserAuto.
 var browsers = []browserInfo{
-	{"chrome", "Google Chrome", `Google\Chrome\Application\chrome.exe`, []string{"google-chrome", "google-chrome-stable"}, "--incognito"},
-	{"edge", "Microsoft Edge", `Microsoft\Edge\Application\msedge.exe`, []string{"microsoft-edge", "microsoft-edge-stable"}, "--inprivate"},
-	{"brave", "Brave Browser", `BraveSoftware\Brave-Browser\Application\brave.exe`, []string{"brave-browser", "brave"}, "--incognito"},
-	{"chromium", "Chromium", "", []string{"chromium", "chromium-browser"}, "--incognito"},
-	{"firefox", "Firefox", `Mozilla Firefox\firefox.exe`, []string{"firefox"}, "-private-window"},
-	{"safari", "Safari", "", nil, ""},
+	{"chrome", []string{"com.google.chrome", "chromehtml", "google-chrome"}, "Google Chrome", `Google\Chrome\Application\chrome.exe`, []string{"google-chrome", "google-chrome-stable"}, "--incognito"},
+	{"edge", []string{"com.microsoft.edgemac", "msedgehtm", "microsoft-edge"}, "Microsoft Edge", `Microsoft\Edge\Application\msedge.exe`, []string{"microsoft-edge", "microsoft-edge-stable"}, "--inprivate"},
+	{"brave", []string{"com.brave.browser", "bravehtml", "brave-browser", "brave"}, "Brave Browser", `BraveSoftware\Brave-Browser\Application\brave.exe`, []string{"brave-browser", "brave"}, "--incognito"},
+	{"chromium", []string{"org.chromium.chromium", "chromium"}, "Chromium", "", []string{"chromium", "chromium-browser"}, "--incognito"},
+	{"firefox", []string{"org.mozilla.firefox", "firefoxurl", "firefox"}, "Firefox", `Mozilla Firefox\firefox.exe`, []string{"firefox"}, "-private-window"},
+	{"safari", []string{"com.apple.safari"}, "Safari", "", nil, ""},
+}
+
+// defaultBrowser is the id (in browsers) of the system's default browser,
+// "" when it is unknown or not one of the list.
+func defaultBrowser(goos string, run func(name string, args ...string) (string, error)) string {
+	var raw string
+	switch goos {
+	case "darwin":
+		// LaunchServices keeps the handler of https per user.
+		home, _ := os.UserHomeDir()
+		out, err := run("plutil", "-convert", "json", "-o", "-", filepath.Join(home, "Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist"))
+		if err != nil {
+			return ""
+		}
+		var plist struct {
+			LSHandlers []struct {
+				Scheme string `json:"LSHandlerURLScheme"`
+				Role   string `json:"LSHandlerRoleAll"`
+			}
+		}
+		if json.Unmarshal([]byte(out), &plist) != nil {
+			return ""
+		}
+		for _, h := range plist.LSHandlers {
+			if strings.EqualFold(h.Scheme, "https") {
+				raw = h.Role
+			}
+		}
+	case "windows":
+		out, err := run("reg", "query", `HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice`, "/v", "ProgId")
+		if err != nil {
+			return ""
+		}
+		if f := strings.Fields(out); len(f) > 0 {
+			raw = f[len(f)-1]
+		}
+	default:
+		out, err := run("xdg-settings", "get", "default-web-browser")
+		if err != nil {
+			return ""
+		}
+		raw = strings.TrimSuffix(strings.TrimSpace(out), ".desktop")
+	}
+	raw = strings.ToLower(strings.TrimSpace(raw))
+	if raw == "" {
+		return ""
+	}
+	for _, b := range browsers {
+		for _, d := range b.defaults {
+			// Windows ProgIds carry a suffix (FirefoxURL-308046B0AF4A39CB).
+			if raw == d || strings.HasPrefix(raw, d+"-") || (goos == "windows" && strings.HasPrefix(raw, d)) {
+				return b.id
+			}
+		}
+	}
+	return ""
+}
+
+func runCommand(name string, args ...string) (string, error) {
+	out, err := exec.Command(name, args...).Output()
+	return string(out), err
 }
 
 // BrowserChoice is how the login terminal opens sign-in pages.
@@ -51,7 +116,7 @@ func browserEnv(c BrowserChoice) string {
 		_, err := os.Stat(p)
 		return err == nil
 	}
-	return browserCommand(c, runtime.GOOS, exists, exec.LookPath, os.Getenv)
+	return browserCommand(c, runtime.GOOS, exists, exec.LookPath, os.Getenv, func() string { return defaultBrowser(runtime.GOOS, runCommand) })
 }
 
 // browserCommand builds the command; exists, lookPath and getenv are
@@ -59,7 +124,7 @@ func browserEnv(c BrowserChoice) string {
 // os.pathsep (":" on macOS and Linux, ";" on Windows) and splits each
 // entry like a shell, replacing %s with the link: the commands contain
 // neither separator and use forward slashes.
-func browserCommand(c BrowserChoice, goos string, exists func(string) bool, lookPath func(string) (string, error), getenv func(string) string) string {
+func browserCommand(c BrowserChoice, goos string, exists func(string) bool, lookPath func(string) (string, error), getenv func(string) string, systemDefault func() string) string {
 	switch c.ID {
 	case BrowserCustom:
 		cmd := strings.TrimSpace(c.Command)
@@ -70,6 +135,17 @@ func browserCommand(c BrowserChoice, goos string, exists func(string) bool, look
 	case BrowserAuto:
 		if !c.Private {
 			return "" // the system's browser
+		}
+		// The system's default browser, when it has a private window;
+		// else the first one installed that has.
+		if id := systemDefault(); id != "" {
+			for _, b := range browsers {
+				if b.id == id && b.private != "" {
+					if cmd := browserLaunch(b, true, goos, exists, lookPath, getenv); cmd != "" {
+						return cmd
+					}
+				}
+			}
 		}
 		for _, b := range browsers {
 			if b.private == "" {
@@ -89,7 +165,7 @@ func browserCommand(c BrowserChoice, goos string, exists func(string) bool, look
 		}
 	}
 	// Not installed here: fall back to the automatic choice.
-	return browserCommand(BrowserChoice{Private: c.Private}, goos, exists, lookPath, getenv)
+	return browserCommand(BrowserChoice{Private: c.Private}, goos, exists, lookPath, getenv, systemDefault)
 }
 
 // browserLaunch is the command that opens b on goos, "" when it is not installed.

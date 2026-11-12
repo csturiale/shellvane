@@ -32,11 +32,11 @@ Logins needed on the jump host go in its commands, e.g. `gcloud auth login --no-
 
 ### Login password from a credential plugin {#login-secret}
 
-When the sign-in page that the login opens needs a password kept in a password manager, set **Password for the login**. The field appears once a credential plugin is configured in **Plugins** (CyberArk, Conjur, HashiCorp Vault…) or a login is shared in a team. Choose the plugin configuration, and the account's **address** and **user** (for example `accounts.google.com` and `alice-admin@example.com`); **Safe** replaces the plugin's own when the account is elsewhere. Variables work in these fields.
+When the sign-in page that the login opens needs a password kept in a password manager, set **Password for the login**. The field appears once a credential plugin is configured in **Plugins** (CyberArk, Conjur, HashiCorp Vault…) or a login is shared in a team. Choose the plugin configuration and the account **as it is in the vault**: its **user** (for example the directory account `a123456`) and, when it is not the plugin's own, its **Safe**; the **address** is optional and needed only when several accounts share the user. This account need not be the one you sign in with: put the sign-in email in the login command, e.g. `gcloud auth login alice.admin@example.com --update-adc`, and the sign-in page opens on that account. Variables work in these fields.
 
 When the check fails, Shellvane first reads the account's password from the plugin, signing in to it if needed (for CyberArk, with its MFA or the browser sign-in; the session is then reused), copies it to the clipboard for 45 seconds (configurable in Settings) and only then runs the login: paste the password in the sign-in page. The password is never saved, shown or written in the terminal, and the clipboard is cleared afterwards unless you copied something else. If the password cannot be read, the step says why and the login runs anyway, so you can type it.
 
-**Open the sign-in page in a private window** (on by default with the Google Cloud and Azure presets) makes `gcloud`, `az` and `aws sso` open their page in an incognito or InPrivate window of Chrome, Edge, Brave or Firefox, through the `BROWSER` variable of the login terminal: a Google or Microsoft session already open in your browser then cannot sign in with the wrong account. Safari has no private window that can be opened this way, so another installed browser is used; without any, the usual browser opens.
+**Open the sign-in page in a private window** (on by default with the Google Cloud and Azure presets) makes `gcloud`, `az` and `aws sso` open their page in an incognito or InPrivate window of Chrome, Edge, Brave or Firefox, through the `BROWSER` variable of the login terminal; with **Automatic** that is your default browser, or the first of these when the default (Safari) has no private window: a Google or Microsoft session already open in your browser then cannot sign in with the wrong account. Safari has no private window that can be opened this way, so another installed browser is used; without any, the usual browser opens.
 
 In **Settings → Environment logins** choose the browser of sign-in pages (automatic, one of the list, or a **custom command** with `%s` for the link, e.g. a browser with a dedicated profile) and how many seconds a login password stays on the clipboard (45 by default). Each environment can pick another browser in its step 1.
 
@@ -60,6 +60,18 @@ Every terminal an environment opens shows its badge in the header — the enviro
 ## Variables {#variables}
 
 Write `{{name}}` in any command, context or namespace. Variables are asked when the environment starts, with a default value or a list of choices, e.g. `cluster` with choices `prod-eu, prod-us`.
+
+
+### Personal values {#personal}
+
+Tick **personal** on a variable whose value belongs to each person, such as the sign-in email (`gcloud auth login {{googleEmail}} --update-adc`) or the user and safe in the vault (the **Password for the login** fields accept variables too). A personal value is asked the first time, then remembered on this computer and not asked again; **My values** (the person icon of the environment) changes it. It is never stored in the environment: exports and team shares carry only the variable's name, so everyone in the team uses the same environment with their own values, and receives its updates without a local copy to keep in sync.
+
+Next to each personal value, choose where it is remembered:
+
+- **Remember everywhere** (the default): the value is kept by name, and every environment, [snippet](shellvane:topic/snippets#variables) and [procedure](shellvane:topic/procedures#placeholders) that uses the same name gets it. Type `googleEmail` once and all your GKE environments have it.
+- **Only here**: this environment keeps its own value, which wins over the one used everywhere. Use it for a second account, e.g. `name@client.com` for one customer's clusters while the others keep `name@company.com`. Choosing **Remember everywhere** again drops it.
+
+**Settings › Personal values** lists the values kept everywhere: change, add or remove them there. Deleting an environment forgets its own values only.
 
 ## kubectl through a tunnel {#kubectl}
 

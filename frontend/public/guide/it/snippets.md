@@ -8,6 +8,8 @@ Gli snippet sono comandi salvati, organizzati in cartelle, inviati al pannello a
 - `{{env:dev|staging|prod}}` chiede di scegliere uno dei valori.
 - `{{host}}`, `{{user}}`, `{{date}}` vengono compilati dal pannello attivo e dall'orologio.
 
+Quando viene chiesto, ogni valore può essere ricordato come [valore personale](shellvane:topic/environments#personal): **Ricorda ovunque** riempie quel nome in ogni snippet, ambiente e procedura, **Solo qui** solo in questo snippet. Uno snippet con tutti i valori ricordati viene inviato senza chiedere; **I miei valori** (l'icona della persona) li modifica. I valori personali restano su questo computer: uno snippet condiviso porta solo i nomi.
+
 ## Invia {#send}
 
 Clicca **Invia** nel pannello Snippet, oppure trova lo snippet nella palette dei comandi (`#` cerca solo gli snippet); uno snippet con variabili apre il pannello Snippet e le chiede. **Esegui** preme Invio dopo il testo; senza, il comando viene solo scritto, per poterlo controllare.

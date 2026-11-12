@@ -31,6 +31,10 @@ type Variable struct {
 	Name    string   `json:"name" yaml:"name"`
 	Default string   `json:"default" yaml:"default,omitempty"`
 	Choices []string `json:"choices" yaml:"choices,omitempty"`
+	// Personal values belong to each person (a sign-in email, a vault
+	// user): asked once and remembered on that computer, never stored in
+	// the environment, so exports and team shares carry only the name.
+	Personal bool `json:"personal,omitempty" yaml:"personal,omitempty"`
 }
 
 // LocalLogin checks a login on this computer and logs in when the check
@@ -208,6 +212,14 @@ func (r *Repo) Delete(ctx context.Context, id string) error {
 // a name), since IDs mean nothing on another computer.
 func Export(e Environment, resolve func(kind, id string) string) (string, error) {
 	x := e
+	// A personal variable's default could be someone's own value.
+	x.Variables = nil
+	for _, v := range e.Variables {
+		if v.Personal {
+			v.Default = ""
+		}
+		x.Variables = append(x.Variables, v)
+	}
 	x.Remote.HostID = resolve("host", e.Remote.HostID)
 	x.TunnelIDs = nil
 	for _, id := range e.TunnelIDs {

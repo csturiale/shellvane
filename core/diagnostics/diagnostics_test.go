@@ -30,13 +30,14 @@ func TestBundleHasNoRealNamesOrSecrets(t *testing.T) {
 			{Step: "error", Detail: map[string]string{"message": "ssh: unable to authenticate deploy@db.acme.example via 203.0.113.7"}},
 		}}
 	files := Bundle(BundleInput{Version: "1.0", Inventory: inv, Handshakes: []Handshake{hs},
-		Preferences: map[string]string{"terminal.fontSize": "14", "quick.history": `["deploy@db.acme.example"]`}}, anonymize.New())
+		Preferences: map[string]string{"terminal.fontSize": "14", "quick.history": `["deploy@db.acme.example"]`,
+			"personal.values": `{"cyberarkSafe":"ADM_zq9"}`, "personal.scoped.env:e1": `{"cyberarkUser":"zq9"}`}}, anonymize.New())
 	var all strings.Builder
 	for _, f := range files {
 		all.WriteString(f.Content)
 	}
 	text := all.String()
-	for _, secret := range []string{"acme", "ACME", "deploy", "203.0.113.7", "bastion", "1password", "op read"} {
+	for _, secret := range []string{"acme", "ACME", "deploy", "203.0.113.7", "bastion", "1password", "op read", "zq9"} {
 		if strings.Contains(text, secret) {
 			t.Errorf("bundle contains %q:\n%s", secret, text)
 		}

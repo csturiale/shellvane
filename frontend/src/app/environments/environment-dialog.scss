@@ -38,3 +38,16 @@ legend {
     color: var(--text-muted);
   }
 }
+
+.row .personal {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+
+  input {
+    flex: none;
+  }
+}

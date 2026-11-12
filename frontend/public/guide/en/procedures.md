@@ -36,6 +36,8 @@ A command pasted or run is marked as done: the counter in the header shows how f
 
 Write `<name>` or `{{name}}` in a command, e.g. `kubectl -n <namespace> rollout restart deploy/web`. The first time a command with a placeholder is used, Shellvane asks its value; the value then fills that placeholder in every command of the source until the app is closed. **Values of the placeholders** in the header changes them. A value left empty keeps the placeholder as written.
 
+A value can also be remembered as a [personal value](shellvane:topic/environments#personal), kept on this computer after the app is closed: **Remember everywhere** fills that name in every procedure, snippet and environment, **Only here** in this source alone. Procedures from a shared Git repository then work for everyone with their own values.
+
 ## Make a runbook {#runbook}
 
 **Make a runbook from this procedure** turns its commands into the steps of a new runbook (placeholders become variables) and opens Automation, where you choose the hosts and run them on many servers at once ([Runbooks](shellvane:topic/runbooks)).

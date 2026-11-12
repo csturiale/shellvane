@@ -47,6 +47,11 @@
                 <svg lucideSquareTerminal [size]="14" aria-hidden="true"></svg>
               </button>
             }
+            @if (personal(env)) {
+              <button type="button" class="icon" [attr.aria-label]="t('environments.myValuesNamed', { name: env.name })" [title]="t('environments.myValues')" (click)="editMine(env)">
+                <svg lucideUserRound [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
             <button type="button" class="icon" [attr.aria-label]="t('environments.exportNamed', { name: env.name })" [title]="t('environments.export')" (click)="exportEnv(env)">
               <svg lucideCopy [size]="14" aria-hidden="true"></svg>
             </button>
@@ -124,11 +129,17 @@
   }
 
   @if (asking(); as a) {
-    <app-modal [heading]="t('environments.variablesTitle', { name: a.env.name })" (closed)="asking.set(null)">
+    <app-modal [heading]="t(a.mine ? 'environments.myValuesTitle' : 'environments.variablesTitle', { name: a.env.name })" (closed)="asking.set(null)">
       <form id="vars-form" class="form" (ngSubmit)="confirmValues()">
         @for (v of a.env.variables ?? []; track v.name) {
+          @if (!a.mine || v.personal) {
           <label class="field">
-            <span>{{ v.name }}</span>
+            <span class="var-head">
+              <span>{{ v.name }}@if (v.personal) { <small class="personal">· {{ t('environments.personalTag') }}</small>}</span>
+              @if (v.personal) {
+                <app-remember-select [allowNone]="false" [label]="v.name" [(value)]="where[v.name]" />
+              }
+            </span>
             @if (v.choices?.length) {
               <select [name]="v.name" [(ngModel)]="values[v.name]">
                 @for (c of v.choices; track c) {
@@ -139,11 +150,15 @@
               <input [name]="v.name" spellcheck="false" [(ngModel)]="values[v.name]" />
             }
           </label>
+          }
+        }
+        @if (personal(a.env)) {
+          <p class="hint">{{ t('environments.personalHint') }}</p>
         }
       </form>
       <ng-container modal-actions>
         <button type="button" class="btn" (click)="asking.set(null)">{{ t('common.cancel') }}</button>
-        <button type="submit" form="vars-form" class="btn primary">{{ t('environments.start') }}</button>
+        <button type="submit" form="vars-form" class="btn primary">{{ t(a.mine ? 'common.save' : 'environments.start') }}</button>
       </ng-container>
     </app-modal>
   }

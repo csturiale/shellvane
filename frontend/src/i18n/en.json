@@ -94,7 +94,7 @@
     "uiScaleHint": "Text and controls of the whole app. Terminals keep their own font size (Terminal settings).",
     "envLogins": "Environment logins",
     "envBrowser": "Browser for sign-in pages",
-    "envBrowserHint": "Where gcloud, az and aws sso open their sign-in page during an environment’s login. Automatic uses your usual browser, or the first of Chrome, Edge, Brave, Chromium and Firefox when the environment asks for a private window. An environment can choose another one.",
+    "envBrowserHint": "Where gcloud, az and aws sso open their sign-in page during an environment’s login. Automatic uses your default browser; when the environment asks for a private window and the default browser has none (Safari), the first of Chrome, Edge, Brave, Chromium and Firefox. An environment can choose another one.",
     "envBrowserAuto": "Automatic",
     "envBrowserCustom": "Custom command",
     "envBrowserCommand": "Command",
@@ -869,7 +869,10 @@
     "runOnManyNamed": "Run {{name}} on several hosts",
     "import": "Import snippets from files (Shellvane file, shell script or list of commands)",
     "export": "Save the shown snippets as a file",
-    "imported": "{added, plural, =0 {No new snippets} one {1 snippet imported} other {# snippets imported}}{skipped, plural, =0 {} one {, 1 already present} other {, # already present}}."
+    "imported": "{added, plural, =0 {No new snippets} one {1 snippet imported} other {# snippets imported}}{skipped, plural, =0 {} one {, 1 already present} other {, # already present}}.",
+    "myValues": "My values",
+    "myValuesNamed": "My values for {{name}}",
+    "myValuesTitle": "My values for “{{name}}”"
   },
   "broadcast": {
     "toggle": "Broadcast input to all panes",
@@ -1532,10 +1535,10 @@
     "gcloudHint": "Leave empty to use gcloud's own configuration. With a profile, this environment's checks, commands and local terminals use their own gcloud configuration (account, project, application default credentials): environments with different profiles stay signed in to different Google accounts at the same time, and environments with the same profile share the login.",
     "secret": "Password for the login",
     "secretNone": "None (type it yourself)",
-    "secretAddress": "Address of the account (e.g. accounts.google.com)",
-    "secretUser": "User of the account",
+    "secretAddress": "Address of the account in the vault (optional)",
+    "secretUser": "User of the account in the vault (e.g. a123456)",
     "secretSafe": "Safe or folder (optional, replaces the plugin’s)",
-    "secretHint": "When the login runs, Shellvane reads this account’s password from the chosen credential plugin (signing in to it if needed, with its MFA) and copies it to the clipboard for {{seconds}} seconds, to paste in the sign-in page the login opens. The password is never saved or shown. Variables work here too.",
+    "secretHint": "The account as it is in the vault (user and safe; the address only if several accounts share the user), not necessarily the one you sign in with: put the sign-in email in the login command, e.g. gcloud auth login name@company.com. When the login runs, Shellvane reads the account’s password from the chosen credential plugin (signing in to it if needed, with its MFA) and copies it to the clipboard for {{seconds}} seconds, to paste in the sign-in page. The password is never saved or shown. Variables work here too.",
     "secretCopied": "Password of {{user}} copied to the clipboard for {{seconds}} seconds: paste it in the sign-in page.",
     "privateBrowser": "Open the sign-in page in a private window",
     "privateBrowserHint": "For logins that open the browser (gcloud, az, aws sso): the page opens in an incognito, InPrivate or private window, so a Google or Microsoft session already open in the browser does not sign in with the wrong account. Safari has no private window that can be opened this way.",
@@ -1551,7 +1554,12 @@
     },
     "openLinks": "Open the sign-in links printed in the login terminal",
     "openLinksHint": "For tools that print the link instead of opening the browser, or that ignore the browser chosen here (Go tools such as kubelogin, vault, tsh; gcloud with --no-launch-browser): Shellvane recognizes OAuth, OpenID Connect, SAML and device-code links and opens each once in this browser. Do not use it with tools that open the browser themselves, or the page opens twice.",
-    "secretNoPlugin": "To fill in the login password automatically, install and configure a credential plugin (CyberArk, Conjur, HashiCorp Vault…) in Plugins, or share a login in a team."
+    "secretNoPlugin": "To fill in the login password automatically, install and configure a credential plugin (CyberArk, Conjur, HashiCorp Vault…) in Plugins, or share a login in a team.",
+    "myValues": "My values",
+    "myValuesNamed": "My values for {{name}}",
+    "myValuesTitle": "My values for {{name}}",
+    "personalTag": "personal",
+    "personalHint": "Personal values (for example your sign-in email or your user in the vault) are yours: kept on this computer and asked again only when missing, they are never stored in the environment, so exports and team shares carry only their names. \"Remember everywhere\" fills the same name in other environments, snippets and procedures; \"Only here\" keeps a value for this environment alone."
   },
   "logs": {
     "title": "Logs and recordings",
@@ -2202,7 +2210,7 @@
     "toRunbook": "Make a runbook from this procedure",
     "runbookFrom": "From the procedure {{path}}",
     "valuesTitle": "Values for the procedure",
-    "valuesHint": "Placeholders such as <namespace> (or a name between double curly braces) are replaced in every command of this source. Leave a value empty to keep the placeholder.",
+    "valuesHint": "Placeholders such as <namespace> (or a name between double curly braces) are replaced in every command of this source. Leave a value empty to keep the placeholder. Remembered values are personal: kept on this computer, never shared.",
     "continue": "Continue",
     "inbox": "Received pages",
     "deletePage": "Delete this page",
@@ -2221,5 +2229,22 @@
       "pastePlaceholder": "Paste here…",
       "save": "Save and open"
     }
+  },
+  "personal": {
+    "title": "Personal values",
+    "none": "Don't remember",
+    "global": "Remember everywhere",
+    "here": "Only here",
+    "rememberNamed": "Remember {{name}}",
+    "rememberHint": "Everywhere: every environment, snippet and procedure that uses this name gets the value. Only here: this item keeps its own value, which wins over the one used everywhere.",
+    "tagGlobal": "personal",
+    "tagHere": "personal · only here",
+    "settingsHint": "Your values by name (for example googleEmail), kept on this computer only and never shared: every environment, snippet and procedure that uses the name gets them. An item can keep its own value with \"Only here\".",
+    "empty": "No personal values yet: they are added when you choose \"Remember everywhere\".",
+    "name": "Name",
+    "value": "Value",
+    "add": "Add",
+    "remove": "Remove",
+    "removeNamed": "Remove {{name}}"
   }
 }

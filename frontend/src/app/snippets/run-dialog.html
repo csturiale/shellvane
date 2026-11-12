@@ -1,9 +1,12 @@
 <ng-container *transloco="let t">
-  <app-modal [heading]="t('snippets.runTitle', { name: snippet().name })" (closed)="closed.emit()">
-    <form id="run-form" class="form" (ngSubmit)="run.emit(values)">
+  <app-modal [heading]="t(mine() ? 'snippets.myValuesTitle' : 'snippets.runTitle', { name: snippet().name })" (closed)="closed.emit()">
+    <form id="run-form" class="form" (ngSubmit)="submit()">
       @for (v of variables(); track v.name; let first = $first) {
         <label class="field">
-          <span>{{ v.name }}</span>
+          <span class="var-head">
+            <span>{{ v.name }}</span>
+            <app-remember-select [label]="v.name" [allowNone]="!mine()" [(value)]="where[v.name]" />
+          </span>
           @if (v.choices.length > 0) {
             <select [name]="v.name" [(ngModel)]="values[v.name]">
               @for (c of v.choices; track c) {
@@ -15,10 +18,11 @@
           }
         </label>
       }
+      <p class="hint">{{ t('personal.rememberHint') }}</p>
     </form>
     <ng-container modal-actions>
       <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
-      <button type="submit" form="run-form" class="btn primary">{{ t('snippets.run') }}</button>
+      <button type="submit" form="run-form" class="btn primary">{{ t(mine() ? 'common.save' : 'snippets.run') }}</button>
     </ng-container>
   </app-modal>
 </ng-container>

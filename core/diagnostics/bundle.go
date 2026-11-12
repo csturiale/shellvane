@@ -31,7 +31,7 @@ type BundleInput struct {
 }
 
 // Preferences whose values are personal data rather than settings.
-var privatePreferences = []string{"history", "bookmark", "recent", "workspace", "draft", "notes"}
+var privatePreferences = []string{"history", "bookmark", "recent", "workspace", "draft", "notes", "personal"}
 
 // Settings that may hold names, paths, commands or credentials: only
 // whether they are set is kept.

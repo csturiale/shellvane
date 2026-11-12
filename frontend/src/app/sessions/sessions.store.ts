@@ -8,6 +8,7 @@ import { DropZone, Layout, SplitDir, grid, leaf, mapPanes, neighbour, panesOf, r
 import { writePreference } from '../core/preferences';
 import { SessionPrefs } from './session-prefs';
 import { UsageStore } from '../core/usage/usage.store';
+import { PersonalValues } from '../core/personal-values';
 
 export type PaneState = 'connecting' | 'connected' | 'closed' | 'failed';
 
@@ -174,6 +175,7 @@ export class SessionsStore {
   private readonly logFormats = new Map<number, string>();
   private readonly prefs = inject(SessionPrefs);
   private readonly browserPrefs = inject(BrowserPrefs);
+  private readonly personal = inject(PersonalValues);
   /** Sessions last reported to Go as receiving broadcast input. */
   private broadcasting = new Set<string>();
 
@@ -919,6 +921,23 @@ export class SessionsStore {
     }
   }
 
+  /**
+   * A shared workspace carries the names of an environment pane's values
+   * but not this person's values: fill the empty ones from their own.
+   */
+  private withPersonal(env: PaneEnv | null): PaneEnv | null {
+    if (!env) {
+      return null;
+    }
+    const values = { ...env.values };
+    for (const [name, value] of Object.entries(values)) {
+      if (value === '') {
+        values[name] = this.personal.get(name, `env:${env.id}`) ?? '';
+      }
+    }
+    return { ...env, values };
+  }
+
   /** The open tabs, to save as a workspace. */
   snapshot(): SavedWorkspace {
     const tabs = this.tabs().map((t): SavedTab => {
@@ -946,7 +965,7 @@ export class SessionsStore {
           if (sp.source.kind === 'benchmark') {
             throw new Error('not restored'); // a measurement, not a session to resume
           }
-          keys.push((await this.createPane(sp.source, sp.title, sp.persist || newPersistName(), true, sp.kube ?? null, [], sp.env ?? null)).key);
+          keys.push((await this.createPane(sp.source, sp.title, sp.persist || newPersistName(), true, sp.kube ?? null, [], this.withPersonal(sp.env ?? null))).key);
         } catch {
           keys.push(-1); // the host was deleted: leave it out
         }

@@ -24,6 +24,8 @@ interface VariableRow {
   name: string;
   default: string;
   choices: string;
+  /** Each person's own value, remembered on their computer and never shared. */
+  personal: boolean;
 }
 
 /** Creates or edits an environment, one section per step. */
@@ -101,7 +103,7 @@ export class EnvironmentDialog {
     }
     this.name = e.name;
     this.description = e.description;
-    this.variables = (e.variables ?? []).map((v) => ({ name: v.name, default: v.default, choices: (v.choices ?? []).join(', ') }));
+    this.variables = (e.variables ?? []).map((v) => ({ name: v.name, default: v.default, choices: (v.choices ?? []).join(', '), personal: !!v.personal }));
     this.check = e.login.check;
     this.login = e.login.login;
     this.prepare = e.login.prepare ?? '';
@@ -162,7 +164,7 @@ export class EnvironmentDialog {
     this.preset('gcloud');
     for (const name of ['project', 'region', 'cluster']) {
       if (!this.variables.some((v) => v.name === name)) {
-        this.variables.push({ name, default: '', choices: '' });
+        this.variables.push({ name, default: '', choices: '', personal: false });
       }
     }
     this.prepare = 'gcloud container clusters get-credentials {{cluster}} --region {{region}} --project {{project}}';
@@ -185,6 +187,7 @@ export class EnvironmentDialog {
             .split(',')
             .map((c) => c.trim())
             .filter(Boolean),
+          personal: v.personal,
         })),
       login: {
         check: this.check.trim(),

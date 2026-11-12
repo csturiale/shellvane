@@ -79,3 +79,8 @@ const DEFAULT_RES = compileDangerous(DEFAULT_DANGEROUS);
 export function isDangerous(command: string, patterns: RegExp[] = DEFAULT_RES): boolean {
   return patterns.some((re) => re.test(command));
 }
+
+/** The scope of a snippet's own personal values. */
+export function snippetScope(id: string): string {
+  return `snippet:${id}`;
+}

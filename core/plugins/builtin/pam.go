@@ -180,7 +180,9 @@ func (p CyberArk) ccp(call pamCall, s map[string]string, t plugins.Target) (plug
 	if obj := expandTarget(s["object"], t); obj != "" {
 		q.Set("Object", obj)
 	} else {
-		q.Set("Address", t.Hostname)
+		if t.Hostname != "" {
+			q.Set("Address", t.Hostname)
+		}
 		if t.User != "" {
 			q.Set("UserName", t.User)
 		}
@@ -526,15 +528,19 @@ func (p CyberArk) retrieve(call pamCall, s map[string]string, t plugins.Target, 
 	}
 	id, user := "", ""
 	for _, a := range list.Value {
-		if strings.EqualFold(a.Address, t.Hostname) && (t.User == "" || a.UserName == t.User) {
+		// Without an address (an environment's login: a directory account
+		// whose address is not known) the user, and the safe, find it.
+		if (t.Hostname == "" || strings.EqualFold(a.Address, t.Hostname)) && (t.User == "" || strings.EqualFold(a.UserName, t.User)) {
 			id, user = a.ID, a.UserName
 			break
 		}
 	}
 	if id == "" {
 		who := t.Hostname
-		if t.User != "" {
+		if t.User != "" && t.Hostname != "" {
 			who = t.User + "@" + t.Hostname
+		} else if t.User != "" {
+			who = t.User
 		}
 		return plugins.Credential{}, errs.New(plugins.ErrCommand, errs.Params{"command": "cyberark", "detail": "no account for " + who})
 	}

@@ -94,7 +94,7 @@
     "uiScaleHint": "Testo e controlli di tutta l'app. I terminali mantengono la propria dimensione del carattere (impostazioni Terminale).",
     "envLogins": "Login degli ambienti",
     "envBrowser": "Browser per le pagine di accesso",
-    "envBrowserHint": "Dove gcloud, az e aws sso aprono la pagina di accesso durante il login di un ambiente. Automatico usa il browser di sempre, oppure il primo tra Chrome, Edge, Brave, Chromium e Firefox quando l’ambiente chiede una finestra privata. Un ambiente può sceglierne un altro.",
+    "envBrowserHint": "Dove gcloud, az e aws sso aprono la pagina di accesso durante il login di un ambiente. Automatico usa il browser predefinito; quando l’ambiente chiede una finestra privata e il predefinito non ne ha una (Safari), il primo tra Chrome, Edge, Brave, Chromium e Firefox. Un ambiente può sceglierne un altro.",
     "envBrowserAuto": "Automatico",
     "envBrowserCustom": "Comando personalizzato",
     "envBrowserCommand": "Comando",
@@ -869,7 +869,10 @@
     "runOnManyNamed": "Esegui {{name}} su più host",
     "import": "Importa snippet da file (file di Shellvane, script di shell o elenco di comandi)",
     "export": "Salva come file gli snippet mostrati",
-    "imported": "{added, plural, =0 {Nessuno snippet nuovo} one {1 snippet importato} other {# snippet importati}}{skipped, plural, =0 {} one {, 1 già presente} other {, # già presenti}}."
+    "imported": "{added, plural, =0 {Nessuno snippet nuovo} one {1 snippet importato} other {# snippet importati}}{skipped, plural, =0 {} one {, 1 già presente} other {, # già presenti}}.",
+    "myValues": "I miei valori",
+    "myValuesNamed": "I miei valori per {{name}}",
+    "myValuesTitle": "I miei valori per “{{name}}”"
   },
   "broadcast": {
     "toggle": "Invia l'input a tutti i pannelli",
@@ -1532,10 +1535,10 @@
     "gcloudHint": "Lascialo vuoto per usare la configurazione di gcloud. Con un profilo, verifiche, comandi e terminali locali di questo ambiente usano una configurazione gcloud propria (account, progetto, credenziali application default): ambienti con profili diversi restano collegati ad account Google diversi nello stesso momento, e ambienti con lo stesso profilo condividono il login.",
     "secret": "Password per il login",
     "secretNone": "Nessuna (la scrivi tu)",
-    "secretAddress": "Indirizzo dell'account (es. accounts.google.com)",
-    "secretUser": "Utente dell'account",
+    "secretAddress": "Indirizzo dell’account nel vault (facoltativo)",
+    "secretUser": "Utente dell’account nel vault (es. a123456)",
     "secretSafe": "Safe o cartella (facoltativa, sostituisce quella del plugin)",
-    "secretHint": "Quando parte il login, Shellvane legge la password di questo account dal plugin delle credenziali scelto (accedendo se serve, con il suo MFA) e la copia negli appunti per {{seconds}} secondi, da incollare nella pagina di accesso che il login apre. La password non viene mai salvata né mostrata. Anche qui funzionano le variabili.",
+    "secretHint": "L’account come è registrato nel vault (utente e Safe; l’indirizzo solo se più account hanno lo stesso utente), non per forza quello con cui accedi: metti l’email di accesso nel comando di login, ad esempio gcloud auth login nome@azienda.com. Quando parte il login, Shellvane legge la password dell’account dal plugin delle credenziali scelto (accedendo se serve, con il suo MFA) e la copia negli appunti per {{seconds}} secondi, da incollare nella pagina di accesso. La password non viene mai salvata né mostrata. Anche qui funzionano le variabili.",
     "secretCopied": "Password di {{user}} copiata negli appunti per {{seconds}} secondi: incollala nella pagina di accesso.",
     "privateBrowser": "Apri la pagina di accesso in una finestra privata",
     "privateBrowserHint": "Per i login che aprono il browser (gcloud, az, aws sso): la pagina si apre in una finestra in incognito, InPrivate o privata, così una sessione Google o Microsoft già aperta nel browser non accede con l’account sbagliato. Safari non ha una finestra privata apribile in questo modo.",
@@ -1551,7 +1554,12 @@
     },
     "openLinks": "Apri i link di accesso stampati nel terminale del login",
     "openLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser, o che ignorano il browser scelto qui (strumenti in Go come kubelogin, vault, tsh; gcloud con --no-launch-browser): Shellvane riconosce i link OAuth, OpenID Connect, SAML e dei codici dispositivo e li apre una volta in questo browser. Non usarlo con strumenti che aprono il browser da soli, altrimenti la pagina si apre due volte.",
-    "secretNoPlugin": "Per inserire in automatico la password del login, installa e configura un plugin delle credenziali (CyberArk, Conjur, HashiCorp Vault…) in Plugin, oppure condividi un login in un team."
+    "secretNoPlugin": "Per inserire in automatico la password del login, installa e configura un plugin delle credenziali (CyberArk, Conjur, HashiCorp Vault…) in Plugin, oppure condividi un login in un team.",
+    "myValues": "I miei valori",
+    "myValuesNamed": "I miei valori per {{name}}",
+    "myValuesTitle": "I miei valori per {{name}}",
+    "personalTag": "personale",
+    "personalHint": "I valori personali (per esempio la tua email di accesso o il tuo utente nel vault) sono tuoi: tenuti su questo computer e richiesti di nuovo solo se mancano, non sono mai salvati nell'ambiente, quindi esportazioni e condivisioni col team ne portano solo il nome. \"Ricorda ovunque\" riempie lo stesso nome in altri ambienti, snippet e procedure; \"Solo qui\" tiene un valore solo per questo ambiente."
   },
   "logs": {
     "title": "Log e registrazioni",
@@ -2202,7 +2210,7 @@
     "toRunbook": "Crea un runbook da questa procedura",
     "runbookFrom": "Dalla procedura {{path}}",
     "valuesTitle": "Valori per la procedura",
-    "valuesHint": "I segnaposto come <namespace> (o un nome tra doppie parentesi graffe) vengono sostituiti in tutti i comandi di questa sorgente. Lascia un valore vuoto per mantenere il segnaposto.",
+    "valuesHint": "I segnaposto come <namespace> (o un nome tra doppie graffe) sono sostituiti in ogni comando di questa sorgente. Lascia vuoto un valore per tenere il segnaposto. I valori ricordati sono personali: tenuti su questo computer, mai condivisi.",
     "continue": "Continua",
     "inbox": "Pagine ricevute",
     "deletePage": "Elimina questa pagina",
@@ -2221,5 +2229,22 @@
       "pastePlaceholder": "Incolla qui…",
       "save": "Salva e apri"
     }
+  },
+  "personal": {
+    "title": "Valori personali",
+    "none": "Non ricordare",
+    "global": "Ricorda ovunque",
+    "here": "Solo qui",
+    "rememberNamed": "Ricorda {{name}}",
+    "rememberHint": "Ovunque: ogni ambiente, snippet e procedura che usa questo nome riceve il valore. Solo qui: questo elemento tiene un valore suo, che vince su quello usato ovunque.",
+    "tagGlobal": "personale",
+    "tagHere": "personale · solo qui",
+    "settingsHint": "I tuoi valori per nome (per esempio googleEmail), tenuti solo su questo computer e mai condivisi: li riceve ogni ambiente, snippet e procedura che usa quel nome. Un elemento può tenere un valore suo con \"Solo qui\".",
+    "empty": "Ancora nessun valore personale: si aggiungono quando scegli \"Ricorda ovunque\".",
+    "name": "Nome",
+    "value": "Valore",
+    "add": "Aggiungi",
+    "remove": "Rimuovi",
+    "removeNamed": "Rimuovi {{name}}"
   }
 }

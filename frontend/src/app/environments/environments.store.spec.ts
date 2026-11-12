@@ -189,6 +189,40 @@ describe('EnvironmentsStore', () => {
     expect(opened.length).toBe(1);
   }, 15000);
 
+  it('keeps personal values on this computer and adds them to every start', async () => {
+    const calls: string[] = [];
+    const api = TestBed.inject(EnvironmentApi) as unknown as Record<string, unknown>;
+    api['checkLogin'] = async (c: string) => {
+      calls.push(c);
+      return { ok: true, detail: '' };
+    };
+    const e = env({
+      variables: [
+        { name: 'googleEmail', default: '', choices: [], personal: true },
+        { name: 'region', default: 'europe-west8', choices: [] },
+      ],
+      login: { check: 'gcloud auth print-access-token --account {{googleEmail}}', login: '', prepare: '' },
+    });
+    expect(store.needsValues(e)).toBe(true);
+    store.setPersonalValues(e, { googleEmail: 'alice@example.com', region: 'europe-west1' });
+    // Only personal values are kept; a shared variable still asks.
+    expect(store.personalValues(e)).toEqual({ googleEmail: 'alice@example.com' });
+    expect(store.needsValues(e)).toBe(true);
+    expect(store.needsValues({ ...e, variables: [e.variables![0]] })).toBe(false);
+    await store.start(e, { region: 'europe-west8' });
+    expect(calls[0]).toBe('gcloud auth print-access-token --account {{googleEmail}}');
+    expect(store.runOf('e1')!.values).toEqual({ googleEmail: 'alice@example.com', region: 'europe-west8' });
+    // "Only here": this environment keeps its own value; the global one stays for the others.
+    store.setPersonalValues(e, { googleEmail: 'alice@client.example' }, { googleEmail: 'here' });
+    expect(store.personalValues(e)).toEqual({ googleEmail: 'alice@client.example' });
+    expect(store.personalSources(e)).toEqual({ googleEmail: 'here' });
+    expect(store.personalValues({ ...e, id: 'e2' })).toEqual({ googleEmail: 'alice@example.com' });
+    // Deleting the environment forgets its own value only.
+    await store.delete('e1').catch(() => undefined);
+    expect(store.personalValues(e)).toEqual({ googleEmail: 'alice@example.com' });
+    localStorage.clear();
+  });
+
   it('shows why the login check fails and can go on without it', async () => {
     checks = Array(100).fill(false); // the check never passes
     const api = TestBed.inject(EnvironmentApi) as unknown as { checkLogin: (c: string) => Promise<{ ok: boolean; detail: string }> };

@@ -32,11 +32,11 @@ I login necessari sul jump host vanno nei suoi comandi, ad esempio `gcloud auth 
 
 ### Password del login da un plugin delle credenziali {#login-secret}
 
-Quando la pagina di accesso che il login apre richiede una password conservata in un gestore di password, imposta **Password per il login**. Il campo compare quando in **Plugin** è configurato un plugin delle credenziali (CyberArk, Conjur, HashiCorp Vault…) o quando un login è condiviso in un team. Scegli la configurazione del plugin e l'**indirizzo** e l'**utente** dell'account (ad esempio `accounts.google.com` e `alice-admin@example.com`); **Safe** sostituisce quella del plugin quando l'account si trova altrove. In questi campi funzionano le variabili.
+Quando la pagina di accesso che il login apre richiede una password conservata in un gestore di password, imposta **Password per il login**. Il campo compare quando in **Plugin** è configurato un plugin delle credenziali (CyberArk, Conjur, HashiCorp Vault…) o quando un login è condiviso in un team. Scegli la configurazione del plugin e l'account **come è registrato nel vault**: il suo **utente** (ad esempio l'account di dominio `a123456`) e, se non è quella del plugin, la sua **Safe**; l'**indirizzo** è facoltativo e serve solo se più account hanno lo stesso utente. Questo account non deve per forza essere quello con cui accedi: metti l'email di accesso nel comando di login, ad esempio `gcloud auth login alice.admin@example.com --update-adc`, e la pagina di accesso si apre su quell'account. In questi campi funzionano le variabili.
 
 Quando la verifica fallisce, Shellvane legge prima la password dell'account dal plugin, accedendo se serve (per CyberArk, con il suo MFA o l'accesso dal browser; la sessione viene poi riusata), la copia negli appunti per 45 secondi (configurabili nelle Impostazioni) e solo dopo esegue il login: incolla la password nella pagina di accesso. La password non viene mai salvata, mostrata né scritta nel terminale, e gli appunti vengono svuotati dopo, a meno che tu non abbia copiato altro. Se la password non si può leggere, il passo dice perché e il login parte comunque, così puoi scriverla tu.
 
-**Apri la pagina di accesso in una finestra privata** (attiva per default con i preset Google Cloud e Azure) fa aprire a `gcloud`, `az` e `aws sso` la loro pagina in una finestra in incognito o InPrivate di Chrome, Edge, Brave o Firefox, tramite la variabile `BROWSER` del terminale del login: una sessione Google o Microsoft già aperta nel browser non può così accedere con l'account sbagliato. Safari non ha una finestra privata apribile in questo modo, quindi viene usato un altro browser installato; se non ce ne sono, si apre il browser di sempre.
+**Apri la pagina di accesso in una finestra privata** (attiva per default con i preset Google Cloud e Azure) fa aprire a `gcloud`, `az` e `aws sso` la loro pagina in una finestra in incognito o InPrivate di Chrome, Edge, Brave o Firefox, tramite la variabile `BROWSER` del terminale del login; con **Automatico** è il tuo browser predefinito, o il primo di questi se il predefinito (Safari) non ha una finestra privata: una sessione Google o Microsoft già aperta nel browser non può così accedere con l'account sbagliato. Safari non ha una finestra privata apribile in questo modo, quindi viene usato un altro browser installato; se non ce ne sono, si apre il browser di sempre.
 
 In **Impostazioni → Login degli ambienti** scegli il browser delle pagine di accesso (automatico, uno dell'elenco, o un **comando personalizzato** con `%s` per il link, ad esempio un browser con un profilo dedicato) e per quanti secondi una password di login resta negli appunti (45 per default). Ogni ambiente può scegliere un altro browser nel suo passo 1.
 
@@ -60,6 +60,18 @@ Ogni terminale aperto da un ambiente mostra il suo badge nell'intestazione: il n
 ## Variabili {#variables}
 
 Scrivi `{{nome}}` in qualsiasi comando, contesto o namespace. Le variabili vengono chieste all'avvio dell'ambiente, con un valore predefinito o un elenco di scelte, ad esempio `cluster` con scelte `prod-eu, prod-us`.
+
+
+### Valori personali {#personal}
+
+Spunta **personale** su una variabile il cui valore appartiene a ciascuna persona, come l'email di accesso (`gcloud auth login {{googleEmail}} --update-adc`) o l'utente e la Safe nel vault (anche i campi di **Password per il login** accettano variabili). Un valore personale viene chiesto la prima volta, poi ricordato su questo computer e non più richiesto; **I miei valori** (l'icona della persona sull'ambiente) lo modifica. Non è mai salvato nell'ambiente: esportazioni e condivisioni nel team contengono solo il nome della variabile, così tutti nel team usano lo stesso ambiente con i propri valori e ne ricevono gli aggiornamenti senza una copia locale da tenere allineata.
+
+Accanto a ogni valore personale scegli dove ricordarlo:
+
+- **Ricorda ovunque** (predefinito): il valore è tenuto per nome, e lo riceve ogni ambiente, [snippet](shellvane:topic/snippets#variables) e [procedura](shellvane:topic/procedures#placeholders) che usa lo stesso nome. Scrivi `googleEmail` una volta e tutti i tuoi ambienti GKE lo hanno.
+- **Solo qui**: questo ambiente tiene un valore suo, che vince su quello usato ovunque. Serve per un secondo account, ad esempio `nome@cliente.com` per i cluster di un cliente mentre gli altri tengono `nome@azienda.com`. Scegliere di nuovo **Ricorda ovunque** lo elimina.
+
+**Impostazioni › Valori personali** elenca i valori tenuti ovunque: lì li modifichi, aggiungi o rimuovi. Eliminare un ambiente cancella solo i suoi valori.
 
 ## kubectl attraverso un tunnel {#kubectl}
 

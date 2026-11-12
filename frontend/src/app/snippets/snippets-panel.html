@@ -52,6 +52,11 @@
             <button type="button" class="icon" [attr.aria-label]="t('snippets.runNamed', { name: s.name })" [title]="t('snippets.run')" (click)="run(s)">
               <svg lucidePlay [size]="14" aria-hidden="true"></svg>
             </button>
+            @if (hasVariables(s)) {
+              <button type="button" class="icon" [attr.aria-label]="t('snippets.myValuesNamed', { name: s.name })" [title]="t('snippets.myValues')" (click)="editMine(s)">
+                <svg lucideUserRound [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
             <button type="button" class="icon" [attr.aria-label]="t('snippets.runOnManyNamed', { name: s.name })" [title]="t('snippets.runOnMany')" (click)="runOnMany(s)">
               <svg lucideListChecks [size]="14" aria-hidden="true"></svg>
             </button>
@@ -80,8 +85,8 @@
   @if (editing(); as e) {
     <app-snippet-dialog [snippet]="e.snippet" (closed)="editing.set(null)" />
   }
-  @if (asking(); as s) {
-    <app-run-dialog [snippet]="s" (run)="send(s, $event)" (closed)="asking.set(null)" />
+  @if (asking(); as a) {
+    <app-run-dialog [snippet]="a.snippet" [mine]="a.mine" (run)="answer(a, $event)" (closed)="asking.set(null)" />
   }
   @if (confirming(); as c) {
     <app-confirm-dialog

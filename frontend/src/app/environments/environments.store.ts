@@ -10,6 +10,7 @@ import { WorkspacesStore } from '../sessions/workspaces.store';
 import { TunnelsStore } from '../tunnels/tunnels.store';
 import { Sharing } from '../extensions/sharing';
 import { UsageStore } from '../core/usage/usage.store';
+import { PersonalValues, Remember } from '../core/personal-values';
 
 export type StepId = 'login' | 'remote' | 'tunnels' | 'localKube' | 'workspace';
 export type StepState = 'pending' | 'running' | 'done' | 'failed' | 'skipped';
@@ -109,6 +110,7 @@ export class EnvironmentsStore {
   private readonly tunnels = inject(TunnelsStore);
   private readonly workspaces = inject(WorkspacesStore);
   private readonly sharing = inject(Sharing);
+  private readonly personal = inject(PersonalValues);
 
   readonly list = signal<Environment[]>([]);
   readonly runs = signal<Run[]>([]);
@@ -141,8 +143,46 @@ export class EnvironmentsStore {
     await this.load();
   }
 
+  /**
+   * This person's values of the environment's personal variables (a
+   * sign-in email, a vault user): kept on this computer only, never in the
+   * environment, so they are not exported or shared. The environment's own
+   * value wins over the one remembered for every item.
+   */
+  personalValues(env: Environment): Record<string, string> {
+    const names = (env.variables ?? []).filter((v) => v.personal).map((v) => v.name);
+    return this.personal.resolve(names, scopeOf(env.id));
+  }
+
+  /** Where each personal value comes from: 'here', 'global' or 'none'. */
+  personalSources(env: Environment): Record<string, Remember> {
+    const out: Record<string, Remember> = {};
+    for (const v of env.variables ?? []) {
+      if (v.personal) {
+        out[v.name] = this.personal.source(v.name, scopeOf(env.id));
+      }
+    }
+    return out;
+  }
+
+  /** Remembers the personal ones among values, everywhere unless where says "here". */
+  setPersonalValues(env: Environment, values: Record<string, string>, where: Record<string, Remember> = {}): void {
+    for (const v of env.variables ?? []) {
+      if (v.personal && values[v.name] !== undefined) {
+        this.personal.remember(v.name, values[v.name], where[v.name] === 'here' ? 'here' : 'global', scopeOf(env.id));
+      }
+    }
+  }
+
+  /** Whether starting needs to ask something: a shared variable, or a personal one without a value yet. */
+  needsValues(env: Environment): boolean {
+    const mine = this.personalValues(env);
+    return (env.variables ?? []).some((v) => !v.personal || !mine[v.name]);
+  }
+
   async delete(id: string): Promise<void> {
     await this.stop(id);
+    this.personal.clearScope(scopeOf(id));
     await this.api.delete(id);
     await this.load();
   }
@@ -170,6 +210,7 @@ export class EnvironmentsStore {
    */
   async start(env: Environment, values: Record<string, string>, from: StepId = 'login', opts: StartOptions = {}): Promise<void> {
     this.usage.count('environment.start');
+    values = { ...this.personalValues(env), ...values };
     const adopt = opts.adopt ?? [];
     const previous = this.runOf(env.id);
     const panes = [...new Set([...(previous?.panes ?? []), ...adopt])].filter((k) => !!this.sessions.pane(k));
@@ -617,4 +658,9 @@ export class EnvironmentsStore {
       await new Promise((r) => setTimeout(r, interval));
     }
   }
+}
+
+/** The scope of an environment's own personal values. */
+function scopeOf(id: string): string {
+  return `env:${id}`;
 }

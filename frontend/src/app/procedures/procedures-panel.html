@@ -103,7 +103,7 @@
     <app-procedure-web-dialog (saved)="saveWeb($event)" (closed)="webOpen.set(false)" />
   }
   @if (asking(); as a) {
-    <app-procedure-values-dialog [names]="a.names" [initial]="store.values()" (done)="answer($event)" (closed)="asking.set(null)" />
+    <app-procedure-values-dialog [names]="a.names" [initial]="store.values()" [scope]="scope()" (done)="answer($event)" (closed)="asking.set(null)" />
   }
   @if (confirming(); as c) {
     <app-confirm-dialog

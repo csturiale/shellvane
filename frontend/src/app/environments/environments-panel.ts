@@ -3,7 +3,7 @@ import { Sharing } from '../extensions/sharing';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { LucideCopy, LucideLayers, LucidePencil, LucidePlay, LucidePlus, LucideSquare, LucideSquareTerminal, LucideTrash2, LucideUpload } from '@lucide/angular';
+import { LucideCopy, LucideLayers, LucidePencil, LucidePlay, LucidePlus, LucideSquare, LucideSquareTerminal, LucideTrash2, LucideUpload, LucideUserRound } from '@lucide/angular';
 
 import { Environment } from '../core/backend/environment-api';
 import { toTranslatableError } from '../core/backend/errors';
@@ -12,13 +12,15 @@ import { HelpLink } from '../guide/help-link';
 import { HostsStore } from '../hosts/hosts.store';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { Modal } from '../shared/modal';
+import { RememberSelect } from '../shared/remember-select';
+import { Remember } from '../core/personal-values';
 import { EnvironmentDialog } from './environment-dialog';
 import { EnvironmentsStore, StepId } from './environments.store';
 
 /** Environments: start everything a system needs in one click. */
 @Component({
   selector: 'app-environments-panel',
-  imports: [NgComponentOutlet, FormsModule, TranslocoDirective, Modal, ConfirmDialog, EnvironmentDialog, HelpLink, LucidePlus, LucidePlay, LucideSquare, LucideSquareTerminal, LucidePencil, LucideTrash2, LucideCopy, LucideUpload, LucideLayers],
+  imports: [NgComponentOutlet, FormsModule, TranslocoDirective, Modal, ConfirmDialog, EnvironmentDialog, HelpLink, LucidePlus, LucidePlay, LucideSquare, LucideSquareTerminal, LucidePencil, LucideTrash2, LucideCopy, LucideUpload, LucideLayers, LucideUserRound, RememberSelect],
   templateUrl: './environments-panel.html',
   styleUrls: ['../shared/form.scss', './environments-panel.scss'],
 })
@@ -57,11 +59,14 @@ export class EnvironmentsPanel {
 
   protected readonly editing = signal<Environment | 'new' | null>(null);
   protected readonly deleting = signal<Environment | null>(null);
-  protected readonly asking = signal<{ env: Environment; from: StepId } | null>(null);
+  /** Values asked before a start, or only this person's values (mine: nothing starts). */
+  protected readonly asking = signal<{ env: Environment; from: StepId; mine?: boolean } | null>(null);
   protected readonly importing = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly hostNames = computed(() => new Map(this.hosts.hosts().map((h) => [h.id, h.name])));
   protected values: Record<string, string> = {};
+  /** Where each personal value typed in the dialog is remembered. */
+  protected where: Record<string, Remember> = {};
   protected importText = '';
   /** Values used by the last start, for "retry from here". */
   private readonly lastValues = new Map<string, Record<string, string>>();
@@ -79,19 +84,39 @@ export class EnvironmentsPanel {
       this.reviewing.set(env); // its commands changed in the team: approve them first
       return;
     }
-    if ((env.variables ?? []).length > 0 && from === 'login') {
-      const last = this.lastValues.get(env.id) ?? {};
-      this.values = Object.fromEntries((env.variables ?? []).map((v) => [v.name, last[v.name] ?? v.default ?? '']));
-      this.asking.set({ env, from });
+    // Personal values already known are not asked again.
+    if (from === 'login' && this.store.needsValues(env)) {
+      this.askValues(env, from);
       return;
     }
     this.run(env, from === 'login' ? {} : (this.lastValues.get(env.id) ?? {}), from);
   }
 
+  /** This person's values of the personal variables, to see or change. */
+  protected editMine(env: Environment): void {
+    this.askValues(env, 'login', true);
+  }
+
+  protected personal(env: Environment): boolean {
+    return (env.variables ?? []).some((v) => v.personal);
+  }
+
+  private askValues(env: Environment, from: StepId, mine = false): void {
+    const last = { ...(this.lastValues.get(env.id) ?? {}), ...this.store.personalValues(env) };
+    this.values = Object.fromEntries((env.variables ?? []).map((v) => [v.name, last[v.name] ?? v.default ?? '']));
+    const sources = this.store.personalSources(env);
+    this.where = Object.fromEntries(Object.entries(sources).map(([n, src]) => [n, src === 'here' ? 'here' : 'global']));
+    this.asking.set({ env, from, mine });
+  }
+
   protected confirmValues(): void {
     const a = this.asking();
     this.asking.set(null);
-    if (a) {
+    if (!a) {
+      return;
+    }
+    this.store.setPersonalValues(a.env, this.values, this.where);
+    if (!a.mine) {
       this.run(a.env, { ...this.values }, a.from);
     }
   }

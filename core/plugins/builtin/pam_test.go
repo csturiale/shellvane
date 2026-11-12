@@ -105,7 +105,7 @@ func (f *fakePVWA) handler(t *testing.T) http.HandlerFunc {
 			}
 			w.Write([]byte(`{"value":[{"id":"1_1","userName":"other","address":"web"},{"id":"1_2","userName":"deploy","address":"WEB"}],"count":2}`))
 		case "/PasswordVault/API/Accounts/1_2/Password/Retrieve":
-			if !strings.Contains(string(body), "SSH to web") {
+			if !strings.Contains(string(body), "SSH to web") && !strings.Contains(string(body), "login of environment") {
 				t.Errorf("reason = %s", body)
 			}
 			w.Write([]byte(`"pw!"`))
@@ -149,6 +149,12 @@ func TestCyberArkPVWAKeepsTheSession(t *testing.T) {
 	clock = clock.Add(pvwaIdle + time.Minute)
 	if _, err := ca.Credentials(context.Background(), s, web); err != nil || f.logons != 3 {
 		t.Fatalf("idle session: %v, logons %d", err, f.logons)
+	}
+	// An environment's login: a directory account found by its user (any
+	// case) in the safe, its address unknown.
+	noReason := map[string]string{"url": srv.URL, "username": "alice", "password": "secret", "authMethod": "LDAP", "safe": "Linux"}
+	if cred, err := ca.Credentials(context.Background(), noReason, plugins.Target{User: "DEPLOY", Purpose: "login of environment GKE shop prd"}); err != nil || cred.Password != "pw!" {
+		t.Fatalf("by user only = %+v, %v", cred, err)
 	}
 	if _, err := ca.Credentials(context.Background(), s, plugins.Target{Hostname: "db", User: "root"}); err == nil || !strings.Contains(err.Error(), "root@db") {
 		t.Fatalf("no account: %v", err)

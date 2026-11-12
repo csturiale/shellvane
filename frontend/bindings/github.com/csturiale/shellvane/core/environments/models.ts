@@ -138,4 +138,11 @@ export interface Variable {
     "name": string;
     "default": string;
     "choices": string[] | null;
+
+    /**
+     * Personal values belong to each person (a sign-in email, a vault
+     * user): asked once and remembered on that computer, never stored in
+     * the environment, so exports and team shares carry only the name.
+     */
+    "personal"?: boolean;
 }

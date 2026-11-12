@@ -1,0 +1,9 @@
+<ng-container *transloco="let t; prefix: 'personal'">
+  <select class="remember" [attr.aria-label]="t('rememberNamed', { name: label() })" [title]="t('rememberHint')" [value]="value()" (change)="onChange($event)">
+    @if (allowNone()) {
+      <option value="none" [selected]="value() === 'none'">{{ t('none') }}</option>
+    }
+    <option value="global" [selected]="value() === 'global'">{{ t('global') }}</option>
+    <option value="here" [selected]="value() === 'here'">{{ t('here') }}</option>
+  </select>
+</ng-container>

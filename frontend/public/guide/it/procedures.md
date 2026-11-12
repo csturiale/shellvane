@@ -36,6 +36,8 @@ Un comando incollato o eseguito viene segnato come fatto: il contatore nell'inte
 
 Scrivi `<nome>` o `{{nome}}` in un comando, ad esempio `kubectl -n <namespace> rollout restart deploy/web`. La prima volta che usi un comando con un segnaposto, Shellvane ne chiede il valore; il valore riempie poi quel segnaposto in tutti i comandi della sorgente finché l'app resta aperta. **Valori dei segnaposto** nell'intestazione li modifica. Un valore lasciato vuoto mantiene il segnaposto com'è scritto.
 
+Un valore può anche essere ricordato come [valore personale](shellvane:topic/environments#personal), tenuto su questo computer anche dopo la chiusura dell'app: **Ricorda ovunque** riempie quel nome in ogni procedura, snippet e ambiente, **Solo qui** solo in questa sorgente. Le procedure da un repository Git condiviso funzionano così per tutti, ciascuno con i propri valori.
+
 ## Crea un runbook {#runbook}
 
 **Crea un runbook da questa procedura** trasforma i suoi comandi nei passi di un nuovo runbook (i segnaposto diventano variabili) e apre Automazione, dove scegli gli host e li esegui su molti server insieme ([Runbook](shellvane:topic/runbooks)).

@@ -170,3 +170,15 @@ button.icon {
     color: var(--danger);
   }
 }
+
+small.personal {
+  font-weight: normal;
+  color: var(--text-muted);
+}
+
+.var-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

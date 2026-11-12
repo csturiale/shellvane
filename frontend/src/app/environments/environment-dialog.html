@@ -20,10 +20,11 @@
             <input [name]="'vname' + i" spellcheck="false" class="mono" [(ngModel)]="v.name" [placeholder]="t('environments.varName')" [attr.aria-label]="t('environments.varName')" />
             <input [name]="'vdef' + i" spellcheck="false" [(ngModel)]="v.default" [placeholder]="t('environments.varDefault')" [attr.aria-label]="t('environments.varDefault')" />
             <input [name]="'vch' + i" spellcheck="false" [(ngModel)]="v.choices" [placeholder]="t('environments.varChoices')" [attr.aria-label]="t('environments.varChoices')" />
+            <label class="check personal" [title]="t('environments.personalHint')"><input [name]="'vp' + i" type="checkbox" [(ngModel)]="v.personal" /> {{ t('environments.personalTag') }}</label>
             <button type="button" class="btn small" [attr.aria-label]="t('environments.removeVar')" (click)="variables.splice(i, 1)">✕</button>
           </div>
         }
-        <button type="button" class="btn small add" (click)="variables.push({ name: '', default: '', choices: '' })">{{ t('environments.addVar') }}</button>
+        <button type="button" class="btn small add" (click)="variables.push({ name: '', default: '', choices: '', personal: false })">{{ t('environments.addVar') }}</button>
         <p class="hint">{{ hint.fill(t('environments.variablesHint', hint.params)) }}</p>
       </fieldset>
 
@@ -96,8 +97,8 @@
           </label>
           @if (secretSource) {
             <div class="row">
-              <input name="secretAddress" spellcheck="false" [(ngModel)]="secretAddress" placeholder="accounts.google.com" [attr.aria-label]="t('environments.secretAddress')" [title]="t('environments.secretAddress')" />
-              <input name="secretUser" spellcheck="false" [(ngModel)]="secretUser" placeholder="alice-admin@example.com" [attr.aria-label]="t('environments.secretUser')" [title]="t('environments.secretUser')" />
+              <input name="secretAddress" spellcheck="false" [(ngModel)]="secretAddress" [placeholder]="t('environments.secretAddress')" [attr.aria-label]="t('environments.secretAddress')" [title]="t('environments.secretAddress')" />
+              <input name="secretUser" spellcheck="false" [(ngModel)]="secretUser" placeholder="a123456" [attr.aria-label]="t('environments.secretUser')" [title]="t('environments.secretUser')" />
               <input name="secretSafe" spellcheck="false" [(ngModel)]="secretSafe" [placeholder]="t('environments.secretSafe')" [attr.aria-label]="t('environments.secretSafe')" [title]="t('environments.secretSafe')" />
             </div>
           }

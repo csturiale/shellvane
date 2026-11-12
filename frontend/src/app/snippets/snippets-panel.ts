@@ -2,7 +2,7 @@ import { NgComponentOutlet } from '@angular/common';
 import { Sharing } from '../extensions/sharing';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { LucideStore, LucideDownload, LucideListChecks, LucidePencil, LucidePlay, LucidePlus, LucideSearch, LucideSquareCode, LucideTrash2, LucideUpload } from '@lucide/angular';
+import { LucideStore, LucideDownload, LucideListChecks, LucidePencil, LucidePlay, LucidePlus, LucideSearch, LucideSquareCode, LucideTrash2, LucideUpload, LucideUserRound } from '@lucide/angular';
 
 import { toTranslatableError } from '../core/backend/errors';
 import { Snippet } from '../core/backend/snippet-api';
@@ -11,7 +11,9 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
 import { SnippetDialog } from './snippet-dialog';
 import { RunDialog } from './run-dialog';
 import { SnippetsStore } from './snippets.store';
-import { render, systemValues, toTerminalInput, userVariables } from './variables';
+import { render, snippetScope, systemValues, toTerminalInput, userVariables } from './variables';
+import { RunAnswer } from './run-dialog';
+import { PersonalValues } from '../core/personal-values';
 import { HelpLink } from '../guide/help-link';
 import { Navigation } from '../layout/navigation';
 import { RunbooksStore, newRunbook } from '../runbooks/runbooks.store';
@@ -23,7 +25,7 @@ type Pending = { snippet: Snippet; text: string; message: string };
 
 @Component({
   selector: 'app-snippets-panel',
-  imports: [NgComponentOutlet, GalleryDialog, HelpLink, TranslocoDirective, SnippetDialog, RunDialog, ConfirmDialog, LucidePlus, LucideStore, LucidePlay, LucideListChecks, LucidePencil, LucideTrash2, LucideSearch, LucideSquareCode, LucideDownload, LucideUpload],
+  imports: [NgComponentOutlet, GalleryDialog, HelpLink, TranslocoDirective, SnippetDialog, RunDialog, ConfirmDialog, LucidePlus, LucideStore, LucidePlay, LucideListChecks, LucidePencil, LucideTrash2, LucideSearch, LucideSquareCode, LucideDownload, LucideUpload, LucideUserRound],
   templateUrl: './snippets-panel.html',
   styleUrl: './snippets-panel.scss',
 })
@@ -36,6 +38,7 @@ export class SnippetsPanel {
   private readonly transloco = inject(TranslocoService);
   private readonly runbooks = inject(RunbooksStore);
   private readonly nav = inject(Navigation);
+  private readonly personal = inject(PersonalValues);
 
   /** Opens a one-step runbook with the snippet, to run it on several hosts. */
   protected runOnMany(s: Snippet): void {
@@ -64,7 +67,8 @@ export class SnippetsPanel {
   });
 
   protected readonly editing = signal<{ snippet: Snippet | null } | null>(null);
-  protected readonly asking = signal<Snippet | null>(null);
+  /** A snippet whose values are asked before a run, or (mine) only remembered. */
+  protected readonly asking = signal<{ snippet: Snippet; mine: boolean } | null>(null);
   protected readonly confirming = signal<Pending | null>(null);
   protected readonly deleting = signal<Snippet | null>(null);
   protected readonly message = signal<string | null>(null);
@@ -96,11 +100,33 @@ export class SnippetsPanel {
       this.message.set(this.transloco.translate('snippets.noTerminal'));
       return;
     }
-    if (userVariables(snippet.body).length > 0) {
-      this.asking.set(snippet);
+    // Personal values already remembered are not asked again.
+    const names = userVariables(snippet.body).map((v) => v.name);
+    const known = this.personal.resolve(names, snippetScope(snippet.id));
+    if (names.some((n) => known[n] === undefined)) {
+      this.asking.set({ snippet, mine: false });
       return;
     }
-    this.send(snippet, {});
+    this.send(snippet, known);
+  }
+
+  /** This person's remembered values of the snippet's variables. */
+  protected editMine(snippet: Snippet): void {
+    this.asking.set({ snippet, mine: true });
+  }
+
+  protected hasVariables(snippet: Snippet): boolean {
+    return userVariables(snippet.body).length > 0;
+  }
+
+  protected answer(a: { snippet: Snippet; mine: boolean }, answer: RunAnswer): void {
+    this.asking.set(null);
+    for (const [name, value] of Object.entries(answer.values)) {
+      this.personal.remember(name, value, answer.where[name] ?? 'none', snippetScope(a.snippet.id));
+    }
+    if (!a.mine) {
+      this.send(a.snippet, answer.values);
+    }
   }
 
   protected send(snippet: Snippet, values: Record<string, string>): void {
@@ -130,6 +156,7 @@ export class SnippetsPanel {
     this.deleting.set(null);
     if (s) {
       await this.store.delete(s.id).catch((err) => this.showError(err));
+      this.personal.clearScope(snippetScope(s.id));
     }
   }
 

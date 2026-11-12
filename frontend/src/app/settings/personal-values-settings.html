@@ -1,0 +1,22 @@
+<section *transloco="let t; read: 'personal'">
+  <h2>{{ t('title') }} <app-help-link topic="environments" anchor="personal" /></h2>
+  <div class="card">
+    <p class="hint">{{ t('settingsHint') }}</p>
+    @for (e of entries(); track e.name) {
+      <div class="row">
+        <label class="mono" [for]="'pv-' + e.name">{{ e.name }}</label>
+        <input [id]="'pv-' + e.name" spellcheck="false" [value]="e.value" (change)="change(e.name, $event)" />
+        <button type="button" class="icon" [attr.aria-label]="t('removeNamed', { name: e.name })" [title]="t('remove')" (click)="personal.forgetGlobal(e.name)">
+          <svg lucideTrash2 [size]="14"></svg>
+        </button>
+      </div>
+    } @empty {
+      <p class="hint">{{ t('empty') }}</p>
+    }
+    <form class="row" (ngSubmit)="add()">
+      <input name="pv-new-name" class="mono" spellcheck="false" pattern="[A-Za-z_][\w\-]*" [placeholder]="t('name')" [attr.aria-label]="t('name')" [(ngModel)]="newName" />
+      <input name="pv-new-value" spellcheck="false" [placeholder]="t('value')" [attr.aria-label]="t('value')" [(ngModel)]="newValue" />
+      <button type="submit" class="btn small" [disabled]="!newName.trim()">{{ t('add') }}</button>
+    </form>
+  </div>
+</section>

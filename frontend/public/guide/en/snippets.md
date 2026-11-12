@@ -8,6 +8,8 @@ Snippets are saved commands, organized in folders, sent to the focused pane (and
 - `{{env:dev|staging|prod}}` asks to choose one of the values.
 - `{{host}}`, `{{user}}`, `{{date}}` are filled in from the focused pane and the clock.
 
+When asked, each value can be remembered as a [personal value](shellvane:topic/environments#personal): **Remember everywhere** fills that name in every snippet, environment and procedure, **Only here** in this snippet alone. A snippet whose values are all remembered is sent without asking; **My values** (the person icon) changes them. Personal values stay on this computer: a shared snippet carries only the names.
+
 ## Send {#send}
 
 Click **Send** in the Snippets panel, or find the snippet in the command palette (`#` searches snippets only); a snippet with variables opens the Snippets panel and asks for them. **Run** presses Enter after the text; without it the command is only typed, for you to review.

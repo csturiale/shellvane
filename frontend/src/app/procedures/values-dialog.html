@@ -1,13 +1,17 @@
 <ng-container *transloco="let t">
   <app-modal [heading]="t('procedures.valuesTitle')" (closed)="closed.emit()">
-    <form id="proc-values" class="form" (ngSubmit)="done.emit(values)">
+    <form id="proc-values" class="form" (ngSubmit)="submit()">
       <p class="hint">{{ t('procedures.valuesHint') }}</p>
       @for (n of names(); track n) {
         <label class="field">
-          <span class="mono">{{ n }}</span>
+          <span class="var-head">
+            <span class="mono">{{ n }}</span>
+            <app-remember-select [label]="n" [(value)]="where[n]" />
+          </span>
           <input [name]="'v-' + n" spellcheck="false" [(ngModel)]="values[n]" />
         </label>
       }
+      <p class="hint">{{ t('personal.rememberHint') }}</p>
     </form>
     <ng-container modal-actions>
       <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
