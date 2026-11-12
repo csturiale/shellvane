@@ -71,7 +71,7 @@ La sessione non viene mai interrotta.
 
 ## Aspetto {#appearance}
 
-Impostazioni › Terminale imposta schema di colori, dimensione del carattere, cursore (blocco, barra, sottolineato, lampeggiante), righe di scrollback, copia alla selezione, conferma prima di incollare più righe e prima di chiudere tab con sessioni aperte, Option/Alt come Meta, Backspace come ^H e supporto screen reader. Gruppi e host possono sovrascrivere colori e dimensione, ad esempio uno schema rossastro per la produzione.
+Impostazioni › Terminale imposta schema di colori, dimensione del carattere, cursore (blocco, barra, sottolineato, lampeggiante), righe di scrollback, copia alla selezione, conferma prima di incollare più righe e prima di chiudere tab con sessioni aperte, Option/Alt come Meta, Backspace come ^H e supporto screen reader. Gruppi e host possono sovrascrivere colori e dimensione, ad esempio uno schema rossastro per la produzione. Nella conferma prima di incollare più righe, **Incolla, non chiedere più** la disattiva; la riattivi da qui.
 
 Impostazioni › Aspetto › **Dimensione dell'interfaccia** ingrandisce o rimpicciolisce testo e controlli di tutta l'app (80–150%); i terminali mantengono la dimensione del carattere scelta per loro.
 

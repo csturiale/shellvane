@@ -81,6 +81,12 @@ export interface Setting {
      */
     "secret": boolean;
     "required": boolean;
+
+    /**
+     * Kind is "file" or "folder" for a path on this computer (the settings
+     * offer the system's chooser), "" for text.
+     */
+    "kind"?: string;
 }
 
 /**

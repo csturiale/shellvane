@@ -71,7 +71,7 @@ The session is never interrupted.
 
 ## Appearance {#appearance}
 
-Settings › Terminal sets the color scheme, font size, cursor (block, bar, underline, blinking), scrollback length, copy on select, confirmation before multi-line pastes and before closing tabs with open sessions, Option/Alt as Meta, Backspace as ^H and screen reader support. Groups and hosts can override colors and font size, e.g. a red-tinted scheme for production.
+Settings › Terminal sets the color scheme, font size, cursor (block, bar, underline, blinking), scrollback length, copy on select, confirmation before multi-line pastes and before closing tabs with open sessions, Option/Alt as Meta, Backspace as ^H and screen reader support. Groups and hosts can override colors and font size, e.g. a red-tinted scheme for production. In the confirmation before a multi-line paste, **Paste, don't ask again** turns it off; turn it back on here.
 
 Settings › Appearance › **Interface size** makes the text and controls of the whole app larger or smaller (80–150%); terminals keep the font size chosen for them.
 

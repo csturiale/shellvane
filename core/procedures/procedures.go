@@ -156,6 +156,9 @@ func (l Library) List(src Source) ([]Doc, error) {
 		return nil, err
 	}
 	if _, err := os.Stat(root); err != nil {
+		if errors.Is(err, fs.ErrNotExist) && src.Kind == "folder" && filepath.Clean(src.Folder) == filepath.Clean(l.InboxDir()) {
+			return []Doc{}, nil // made with the first page received
+		}
 		return nil, errs.Wrap(err, ErrNotFound, errs.Params{"path": root})
 	}
 	docs := []Doc{}

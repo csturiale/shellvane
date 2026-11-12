@@ -82,7 +82,7 @@
     "localKubeContext": "context",
     "localKubeNamespace": "namespace",
     "kubeProd": "Production contexts",
-    "kubeProdHint": "Regular expression: matching contexts are shown in red.",
+    "kubeProdHint": "Regular expression (prod|prd by default): matching contexts are shown in red, and risky commands there ask first.",
     "broadcastSection": "Broadcast",
     "dangerous": "Dangerous commands",
     "dangerousHint": "One regular expression per line (case-insensitive). A command that matches asks for confirmation before it reaches several panes.",
@@ -106,7 +106,9 @@
     "browserAllPrivate": "In a private window",
     "browserAllLinks": "Open sign-in links printed in the terminal",
     "browserAllLinksHint": "For tools that print the link instead of opening the browser (--no-browser, device codes): Shellvane opens it in the browser above, at most 5 per terminal.",
-    "seconds": "s"
+    "seconds": "s",
+    "kubeProdConfirm": "Confirm risky commands in production",
+    "kubeProdConfirmHint": "Before Enter runs kubectl delete, drain, scale to 0, rollout restart, edit, patch… or helm upgrade, uninstall, rollback in a production context (the pane’s, or the one named with --context)."
   },
   "status": {
     "version": "Version {{version}} · {{os}}/{{arch}}",
@@ -390,7 +392,10 @@
     "cancel": "Cancel",
     "save": "Save",
     "close": "Close",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "chooseFile": "Choose a file",
+    "chooseFolder": "Choose a folder",
+    "browse": "Browse…"
   },
   "hosts": {
     "filter": "Filter hosts",
@@ -770,7 +775,8 @@
     "saveCreateVault": "Save in a new vault",
     "unlockKeychain": "Unlock with the system keychain",
     "unlockToSave": "Master password (unlocks the vault to save it)",
-    "createVaultHint": "The vault keeps passwords encrypted on this computer. Choose a master password of at least 8 characters."
+    "createVaultHint": "The vault keeps passwords encrypted on this computer. Choose a master password of at least 8 characters.",
+    "pasteAlways": "Paste, don't ask again"
   },
   "vault": {
     "title": "Vault",
@@ -1315,7 +1321,7 @@
     "rules": "Output rules",
     "audit": "Audit log",
     "rulesHint": "Rules watch terminal output line by line. They apply to sessions opened after a change.",
-    "auditHint": "Every automatic response is recorded here (never the secrets). Export it as CSV or JSON.",
+    "auditHint": "Every automatic response, runbook command and procedure command sent to a terminal is recorded here (never the secrets). Export it as CSV or JSON.",
     "newRule": "New rule",
     "editTitle": "Edit rule",
     "edit": "Edit",
@@ -1391,7 +1397,10 @@
     "apply": "Apply",
     "whereLocal": "kubectl and the kubeconfig of this computer. Applies only to this pane; in an environment with a tunnel, kubectl goes through the tunnel.",
     "whereRemote": "kubectl and the kubeconfig of the server this pane is connected to (its ~/.kube/config). Applies only to this pane: the server's kubeconfig is not changed.",
-    "reopens": "This pane was opened without a context of its own: applying reopens it (a tmux session is resumed)."
+    "reopens": "This pane was opened without a context of its own: applying reopens it (a tmux session is resumed).",
+    "riskyTitle": "Production: {{context}}",
+    "riskyMessage": "This command changes the production context {{context}}:\n\n{{command}}\n\nRun it?",
+    "riskyRun": "Run in production"
   },
   "guide": {
     "title": "Guide",
@@ -1570,7 +1579,12 @@
       "copyCode": "Copy the code",
       "copied": "Copied",
       "waiting": "If the vault opened in your browser: sign in there, then click the “Shellvane: vault session” bookmark."
-    }
+    },
+    "kubectlNamed": "kubectl on {{name}}",
+    "missingPersonal": "Your personal values are still missing for some environments: {{names}}.",
+    "fillMissing": "Fill them in",
+    "fillMissingTitle": "Your personal values",
+    "fillMissingHint": "Asked once, for every environment that uses them, and kept on this computer only. Leave a field empty to be asked when that environment starts."
   },
   "logs": {
     "title": "Logs and recordings",
@@ -2091,7 +2105,8 @@
       "uninstallTitle": "Uninstall plugin",
       "uninstallBuiltIn": "Uninstall {{name}}? Its panels disappear; it can be installed again at any time.",
       "uninstallExternal": "Uninstall {{name}} and delete its files?",
-      "publish": "Publish your plugin"
+      "publish": "Publish your plugin",
+      "chooseFolder": "Choose a plugin folder (with plugin.json)"
     },
     "vault": {
       "description": "Logins from HashiCorp Vault: an SSH certificate signed for a key made at each connection (SSH secrets engine), or a password from a KV secret."
@@ -2239,8 +2254,18 @@
       "pasteHint": "Select the page (or a part) in the browser, copy it and paste it here: headings, lists and code blocks are kept as Markdown.",
       "content": "Content (Markdown)",
       "pastePlaceholder": "Paste here…",
-      "save": "Save and open"
-    }
+      "save": "Save and open",
+      "fileTitle": "Import a file",
+      "fileHint": "A Word (.docx) or PDF document, or Markdown, HTML or text: headings, lists and tables are kept, and code styles or monospace text become command blocks with Paste and Run. Check the result below before saving.",
+      "chooseFile": "Choose a file…",
+      "reading": "Reading…",
+      "fileFailed": "{{name}} could not be read: {{detail}}"
+    },
+    "forEnv": "For {{name}}:",
+    "linkEnv": "Link to {{name}}: shown when one of its terminals is focused",
+    "unlinkEnv": "Linked to {{name}}: click to unlink",
+    "shareSource": "Share this repository with a team",
+    "sharedSource": "{{name}} is shared: every member finds it in Procedures."
   },
   "personal": {
     "title": "Personal values",
@@ -2258,5 +2283,30 @@
     "add": "Add",
     "remove": "Remove",
     "removeNamed": "Remove {{name}}"
+  },
+  "kubeForward": {
+    "title": "Port-forward on {{context}}",
+    "hint": "A service or running pod of the namespace {{namespace}}, reached as this terminal reaches the cluster (its tunnel and login). Shellvane keeps the forward up: when the pod is replaced it starts again by itself.",
+    "loading": "Reading services and pods…",
+    "filter": "Filter by name",
+    "targets": "Services and pods",
+    "none": "No service or pod with a port here.",
+    "remotePort": "Port in the cluster",
+    "localPort": "Port on this computer",
+    "anyPort": "Any free port",
+    "start": "Forward",
+    "menu": "Port-forward to a service or pod…",
+    "section": "Kubernetes port-forwards",
+    "stop": "Stop",
+    "stopNamed": "Stop the port-forward to {{name}}",
+    "kinds": {
+      "service": "service",
+      "pod": "pod"
+    },
+    "states": {
+      "starting": "starting",
+      "running": "running",
+      "restarting": "restarting"
+    }
   }
 }

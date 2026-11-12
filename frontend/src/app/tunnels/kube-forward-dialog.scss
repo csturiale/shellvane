@@ -1,0 +1,58 @@
+@use '../shared/form';
+
+.targets {
+  display: flex;
+  flex-direction: column;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.target {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+  &:hover {
+    background: var(--hover);
+  }
+  &.chosen {
+    background: var(--selection, var(--hover));
+    font-weight: 600;
+  }
+  .kind {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ports {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+}
+
+.ports-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mono {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}

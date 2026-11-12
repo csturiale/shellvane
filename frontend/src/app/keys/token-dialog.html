@@ -9,6 +9,7 @@
         <label for="token-module">{{ t('keys.token.module') }}</label>
         <div class="row-inline">
           <input id="token-module" name="module" class="mono" spellcheck="false" list="token-modules" [(ngModel)]="module" placeholder="/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so" />
+          <app-path-picker [current]="module" (picked)="module = $event" />
           <datalist id="token-modules">
             @for (m of modules(); track m) {
               <option [value]="m"></option>

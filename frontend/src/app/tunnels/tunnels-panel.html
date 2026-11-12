@@ -75,6 +75,37 @@
     }
   </div>
 
+  @if (kube.list().length > 0) {
+    <h3 class="section">{{ t('kubeForward.section') }}</h3>
+    <div class="list">
+      @for (f of kube.list(); track f.id) {
+        <div class="tunnel" [class]="f.state === 'running' ? 'running' : 'reconnecting'">
+          <div class="text">
+            <span class="name">
+              <span class="dot" [attr.aria-label]="t('kubeForward.states.' + f.state)"></span>
+              {{ f.kind }}/{{ f.name }}
+            </span>
+            <code>127.0.0.1:{{ f.localPort }} → {{ f.remotePort }}</code>
+            <span class="via">{{ f.label }} · {{ f.context }}{{ f.namespace ? ' / ' + f.namespace : '' }}</span>
+            @if (f.state !== 'running') {
+              <span class="error">{{ t('kubeForward.states.' + f.state) }}{{ f.restarts ? ' (' + f.restarts + ')' : '' }}{{ f.error ? ': ' + f.error : '' }}</span>
+            }
+          </div>
+          <span class="actions">
+            @if (f.state === 'running') {
+              <button type="button" class="icon" [attr.aria-label]="t('tunnels.openBrowserNamed', { name: f.name })" [title]="t('tunnels.openBrowser')" (click)="browseKube(f)">
+                <svg lucideExternalLink [size]="14" aria-hidden="true"></svg>
+              </button>
+            }
+            <button type="button" class="icon" [attr.aria-label]="t('kubeForward.stopNamed', { name: f.name })" [title]="t('kubeForward.stop')" (click)="stopKube(f.id)">
+              <svg lucideSquare [size]="12" aria-hidden="true"></svg>
+            </button>
+          </span>
+        </div>
+      }
+    </div>
+  }
+
   @if (editing(); as e) {
     <app-tunnel-dialog [tunnel]="e.tunnel" (closed)="editing.set(null)" />
   }

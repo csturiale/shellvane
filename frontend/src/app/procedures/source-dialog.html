@@ -22,7 +22,10 @@
       } @else {
         <label class="field">
           <span>{{ t('procedures.folder') }}</span>
-          <input name="folder" class="mono" spellcheck="false" [(ngModel)]="folder" placeholder="~/work/runbooks" />
+          <span class="path-field">
+            <input name="folder" class="mono" spellcheck="false" [(ngModel)]="folder" placeholder="~/work/runbooks" />
+            <app-path-picker kind="folder" [current]="folder" (picked)="folder = $event" />
+          </span>
         </label>
       }
       <label class="field">

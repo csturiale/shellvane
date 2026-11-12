@@ -35,3 +35,14 @@ h3 {
 textarea {
   resize: vertical;
 }
+
+.file-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.error {
+  color: var(--danger);
+}

@@ -7,6 +7,8 @@ import {
 } from '@angular/core';
 import { provideTransloco } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
+import { TRANSLOCO_TRANSPILER } from '@jsverse/transloco';
+import { SafeMessageFormatTranspiler } from './core/i18n/safe-transpiler';
 
 import { BundledTranslocoLoader } from './core/i18n/transloco-loader';
 import { AVAILABLE_LANGUAGES, SOURCE_LANGUAGE } from './core/i18n/languages';
@@ -29,6 +31,8 @@ export const appConfig: ApplicationConfig = {
     }),
     // ICU plurals and selects: {count, plural, one {...} other {...}}
     provideTranslocoMessageformat(),
+    // …with the user's text (commands, error details) kept as written.
+    { provide: TRANSLOCO_TRANSPILER, useClass: SafeMessageFormatTranspiler },
     provideAppInitializer(() => {
       inject(ThemeService).init();
       inject(LanguageService).init();

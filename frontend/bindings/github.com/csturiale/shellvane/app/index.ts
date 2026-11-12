@@ -5,6 +5,7 @@ import * as AppService from "./appservice.js";
 import * as AutomationService from "./automationservice.js";
 import * as ControlService from "./controlservice.js";
 import * as DiagnosticsService from "./diagnosticsservice.js";
+import * as DialogService from "./dialogservice.js";
 import * as DownloadsService from "./downloadsservice.js";
 import * as EnvironmentService from "./environmentservice.js";
 import * as FilesService from "./filesservice.js";
@@ -12,6 +13,7 @@ import * as GalleryService from "./galleryservice.js";
 import * as HostService from "./hostservice.js";
 import * as ImportService from "./importservice.js";
 import * as KeyService from "./keyservice.js";
+import * as KubeForwardService from "./kubeforwardservice.js";
 import * as LaunchService from "./launchservice.js";
 import * as MonitorService from "./monitorservice.js";
 import * as NetworkService from "./networkservice.js";
@@ -32,6 +34,7 @@ export {
     AutomationService,
     ControlService,
     DiagnosticsService,
+    DialogService,
     DownloadsService,
     EnvironmentService,
     FilesService,
@@ -39,6 +42,7 @@ export {
     HostService,
     ImportService,
     KeyService,
+    KubeForwardService,
     LaunchService,
     MonitorService,
     NetworkService,
@@ -75,7 +79,10 @@ export type {
     ImportSummary,
     Info,
     KeyUsage,
+    KubeForward,
+    KubeForwardSpec,
     KubeInfo,
+    KubeTarget,
     LocalOptions,
     LoginCheck,
     OpenOptions,

@@ -1,7 +1,7 @@
 import { Injectable, Injector, Type, inject } from '@angular/core';
 
 import { MenuItem } from '../shared/context-menu.service';
-import { CredentialSource, PaletteCommand, ShareKind, SharingProvider } from './extension';
+import { CredentialSource, PaletteCommand, ProcedureSourceInput, ShareKind, SharedProcedureSource, SharingProvider } from './extension';
 import { EXTENSIONS } from './extensions';
 
 /**
@@ -36,5 +36,13 @@ export class Sharing {
 
   credentialSources(): Promise<CredentialSource[]> {
     return this.provider?.credentialSources() ?? Promise.resolve([]);
+  }
+
+  procedureSources(): Promise<SharedProcedureSource[]> {
+    return this.provider?.procedureSources() ?? Promise.resolve([]);
+  }
+
+  procedureShareMenu(src: ProcedureSourceInput, run: (work: () => Promise<unknown>) => void): (MenuItem | null)[] {
+    return this.provider?.procedureShareMenu(src, run) ?? [];
   }
 }

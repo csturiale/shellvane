@@ -5,6 +5,7 @@ import { Environment, EnvironmentApi } from '../core/backend/environment-api';
 import { SessionsStore } from '../sessions/sessions.store';
 import { WorkspacesStore } from '../sessions/workspaces.store';
 import { TunnelsStore } from '../tunnels/tunnels.store';
+import { PersonalValues } from '../core/personal-values';
 import { EnvironmentsStore, expand, routeFor } from './environments.store';
 import { BrowserPrefs } from '../sessions/browser-prefs';
 
@@ -299,6 +300,38 @@ describe('EnvironmentsStore', () => {
     await store.recheckLogins();
     expect(store.stateOf('e1')).toBe('expired');
   }, 15000);
+
+  it('opens one more kubectl terminal of an environment that is up, or starts it', async () => {
+    const e = env({ gcloud: 'prd', tunnelIds: ['t1'], localKube: { context: 'shop-prd', namespace: 'argocd', tunnelId: 't1', terminals: 1 } });
+    api.list = async () => [e];
+    await store.load();
+    expect(store.isUp('e1')).toBe(false);
+    await store.openKubeTerminal(e); // not up: started, with its terminal
+    expect(store.isUp('e1')).toBe(true);
+    expect(opened.filter((o) => o.kind === 'local')).toHaveLength(1);
+    await store.openKubeTerminal(e);
+    const local = opened.filter((o) => o.kind === 'local');
+    expect(local).toHaveLength(2);
+    expect(local[1].extra).toMatchObject({ kube: { context: 'shop-prd', namespace: 'argocd' }, gcloud: 'prd', env: { id: 'e1' } });
+    expect(store.runOf('e1')!.panes).toHaveLength(2);
+  }, 15000);
+
+  it('lists the personal values still missing, by name, with their environments', async () => {
+    localStorage.clear();
+    const v = (name: string) => ({ name, default: '', choices: [], personal: true });
+    api.list = async () => [
+      env({ id: 'a', name: 'GKE shop prd', variables: [v('googleEmail'), v('cyberarkUser')] }),
+      env({ id: 'b', name: 'GKE pay prd', variables: [v('googleEmail'), { name: 'region', default: 'x', choices: [] }] }),
+    ];
+    await store.load();
+    expect(store.missingPersonal()).toEqual([
+      { name: 'googleEmail', envs: ['GKE shop prd', 'GKE pay prd'] },
+      { name: 'cyberarkUser', envs: ['GKE shop prd'] },
+    ]);
+    TestBed.inject(PersonalValues).setGlobal('googleEmail', 'me@corp.example');
+    expect(store.missingPersonal()).toEqual([{ name: 'cyberarkUser', envs: ['GKE shop prd'] }]);
+    localStorage.clear();
+  });
 
   it('stops with its last terminal, only the tunnels it started, and can undo', async () => {
     const e = env({ tunnelIds: ['t1', 't2'], localKube: { context: 'gke', namespace: '', tunnelId: 't1', terminals: 1 } });

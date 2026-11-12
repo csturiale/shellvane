@@ -4,11 +4,12 @@ import { TranslocoDirective } from '@jsverse/transloco';
 
 import { Modal } from '../shared/modal';
 import { SavedSource } from './procedures.store';
+import { PathPicker } from '../shared/path-picker';
 
 /** Adds or edits a source of procedures: a Git repository or a folder. */
 @Component({
   selector: 'app-procedure-source-dialog',
-  imports: [FormsModule, TranslocoDirective, Modal],
+  imports: [FormsModule, TranslocoDirective, Modal, PathPicker],
   templateUrl: './source-dialog.html',
   styleUrl: '../shared/form.scss',
 })

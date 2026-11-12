@@ -9,6 +9,7 @@ import { readPreference, writePreference } from '../core/preferences';
 import { HelpLink } from '../guide/help-link';
 import { Navigation } from '../layout/navigation';
 import { HostsStore } from '../hosts/hosts.store';
+import { PathPicker } from '../shared/path-picker';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { UsageStore } from '../core/usage/usage.store';
 import { VaultGate } from '../vault/vault-gate';
@@ -28,7 +29,7 @@ interface Draft {
  */
 @Component({
   selector: 'app-plugins-view',
-  imports: [TranslocoDirective, FormsModule, ConfirmDialog, HelpLink, LucidePuzzle, LucidePlus, LucideRefreshCw, LucideTrash2],
+  imports: [TranslocoDirective, FormsModule, ConfirmDialog, HelpLink, LucidePuzzle, LucidePlus, LucideRefreshCw, LucideTrash2, PathPicker],
   templateUrl: './plugins-view.html',
   styleUrl: './plugins-view.scss',
 })

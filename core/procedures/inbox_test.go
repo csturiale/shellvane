@@ -13,6 +13,13 @@ import (
 
 func TestInbox(t *testing.T) {
 	l := Library{Dir: t.TempDir()}
+	// Before the first page the folder does not exist: the inbox is empty.
+	if docs, err := l.List(l.Inbox()); err != nil || len(docs) != 0 {
+		t.Fatalf("empty inbox = %v, %v", docs, err)
+	}
+	if _, err := l.List(Source{Kind: "folder", Folder: filepath.Join(l.Dir, "missing")}); err == nil {
+		t.Fatal("another missing folder is still an error")
+	}
 	d, err := l.SaveInbox("Restart / web (prod)", "https://wiki.example.com/x?a=1", Marker+"\n\nIntro\n\n```sh\nls\n```")
 	if err != nil || d.Path != "Restart-web-prod.md" {
 		t.Fatalf("save = %+v, %v", d, err)

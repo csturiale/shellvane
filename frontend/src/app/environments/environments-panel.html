@@ -11,6 +11,29 @@
     </span>
   </header>
 
+  @if (missing().length > 0) {
+    <div class="missing" role="status">
+      <span>{{ t('environments.missingPersonal', { names: missingNames() }) }}</span>
+      <button type="button" class="btn small primary" (click)="fillMissing()">{{ t('environments.fillMissing') }}</button>
+    </div>
+  }
+  @if (fillingMissing()) {
+    <app-modal [heading]="t('environments.fillMissingTitle')" (closed)="fillingMissing.set(false)">
+      <form id="missing-form" class="form" (ngSubmit)="saveMissing()">
+        <p class="hint">{{ t('environments.fillMissingHint') }}</p>
+        @for (m of missing(); track m.name; let first = $first) {
+          <label class="field">
+            <span><span class="mono">{{ m.name }}</span> <small class="personal">· {{ m.envs.join(', ') }}</small></span>
+            <input [name]="'missing-' + m.name" spellcheck="false" [autofocus]="first" [(ngModel)]="missingValues[m.name]" />
+          </label>
+        }
+      </form>
+      <ng-container modal-actions>
+        <button type="button" class="btn" (click)="fillingMissing.set(false)">{{ t('common.cancel') }}</button>
+        <button type="submit" form="missing-form" class="btn primary">{{ t('common.save') }}</button>
+      </ng-container>
+    </app-modal>
+  }
   @if (message(); as m) {
     <p class="message" role="status">{{ m }}</p>
   }

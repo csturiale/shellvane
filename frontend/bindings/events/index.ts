@@ -24,6 +24,11 @@ export const FilesDropped = "files:dropped";
 export const FilesEdit = "files:edit";
 
 /**
+ * Name of the custom event "kube:forwards".
+ */
+export const KubeForwards = "kube:forwards";
+
+/**
  * Name of the custom event "procedures:received".
  */
 export const ProceduresReceived = "procedures:received";

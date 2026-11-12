@@ -10,6 +10,7 @@ describe('ProceduresStore', () => {
   beforeEach(() => {
     localStorage.removeItem('shellvane.procedures.sources');
     localStorage.removeItem('shellvane.procedures.current');
+    localStorage.removeItem('shellvane.procedures.envLinks');
     calls = [];
     TestBed.configureTestingModule({
       providers: [
@@ -54,5 +55,26 @@ describe('ProceduresStore', () => {
     expect(calls).toContain('sync git@example.com:ops.git');
     store.removeSource(store.current()!.id);
     expect(store.sources()).toEqual([]);
+  });
+  it('links procedures to an environment and opens them in their source', async () => {
+    store.addSource({ name: 'Ops', kind: 'git', url: 'git@example.com:ops.git', branch: '', folder: '' });
+    store.addSource({ name: 'Wiki', kind: 'folder', url: '', branch: '', folder: '/tmp/wiki' });
+    const [ops, wiki] = store.sources();
+    await store.select(ops.id);
+    await store.open('db/restore.md');
+    expect(store.isLinked('env-prd', 'db/restore.md')).toBe(false);
+    store.toggleLink('env-prd');
+    expect(store.isLinked('env-prd', 'db/restore.md')).toBe(true);
+    expect(store.linksOf('env-prd')).toEqual([{ sourceId: ops.id, path: 'db/restore.md', title: 'Restore' }]);
+    expect(JSON.parse(localStorage.getItem('shellvane.procedures.envLinks')!)['env-prd']).toHaveLength(1);
+
+    await store.select(wiki.id); // elsewhere: the link opens its own source
+    await store.openLink(store.linksOf('env-prd')[0]);
+    expect(store.current()?.id).toBe(ops.id);
+    expect(store.doc()?.path).toBe('db/restore.md');
+
+    store.toggleLink('env-prd');
+    expect(store.linksOf('env-prd')).toEqual([]);
+    expect(localStorage.getItem('shellvane.procedures.envLinks')).toBe('{}');
   });
 });

@@ -10,11 +10,12 @@ import { VaultStore } from '../vault/vault.store';
 import { UsageStore } from '../core/usage/usage.store';
 import { VaultGate } from '../vault/vault-gate';
 import { VaultUnlockButton } from '../vault/vault-unlock-button';
+import { PathPicker } from '../shared/path-picker';
 
 /** Sync section of the settings page. */
 @Component({
   selector: 'app-sync-settings',
-  imports: [VaultUnlockButton, FormsModule, TranslocoDirective, HelpLink],
+  imports: [VaultUnlockButton, FormsModule, TranslocoDirective, HelpLink, PathPicker],
   templateUrl: './sync-settings.html',
   styleUrls: ['../shared/form.scss', './sync-settings.scss'],
 })

@@ -1,0 +1,11 @@
+:host {
+  display: inline-flex;
+  flex: none;
+}
+
+.picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}

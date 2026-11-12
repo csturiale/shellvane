@@ -53,7 +53,7 @@ gcloud keeps its account, project and application default credentials in one con
 Every terminal an environment opens shows its badge in the header — the environment's name, and its state when it is not ready. When Shellvane restores the previous session, those terminals come back as plain shells: the environment then starts again on them by itself — login check (opening the login if needed), tunnels, kubectl route — without opening them twice. Until it is ready the badge says so, in red.
 
 - **Login expired**: the login check runs again every 5 minutes. When it fails (for example `gcloud` asks to authenticate again) the badge and the Environments panel say *login expired*: click the badge or **Log in again and resume**.
-- **One more terminal**: click a ready environment's badge, use **New terminal in this environment** in the pane menu, or the terminal button of the environment in the panel. It opens a local shell with the environment's kubectl context and tunnel (or its remote host when it has no local terminals). Open as many as you need.
+- **One more terminal**: click a ready environment's badge, use **New terminal in this environment** in the pane menu, or the terminal button of the environment in the panel. It opens a local shell with the environment's kubectl context and tunnel (or its remote host when it has no local terminals). Open as many as you need. From the command palette, **kubectl on GKE shop prd** (any environment with a local kubectl context) does the same, and starts the environment first when it is not up.
 - The variables the environment ran with are saved with the session, so a restore reuses them.
 - **Closing the last terminal** of a started environment stops it: the tunnels it started close, but not those already running before it, started at launch or used by another started environment. A notice offers **Undo** for a few seconds (login and tunnels again, without terminals). Environments that open no terminals keep running until **Stop**. Turn it off in **Settings › Sessions › Stop an environment with its last terminal**.
 
@@ -70,6 +70,8 @@ Next to each personal value, choose where it is remembered:
 
 - **Remember everywhere** (the default): the value is kept by name, and every environment, [snippet](shellvane:topic/snippets#variables) and [procedure](shellvane:topic/procedures#placeholders) that uses the same name gets it. Type `googleEmail` once and all your GKE environments have it.
 - **Only here**: this environment keeps its own value, which wins over the one used everywhere. Use it for a second account, e.g. `name@client.com` for one customer's clusters while the others keep `name@company.com`. Choosing **Remember everywhere** again drops it.
+
+When environments use personal values you have not given yet (for example after joining a team), the panel lists them and **Fill them in** asks them all at once.
 
 **Settings › Personal values** lists the values kept everywhere: change, add or remove them there. Deleting an environment forgets its own values only.
 

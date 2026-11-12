@@ -10,6 +10,21 @@
       </div>
       <p class="hint">{{ t('procedures.web.sendHow') }}</p>
 
+      <h3>{{ t('procedures.web.fileTitle') }}</h3>
+      <p class="hint">{{ t('procedures.web.fileHint') }}</p>
+      <div class="file-row">
+        <label class="btn small">
+          {{ t('procedures.web.chooseFile') }}
+          <input type="file" hidden accept=".docx,.pdf,.md,.markdown,.html,.htm,.txt" (change)="onFile($event)" />
+        </label>
+        @if (reading()) {
+          <span class="hint">{{ t('procedures.web.reading') }}</span>
+        }
+        @if (fileError(); as e) {
+          <span class="error" role="alert">{{ e }}</span>
+        }
+      </div>
+
       <h3>{{ t('procedures.web.pasteTitle') }}</h3>
       <p class="hint">{{ t('procedures.web.pasteHint') }}</p>
       <label class="field">

@@ -46,6 +46,16 @@ export function ExportAudit(format: string): $CancellablePromise<string> {
 }
 
 /**
+ * RecordProcedure adds to the audit log a command of a procedure sent to a
+ * terminal: action is "run" (Enter pressed) or "paste"; target names the
+ * terminal (host or environment), procedure the document. The command is
+ * kept on one line and shortened.
+ */
+export function RecordProcedure(action: string, target: string, procedure: string, command: string): $CancellablePromise<void> {
+    return $Call.ByID(1260562715, action, target, procedure, command);
+}
+
+/**
  * Rules lists every rule; they apply to sessions opened afterwards.
  */
 export function Rules(): $CancellablePromise<automation$0.Rule[] | null> {

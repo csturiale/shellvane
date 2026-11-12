@@ -7,9 +7,16 @@
         <button type="button" class="icon" [attr.aria-label]="t('procedures.sync')" [title]="t('procedures.sync')" [disabled]="store.loading()" (click)="store.load(true)">
           <svg lucideRefreshCw [size]="16" aria-hidden="true"></svg>
         </button>
+        @if (!store.isTeam()) {
         <button type="button" class="icon" [attr.aria-label]="t('procedures.editSource')" [title]="t('procedures.editSource')" (click)="editing.set(src)">
           <svg lucidePencil [size]="16" aria-hidden="true"></svg>
         </button>
+        }
+        @if (canShare(src)) {
+        <button type="button" class="icon" [attr.aria-label]="t('procedures.shareSource')" [title]="t('procedures.shareSource')" (click)="shareMenu($event, src)">
+          <svg lucideShare2 [size]="16" aria-hidden="true"></svg>
+        </button>
+        }
         }
       }
       <button type="button" class="icon" [attr.aria-label]="t('procedures.web.title')" [title]="t('procedures.web.title')" (click)="webOpen.set(true)">
@@ -27,6 +34,17 @@
         <option [value]="s.id" [selected]="s.id === store.current()?.id">{{ s.name }}</option>
       }
     </select>
+  }
+
+  @if (focusedEnv(); as env) {
+    @if (envLinks().length > 0) {
+      <nav class="env-links" [attr.aria-label]="t('procedures.forEnv', { name: env.name })">
+        <span class="label">{{ t('procedures.forEnv', { name: env.name }) }}</span>
+        @for (l of envLinks(); track l.sourceId + l.path) {
+          <button type="button" class="chip" [class.current]="store.doc()?.path === l.path && store.current()?.id === l.sourceId" (click)="store.openLink(l)">{{ l.title }}</button>
+        }
+      </nav>
+    }
   }
 
   @if (store.error(); as e) {
@@ -54,6 +72,19 @@
       @if (names().length > 0) {
         <button type="button" class="icon" [attr.aria-label]="t('procedures.values')" [title]="t('procedures.values')" (click)="editValues()">
           <svg lucideVariable [size]="16" aria-hidden="true"></svg>
+        </button>
+      }
+      @if (focusedEnv(); as env) {
+        <button
+          type="button"
+          class="icon"
+          [class.on]="store.isLinked(env.id, doc.path)"
+          [attr.aria-pressed]="store.isLinked(env.id, doc.path)"
+          [attr.aria-label]="t(store.isLinked(env.id, doc.path) ? 'procedures.unlinkEnv' : 'procedures.linkEnv', { name: env.name })"
+          [title]="t(store.isLinked(env.id, doc.path) ? 'procedures.unlinkEnv' : 'procedures.linkEnv', { name: env.name })"
+          (click)="store.toggleLink(env.id)"
+        >
+          <svg lucidePin [size]="16" aria-hidden="true"></svg>
         </button>
       }
       <button type="button" class="icon" [attr.aria-label]="t('procedures.reset')" [title]="t('procedures.reset')" (click)="store.resetDone()">

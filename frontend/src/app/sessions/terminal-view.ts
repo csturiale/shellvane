@@ -29,6 +29,10 @@ import { BUILTIN_HIGHLIGHTS, Highlighter } from '../terminal/highlighter';
 import { findScheme } from '../terminal/schemes';
 import { CommandTracker, OscNotification, parseOsc777, parseOsc9 } from '../terminal/osc';
 import { CommandHistory, LineTracker } from '../terminal/suggest';
+import { contextInCommand, isRiskyKubeCommand } from './prod-guard';
+import { KubeForwardDialog } from '../tunnels/kube-forward-dialog';
+import type { KubeScope } from '../tunnels/kube-forwards.store';
+import { SessionPrefs } from './session-prefs';
 import { BackendService } from '../core/backend/backend.service';
 import { UsageStore } from '../core/usage/usage.store';
 import { SnippetsStore } from '../snippets/snippets.store';
@@ -79,7 +83,7 @@ const REATTACH_DELAY_MS = 1000;
 /** One xterm.js terminal bound to one SSH session through a Wails stream. */
 @Component({
   selector: 'app-terminal-view',
-  imports: [TransferBar, TranslocoDirective, FormsModule, ConfirmDialog, Modal, HandshakeView, PortsMenu, MonitorMenu, LucideFolder, LucideX, LucideRadioTower, LucideSearch, LucideMaximize2, LucideMinimize2, LucideScrollText, LucideCircleDot, LucideFolderOpen, LucidePuzzle, LucideLayers, KubePicker, PluginPanel],
+  imports: [TransferBar, TranslocoDirective, FormsModule, ConfirmDialog, Modal, HandshakeView, PortsMenu, MonitorMenu, LucideFolder, LucideX, LucideRadioTower, LucideSearch, LucideMaximize2, LucideMinimize2, LucideScrollText, LucideCircleDot, LucideFolderOpen, LucidePuzzle, LucideLayers, KubePicker, PluginPanel, KubeForwardDialog],
   host: {
     '[class.narrow]': 'width() > 0 && width() < 460',
     '[class.tiny]': 'width() > 0 && width() < 300',
@@ -187,6 +191,7 @@ export class TerminalView {
     }
   }
   private readonly prefs = inject(TerminalPrefs);
+  private readonly sessionPrefs = inject(SessionPrefs);
   private readonly history = inject(CommandHistory);
   private readonly snippetsStore = inject(SnippetsStore);
   /** The command line being typed, for suggestions and history. */
@@ -224,6 +229,10 @@ export class TerminalView {
   protected readonly notice = signal<string | null>(null);
   /** Multi-line text waiting for confirmation before it is pasted. */
   protected readonly pendingPaste = signal<string | null>(null);
+  /** The cluster of this terminal, while its port-forward dialog is open. */
+  protected readonly forwarding = signal<KubeScope | null>(null);
+  /** A risky command held back in a production context: { command, context }. */
+  protected readonly pendingRisky = signal<{ command: string; context: string } | null>(null);
   protected readonly pasteLines = computed(() => (this.pendingPaste() ?? '').split(/\r?\n/).length);
   protected readonly address = computed(() => addressOf(this.pane()));
   protected readonly label = computed(() => labelOf(this.pane()));
@@ -403,6 +412,10 @@ export class TerminalView {
       if (ev.type === 'keydown' && (ev.key === 'ArrowRight' || (ev.key === 'Tab' && this.prefs.suggestionsTab())) && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && this.ghost?.suffix) {
         ev.preventDefault(); // Tab must not move the focus out of the terminal
         this.acceptSuggestion();
+        return false;
+      }
+      if (ev.type === 'keydown' && ev.key === 'Enter' && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && this.holdRisky()) {
+        ev.preventDefault();
         return false;
       }
       if (ev.type === 'keydown' && this.paneShortcut(ev)) {
@@ -670,6 +683,7 @@ export class TerminalView {
       p.env && this.envState() === 'ready' ? { label: 'environments.newTerminal', action: () => void this.environments.openTerminal(p.env!.id) } : null,
       p.env && this.envState() !== 'ready' && this.envState() !== 'starting' ? { label: 'environments.resume', action: () => void this.environments.resume(p.env!.id) } : null,
       ...this.menuExtensions.flatMap((c) => c.items({ selection: hasSelection ? (this.term?.getSelection() ?? '') : '', connected })),
+      this.kubeScope() ? { label: 'kubeForward.menu', disabled: !connected, action: () => this.forwarding.set(this.kubeScope()) } : null,
       { label: 'sessions.search', action: () => this.openSearch() },
       p.source.kind === 'host' && connected ? { label: 'plugins.panel.open', action: () => this.pluginsOpen.set(true) } : null,
       p.cwd && p.source.kind !== 'target' ? { label: 'sessions.openFolder', action: () => this.openFolder() } : null,
@@ -738,6 +752,68 @@ export class TerminalView {
       this.term?.paste(text);
     }
     this.term?.focus();
+  }
+
+  /**
+   * The cluster this local terminal reaches (its context, namespace and
+   * the environment's route and gcloud profile), for a port-forward; null
+   * for a remote terminal or one without a context.
+   */
+  private kubeScope(): KubeScope | null {
+    const p = this.pane();
+    const sel = p.kubeOverride ?? (p.kube?.context ? { context: p.kube.context, namespace: p.kube.namespace ?? '' } : null);
+    if (!p.local || !sel?.context) {
+      return null;
+    }
+    const gcloud = p.source.kind === 'local' ? (p.source.gcloud ?? '') : '';
+    return { selection: sel, gcloud, label: p.env?.name ?? sel.context };
+  }
+
+  /**
+   * Holds Enter back when the command on the line is a risky kubectl or
+   * helm one and the pane's context (or the one the command names) is a
+   * production context: a confirmation decides.
+   */
+  private holdRisky(): boolean {
+    if (!this.sessionPrefs.kubeProdConfirm() || this.pendingRisky()) {
+      return false;
+    }
+    const term = this.term;
+    if (!term || term.buffer.active.type !== 'normal') {
+      return false; // vim, less, a pager: Enter is theirs
+    }
+    let command = this.line.clean ? this.line.line : '';
+    if (!command) {
+      // Edited with arrows or a recalled command: the line as drawn.
+      const buf = term.buffer.active;
+      command = buf.getLine(buf.baseY + buf.cursorY)?.translateToString(true) ?? '';
+    }
+    if (!isRiskyKubeCommand(command)) {
+      return false;
+    }
+    const context = contextInCommand(command) || this.pane().kube?.context || '';
+    if (!this.sessionPrefs.isProd(context)) {
+      return false;
+    }
+    this.pendingRisky.set({ command: command.trim(), context });
+    return true;
+  }
+
+  protected runRisky(): void {
+    this.pendingRisky.set(null);
+    this.term?.input('\r', true);
+    this.term?.focus();
+  }
+
+  protected cancelRisky(): void {
+    this.pendingRisky.set(null);
+    this.term?.focus();
+  }
+
+  /** Pastes, and stops asking (Settings › Terminal turns it back on). */
+  protected pasteAlways(): void {
+    this.prefs.set('confirmPaste', false);
+    this.confirmPaste();
   }
 
   protected cancelPaste(): void {

@@ -190,6 +190,13 @@
       </div>
       <input id="kube-prod" spellcheck="false" [value]="sessionPrefs.kubeProdPattern()" (change)="sessionPrefs.setKubeProdPattern($any($event.target).value)" />
     </div>
+    <div class="row">
+      <div class="label">
+        <label for="kube-prod-confirm">{{ t('kubeProdConfirm') }}</label>
+        <small>{{ t('kubeProdConfirmHint') }}</small>
+      </div>
+      <input id="kube-prod-confirm" type="checkbox" [checked]="sessionPrefs.kubeProdConfirm()" (change)="sessionPrefs.setKubeProdConfirm($any($event.target).checked)" />
+    </div>
   </section>
 
   <section>

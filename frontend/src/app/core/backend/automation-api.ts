@@ -27,6 +27,10 @@ export class AutomationApi {
   exportAudit(format: 'csv' | 'json'): Promise<string> {
     return AutomationService.ExportAudit(format);
   }
+  /** Records a procedure's command sent to a terminal ("run" or "paste"). */
+  recordProcedure(action: 'run' | 'paste', target: string, procedure: string, command: string): Promise<void> {
+    return AutomationService.RecordProcedure(action, target, procedure, command);
+  }
   clearAudit(): Promise<void> {
     return AutomationService.ClearAudit();
   }

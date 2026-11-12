@@ -47,6 +47,24 @@ export interface SharingProvider {
   paletteCommands(): PaletteCommand[];
   /** Logins hosts can use. */
   credentialSources(): Promise<CredentialSource[]>;
+  /** Git repositories of procedures the teams share. */
+  procedureSources(): Promise<SharedProcedureSource[]>;
+  /** Menu entries to share a repository of procedures with a team. */
+  procedureShareMenu(src: ProcedureSourceInput, run: (work: () => Promise<unknown>) => void): (MenuItem | null)[];
+}
+
+/** A Git repository of procedures, as shared with a team. */
+export interface ProcedureSourceInput {
+  name: string;
+  url: string;
+  branch: string;
+  folder: string;
+}
+
+/** A repository of procedures a team shares (key: unique, stable). */
+export interface SharedProcedureSource extends ProcedureSourceInput {
+  key: string;
+  team: string;
 }
 
 /**

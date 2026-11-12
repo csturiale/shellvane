@@ -279,6 +279,54 @@ export interface KeyUsage {
 }
 
 /**
+ * KubeForward is a running port-forward as the UI shows it.
+ */
+export interface KubeForward {
+    "id": string;
+    "context": string;
+    "namespace": string;
+    "kind": string;
+    "name": string;
+    "remotePort": number;
+    "localPort": number;
+    "label": string;
+
+    /**
+     * State is "starting", "running" or "restarting" (kubectl ended, e.g.
+     * the pod was replaced: it starts again by itself).
+     */
+    "state": string;
+    "error": string;
+    "restarts": number;
+}
+
+/**
+ * KubeForwardSpec is what to forward: a target of a cluster (the
+ * selection carries the context, namespace and the environment's route).
+ */
+export interface KubeForwardSpec {
+    "selection": kube$0.Selection;
+
+    /**
+     * the environment's gcloud profile, "" for none
+     */
+    "gcloud": string;
+    "kind": string;
+    "name": string;
+    "remotePort": number;
+
+    /**
+     * 0: a free one
+     */
+    "localPort": number;
+
+    /**
+     * e.g. the environment's name
+     */
+    "label": string;
+}
+
+/**
  * KubeInfo is a pane's kubectl context. Live means it can be switched
  * without reopening the pane.
  */
@@ -286,6 +334,18 @@ export interface KubeInfo {
     "context": string;
     "namespace": string;
     "live": boolean;
+}
+
+/**
+ * KubeTarget is a service or a running pod that can be forwarded to.
+ */
+export interface KubeTarget {
+    /**
+     * "service" or "pod"
+     */
+    "kind": string;
+    "name": string;
+    "ports": number[] | null;
 }
 
 /**

@@ -12,6 +12,8 @@ import { describeTunnel } from './describe';
 import { openUrl } from '../core/browser';
 import { TunnelDialog } from './tunnel-dialog';
 import { TunnelsStore } from './tunnels.store';
+import { KubeForwardsStore } from './kube-forwards.store';
+import type { KubeForward } from '../core/backend/kube-forward-api';
 import { HelpLink } from '../guide/help-link';
 
 @Component({
@@ -22,6 +24,7 @@ import { HelpLink } from '../guide/help-link';
 })
 export class TunnelsPanel {
   protected readonly store = inject(TunnelsStore);
+  protected readonly kube = inject(KubeForwardsStore);
   private readonly hosts = inject(HostsStore);
   private readonly language = inject(LanguageService);
   private readonly transloco = inject(TranslocoService);
@@ -34,9 +37,20 @@ export class TunnelsPanel {
 
   constructor() {
     void this.store.load().catch((err) => this.showError(err));
+    void this.kube.load().catch(() => undefined);
     if (!this.hosts.loaded()) {
       void this.hosts.load().catch(() => undefined);
     }
+  }
+
+  /** Opens a forwarded web port: https for 443 and 8443, http otherwise. */
+  protected browseKube(f: KubeForward): void {
+    const https = f.remotePort === 443 || f.remotePort === 8443;
+    void openUrl(`${https ? 'https' : 'http'}://127.0.0.1:${f.localPort}/`);
+  }
+
+  protected stopKube(id: string): void {
+    void this.kube.stop(id).catch((err) => this.showError(err));
   }
 
   protected bytes(n: number): string {

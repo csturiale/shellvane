@@ -86,7 +86,7 @@ func (Ansible) Manifest() plugins.Manifest {
 		ID: "ansible-inventory", Name: "Ansible inventory", Version: "1", Description: "plugins.ansible.description", BuiltIn: true,
 		Capabilities: []string{plugins.CapInventory}, Requires: []string{"ansible-inventory"},
 		Settings: []plugins.Setting{
-			{Key: "inventory", Label: "plugins.settings.ansibleInventory", Placeholder: "~/infra/inventory.yml", Required: true},
+			{Key: "inventory", Label: "plugins.settings.ansibleInventory", Placeholder: "~/infra/inventory.yml", Required: true, Kind: "file"},
 		},
 	}
 }
@@ -189,7 +189,7 @@ func (Terraform) Manifest() plugins.Manifest {
 		ID: "terraform-state", Name: "Terraform state", Version: "1", Description: "plugins.terraform.description", BuiltIn: true,
 		Capabilities: []string{plugins.CapInventory}, Requires: []string{"terraform"},
 		Settings: []plugins.Setting{
-			{Key: "dir", Label: "plugins.settings.terraformDir", Placeholder: "~/infra/prod", Required: true},
+			{Key: "dir", Label: "plugins.settings.terraformDir", Placeholder: "~/infra/prod", Required: true, Kind: "folder"},
 			addressSetting,
 			{Key: "user", Label: "plugins.settings.user"},
 		},

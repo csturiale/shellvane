@@ -1,7 +1,7 @@
 import { Component, ElementRef, Injector, afterRenderEffect, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { LucideArrowLeft, LucideLink, LucidePencil, LucidePlus, LucideRefreshCw, LucideRotateCcw, LucideSearch, LucideTrash2, LucideVariable, LucideWorkflow } from '@lucide/angular';
+import { LucideArrowLeft, LucideLink, LucidePin, LucidePencil, LucidePlus, LucideShare2, LucideRefreshCw, LucideRotateCcw, LucideSearch, LucideTrash2, LucideVariable, LucideWorkflow } from '@lucide/angular';
 
 import { DangerousCommands } from '../broadcast/dangerous-commands';
 import { writeClipboard } from '../core/clipboard';
@@ -16,6 +16,9 @@ import { SourceDialog } from './source-dialog';
 import { ValuesAnswer, ValuesDialog } from './values-dialog';
 import { PersonalValues } from '../core/personal-values';
 import { WebPageDialog } from './web-page-dialog';
+import { AutomationApi } from '../core/backend/automation-api';
+import { Sharing } from '../extensions/sharing';
+import { ContextMenuService } from '../shared/context-menu.service';
 
 /**
  * Procedures beside the terminals: Markdown from a Git repository or a
@@ -40,6 +43,8 @@ import { WebPageDialog } from './web-page-dialog';
     LucideRotateCcw,
     LucideSearch,
     LucideVariable,
+    LucidePin,
+    LucideShare2,
     LucideWorkflow,
   ],
   templateUrl: './procedures-panel.html',
@@ -49,11 +54,14 @@ export class ProceduresPanel {
   protected readonly store = inject(ProceduresStore);
   private readonly personal = inject(PersonalValues);
   private readonly sessions = inject(SessionsStore);
+  private readonly automation = inject(AutomationApi);
   private readonly danger = inject(DangerousCommands);
   private readonly transloco = inject(TranslocoService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly injector = inject(Injector);
   private readonly nav = inject(Navigation);
+  private readonly sharing = inject(Sharing);
+  private readonly menu = inject(ContextMenuService);
 
   protected readonly filter = signal('');
   protected readonly editing = signal<SavedSource | 'new' | null>(null);
@@ -61,6 +69,13 @@ export class ProceduresPanel {
   protected readonly confirming = signal<{ text: string; run: boolean; index: number; message: string } | null>(null);
   protected readonly message = signal<string | null>(null);
   protected readonly webOpen = signal(false);
+  /** The environment of the focused terminal, for its linked procedures. */
+  protected readonly focusedEnv = computed(() => this.sessions.focused()?.env ?? null);
+  protected readonly envLinks = computed(() => {
+    const env = this.focusedEnv();
+    this.store.links(); // follows changes
+    return env ? this.store.linksOf(env.id) : [];
+  });
   private readonly article = viewChild<ElementRef<HTMLElement>>('article');
 
   protected readonly rendered = computed(() => {
@@ -84,6 +99,11 @@ export class ProceduresPanel {
   });
 
   constructor() {
+    // Repositories shared by the user's teams (none without the team extension).
+    void this.sharing.procedureSources().then(
+      (list) => this.store.teamSources.set(list),
+      () => undefined,
+    );
     void this.store.loadInbox(this.transloco.translate('procedures.inbox')).then(() => {
       if (this.store.current() && this.store.docs().length === 0 && !this.store.loading() && !this.nav.procedure()) {
         void this.store.load();
@@ -111,6 +131,23 @@ export class ProceduresPanel {
   protected async saveWeb(page: { title: string; markdown: string }): Promise<void> {
     this.webOpen.set(false);
     await this.store.saveInbox(page.title, '', page.markdown).catch((err) => this.message.set(String(err?.message ?? err)));
+  }
+
+  /** The teams a Git source can be shared with (none without the team extension). */
+  protected shareMenu(ev: MouseEvent, src: SavedSource): void {
+    const items = this.sharing.procedureShareMenu({ name: src.name, url: src.url ?? '', branch: src.branch ?? '', folder: src.folder ?? '' }, (work) => {
+      void work().then(
+        () => this.message.set(this.transloco.translate('procedures.sharedSource', { name: src.name })),
+        (err) => this.message.set(String((err as { message?: string })?.message ?? err)),
+      );
+    });
+    if (items.length > 0) {
+      this.menu.open(ev, items);
+    }
+  }
+
+  protected canShare(src: SavedSource): boolean {
+    return src.kind === 'git' && !this.store.isTeam() && this.sharing.procedureShareMenu({ name: '', url: '', branch: '', folder: '' }, () => undefined).length > 0;
   }
 
   protected onSource(ev: Event): void {
@@ -183,8 +220,15 @@ export class ProceduresPanel {
   }
 
   /** Values of names: typed in this session first, then personal ones. */
+  /**
+   * Values of names: typed in this session first, then those of the
+   * environment the focused terminal belongs to (its variables, e.g. a
+   * namespace or a project), then the personal ones.
+   */
   private values(names: string[]): Record<string, string> {
-    return { ...this.personal.resolve(names, this.scope()), ...nonEmpty(this.store.values()) };
+    const env = this.sessions.focused()?.env?.values ?? {};
+    const fromEnv = Object.fromEntries(names.filter((n) => env[n]).map((n) => [n, env[n]]));
+    return { ...this.personal.resolve(names, this.scope()), ...fromEnv, ...nonEmpty(this.store.values()) };
   }
 
   protected answer(answer: ValuesAnswer): void {
@@ -217,8 +261,15 @@ export class ProceduresPanel {
 
   protected deliver(text: string, run: boolean, index: number): void {
     this.confirming.set(null);
+    const focused = this.sessions.focused();
     const count = this.sessions.sendToFocused(toTerminalInput(text, run));
     this.store.markDone(index);
+    // The audit log keeps what was sent where (Automation › Audit log).
+    const doc = this.store.doc();
+    if (focused && doc) {
+      const where = [focused.env?.name, focused.title].filter(Boolean).join(' · ') + (count > 1 ? ` (+${count - 1})` : '');
+      void this.automation.recordProcedure(run ? 'run' : 'paste', where, doc.title || doc.path, text).catch(() => undefined);
+    }
     this.message.set(count > 1 ? this.transloco.translate('snippets.sentTo', { count }) : null);
   }
 

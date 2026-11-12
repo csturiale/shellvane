@@ -37,6 +37,9 @@ type Setting struct {
 	Placeholder string `json:"placeholder"` // an example value
 	Secret      bool   `json:"secret"`      // kept in the vault
 	Required    bool   `json:"required"`
+	// Kind is "file" or "folder" for a path on this computer (the settings
+	// offer the system's chooser), "" for text.
+	Kind string `json:"kind,omitempty"`
 }
 
 // Manifest describes a plugin.

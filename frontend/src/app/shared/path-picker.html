@@ -1,0 +1,15 @@
+<button
+  *transloco="let t"
+  type="button"
+  class="btn small picker"
+  [title]="t(kind() === 'folder' ? 'common.chooseFolder' : 'common.chooseFile')"
+  [attr.aria-label]="t(kind() === 'folder' ? 'common.chooseFolder' : 'common.chooseFile')"
+  (click)="choose()"
+>
+  @if (kind() === 'folder') {
+    <svg lucideFolderOpen [size]="14" aria-hidden="true"></svg>
+  } @else {
+    <svg lucideFile [size]="14" aria-hidden="true"></svg>
+  }
+  {{ t('common.browse') }}
+</button>

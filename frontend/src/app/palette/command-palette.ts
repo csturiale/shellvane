@@ -186,13 +186,14 @@ export class CommandPalette {
         void this.sessions.openTarget(serialSpec(port));
       },
     }));
-    // Environments with variables ask for them in their panel.
+    // Environments with values to ask (personal ones not known yet, shared
+    // ones) ask for them in their panel.
     const environmentCommands: Command[] = this.environments.list().map((e) => ({
       group: 'action',
       label: t('environments.startNamed', { name: e.name }),
       detail: 'environment',
       run: () => {
-        if ((e.variables ?? []).length > 0) {
+        if (this.environments.needsValues(e)) {
           this.nav.view.set('environments');
         } else {
           leave();
@@ -200,6 +201,24 @@ export class CommandPalette {
         }
       },
     }));
+    // Straight to a cluster: another kubectl terminal of an environment
+    // that is up, or the environment started.
+    const kubeCommands: Command[] = this.environments
+      .list()
+      .filter((e) => !!e.localKube?.context)
+      .map((e) => ({
+        group: 'action',
+        label: t('environments.kubectlNamed', { name: e.name }),
+        detail: `kubectl ${e.localKube.context}${this.environments.isUp(e.id) ? '' : ' (starts)'}`,
+        run: () => {
+          if (!this.environments.isUp(e.id) && this.environments.needsValues(e)) {
+            this.nav.view.set('environments');
+            return;
+          }
+          leave();
+          void this.environments.openKubeTerminal(e);
+        },
+      }));
     const tab = this.sessions.active();
     const actions: Command[] = [
       { group: 'action', label: t('hosts.actions.newHost'), detail: '', run: () => this.nav.ask('hosts', 'newHost') },
@@ -238,7 +257,7 @@ export class CommandPalette {
         { group: 'action', label: t('sessions.closeTab'), detail: '', run: () => void this.sessions.closeTab(tab.key) },
       );
     }
-    return [...hostCommands, ...snippetCommands, ...environmentCommands, ...localCommands, ...serialCommands, ...workspaceCommands, ...actions];
+    return [...hostCommands, ...snippetCommands, ...kubeCommands, ...environmentCommands, ...localCommands, ...serialCommands, ...workspaceCommands, ...actions];
   }
 
   protected onInput(ev: Event): void {

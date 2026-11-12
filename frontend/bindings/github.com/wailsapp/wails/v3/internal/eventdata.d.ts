@@ -18,6 +18,7 @@ declare module "@wailsio/runtime" {
             "app:open": app$0.OpenRequest;
             "files:dropped": app$0.DroppedFiles;
             "files:edit": app$0.FileEdit;
+            "kube:forwards": app$0.KubeForward[] | null;
             "procedures:received": string;
             "runbook:cell": app$0.RunbookCell;
             "runbook:done": app$0.RunbookDone;

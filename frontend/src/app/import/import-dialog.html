@@ -15,7 +15,10 @@
             @if (s.kind !== 'registry') {
               <label class="field">
                 <span>{{ t(s.kind === 'file' ? 'import.file' : 'import.folder') }}</span>
-                <input name="path" spellcheck="false" class="mono" [(ngModel)]="path" [placeholder]="t('import.pathPlaceholder.' + s.id)" />
+                <span class="path-field">
+                  <input name="path" spellcheck="false" class="mono" [(ngModel)]="path" [placeholder]="t('import.pathPlaceholder.' + s.id)" />
+                  <app-path-picker [kind]="s.kind === 'file' ? 'file' : 'folder'" [current]="path" (picked)="path = $event" />
+                </span>
               </label>
             }
             <p class="hint">{{ t('import.hints.' + s.id) }}</p>

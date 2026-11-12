@@ -33,7 +33,10 @@
                 }
                 <label class="field">
                   <span>{{ t('sync.folder') }}</span>
-                  <input name="folder" class="mono" spellcheck="false" [(ngModel)]="folder" [placeholder]="t('sync.folderPlaceholder')" />
+                  <span class="path-field">
+                    <input name="folder" class="mono" spellcheck="false" [(ngModel)]="folder" [placeholder]="t('sync.folderPlaceholder')" />
+                    <app-path-picker kind="folder" [current]="folder" (picked)="folder = $event" />
+                  </span>
                 </label>
               }
               @case ('webdav') {

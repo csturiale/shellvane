@@ -7,11 +7,12 @@ import { KeyApi, Token, TokenKey } from '../core/backend/key-api';
 import { HelpLink } from '../guide/help-link';
 import { Modal } from '../shared/modal';
 import { VaultGate } from '../vault/vault-gate';
+import { PathPicker } from '../shared/path-picker';
 
 /** Adds a key that lives on a hardware token (YubiKey, smart card) through its PKCS#11 module. */
 @Component({
   selector: 'app-token-dialog',
-  imports: [FormsModule, HelpLink, Modal, TranslocoDirective],
+  imports: [FormsModule, HelpLink, Modal, TranslocoDirective, PathPicker],
   templateUrl: './token-dialog.html',
   styleUrls: ['../shared/form.scss', './token-dialog.scss'],
 })

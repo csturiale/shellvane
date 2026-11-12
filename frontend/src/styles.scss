@@ -226,3 +226,15 @@ app-settings-page .row > input[type='checkbox']:focus-visible {
     transition: none;
   }
 }
+
+/* A field taking a path on this computer, with the chooser button (app-path-picker) on its right. */
+.path-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  > input {
+    flex: 1;
+    min-width: 0;
+  }
+}

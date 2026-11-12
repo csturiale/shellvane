@@ -439,6 +439,42 @@ export class EnvironmentsStore {
   }
 
   /** Goes on without waiting for the login check (it may never pass). */
+  /**
+   * Personal values not known yet, by name, with the environments that
+   * use them: what a new member (or a newly shared environment) still needs.
+   */
+  missingPersonal(): { name: string; envs: string[] }[] {
+    this.personal.global(); // follows changes
+    this.personal.version();
+    const out = new Map<string, string[]>();
+    for (const env of this.list()) {
+      const known = this.personalValues(env);
+      for (const v of env.variables ?? []) {
+        if (v.personal && !known[v.name]) {
+          out.set(v.name, [...(out.get(v.name) ?? []), env.name]);
+        }
+      }
+    }
+    return [...out.entries()].map(([name, envs]) => ({ name, envs }));
+  }
+
+  /** Whether the environment is up and ready for one more terminal. */
+  isUp(envId: string): boolean {
+    return this.stateOf(envId) === 'ready';
+  }
+
+  /**
+   * One more terminal on the environment's cluster (openTerminal), or the
+   * environment started when it is not up, which opens its terminals.
+   */
+  async openKubeTerminal(env: Environment): Promise<void> {
+    if (this.isUp(env.id) && this.list().some((x) => x.id === env.id)) {
+      await this.openTerminal(env.id);
+      return;
+    }
+    await this.start(env, {});
+  }
+
   /** Goes on without the login secret's password (typed or copied by hand). */
   skipSecret(envId: string): void {
     this.runOf(envId)?.skipSecret?.();

@@ -12,7 +12,9 @@ export class SessionPrefs {
   readonly localKubeContext = signal(readPreference('local.kubeContext') ?? '');
   readonly localKubeNamespace = signal(readPreference('local.kubeNamespace') ?? '');
   /** Contexts matching this regex get a red badge. */
-  readonly kubeProdPattern = signal(readPreference('kube.prodPattern') ?? 'prod');
+  readonly kubeProdPattern = signal(readPreference('kube.prodPattern') ?? 'prod|prd');
+  /** Risky kubectl/helm commands in a production context ask before Enter. */
+  readonly kubeProdConfirm = signal(readPreference('kube.prodConfirm') !== 'false');
 
   setAutoReconnect(on: boolean): void {
     this.autoReconnect.set(on);
@@ -31,6 +33,11 @@ export class SessionPrefs {
   setKubeProdPattern(pattern: string): void {
     this.kubeProdPattern.set(pattern);
     writePreference('kube.prodPattern', pattern);
+  }
+
+  setKubeProdConfirm(on: boolean): void {
+    this.kubeProdConfirm.set(on);
+    writePreference('kube.prodConfirm', String(on));
   }
 
   /** Whether a context looks like production. */

@@ -82,7 +82,7 @@
     "localKubeContext": "contesto",
     "localKubeNamespace": "namespace",
     "kubeProd": "Contesti di produzione",
-    "kubeProdHint": "Espressione regolare: i contesti corrispondenti sono mostrati in rosso.",
+    "kubeProdHint": "Espressione regolare (prod|prd per default): i contesti che corrispondono sono mostrati in rosso, e lì i comandi rischiosi chiedono conferma.",
     "broadcastSection": "Broadcast",
     "dangerous": "Comandi pericolosi",
     "dangerousHint": "Un'espressione regolare per riga (senza distinzione tra maiuscole e minuscole). Un comando che corrisponde chiede conferma prima di raggiungere più pannelli.",
@@ -106,7 +106,9 @@
     "browserAllPrivate": "In una finestra privata",
     "browserAllLinks": "Apri i link di accesso stampati nel terminale",
     "browserAllLinksHint": "Per gli strumenti che stampano il link invece di aprire il browser (--no-browser, codici dispositivo): Shellvane lo apre nel browser qui sopra, al massimo 5 per terminale.",
-    "seconds": "s"
+    "seconds": "s",
+    "kubeProdConfirm": "Conferma i comandi rischiosi in produzione",
+    "kubeProdConfirmHint": "Prima che Invio esegua kubectl delete, drain, scale a 0, rollout restart, edit, patch… o helm upgrade, uninstall, rollback in un contesto di produzione (quello del pannello, o quello indicato con --context)."
   },
   "status": {
     "version": "Versione {{version}} · {{os}}/{{arch}}",
@@ -390,7 +392,10 @@
     "cancel": "Annulla",
     "save": "Salva",
     "close": "Chiudi",
-    "loading": "Caricamento…"
+    "loading": "Caricamento…",
+    "chooseFile": "Scegli un file",
+    "chooseFolder": "Scegli una cartella",
+    "browse": "Sfoglia…"
   },
   "hosts": {
     "filter": "Filtra host",
@@ -770,7 +775,8 @@
     "saveCreateVault": "Salva in un nuovo vault",
     "unlockKeychain": "Sblocca con il portachiavi di sistema",
     "unlockToSave": "Password principale (sblocca il vault per salvarla)",
-    "createVaultHint": "Il vault conserva le password cifrate su questo computer. Scegli una password principale di almeno 8 caratteri."
+    "createVaultHint": "Il vault conserva le password cifrate su questo computer. Scegli una password principale di almeno 8 caratteri.",
+    "pasteAlways": "Incolla, non chiedere più"
   },
   "vault": {
     "title": "Vault",
@@ -1315,7 +1321,7 @@
     "rules": "Regole sull'output",
     "audit": "Log di audit",
     "rulesHint": "Le regole osservano l'output del terminale riga per riga. Valgono per le sessioni aperte dopo una modifica.",
-    "auditHint": "Ogni risposta automatica viene registrata qui (mai i segreti). Esportalo in CSV o JSON.",
+    "auditHint": "Ogni risposta automatica, comando di runbook e comando di procedura inviato a un terminale è registrato qui (mai i segreti). Esportalo in CSV o JSON.",
     "newRule": "Nuova regola",
     "editTitle": "Modifica regola",
     "edit": "Modifica",
@@ -1391,7 +1397,10 @@
     "apply": "Applica",
     "whereLocal": "kubectl e il kubeconfig di questo computer. Vale solo per questo pannello; in un ambiente con tunnel, kubectl passa dal tunnel.",
     "whereRemote": "kubectl e il kubeconfig del server a cui è connesso questo pannello (il suo ~/.kube/config). Vale solo per questo pannello: il kubeconfig del server non viene modificato.",
-    "reopens": "Questo pannello è stato aperto senza un contesto proprio: applicando viene riaperto (una sessione tmux viene ripresa)."
+    "reopens": "Questo pannello è stato aperto senza un contesto proprio: applicando viene riaperto (una sessione tmux viene ripresa).",
+    "riskyTitle": "Produzione: {{context}}",
+    "riskyMessage": "Questo comando modifica il contesto di produzione {{context}}:\n\n{{command}}\n\nEseguirlo?",
+    "riskyRun": "Esegui in produzione"
   },
   "guide": {
     "title": "Guida",
@@ -1570,7 +1579,12 @@
       "copyCode": "Copia il codice",
       "copied": "Copiato",
       "waiting": "Se il vault si è aperto nel browser: accedi lì, poi clicca il segnalibro “Shellvane: sessione del vault”."
-    }
+    },
+    "kubectlNamed": "kubectl su {{name}}",
+    "missingPersonal": "Mancano ancora i tuoi valori personali per alcuni ambienti: {{names}}.",
+    "fillMissing": "Inseriscili",
+    "fillMissingTitle": "I tuoi valori personali",
+    "fillMissingHint": "Chiesti una volta, per ogni ambiente che li usa, e tenuti solo su questo computer. Lascia un campo vuoto per sentirtelo chiedere all’avvio di quell’ambiente."
   },
   "logs": {
     "title": "Log e registrazioni",
@@ -2091,7 +2105,8 @@
       "uninstallTitle": "Disinstalla plugin",
       "uninstallBuiltIn": "Disinstallare {{name}}? I suoi pannelli spariscono; puoi reinstallarlo quando vuoi.",
       "uninstallExternal": "Disinstallare {{name}} ed eliminarne i file?",
-      "publish": "Pubblica il tuo plugin"
+      "publish": "Pubblica il tuo plugin",
+      "chooseFolder": "Scegli la cartella di un plugin (con plugin.json)"
     },
     "vault": {
       "description": "Accessi da HashiCorp Vault: un certificato SSH firmato per una chiave creata a ogni connessione (motore SSH), oppure una password da un segreto KV."
@@ -2239,8 +2254,18 @@
       "pasteHint": "Seleziona la pagina (o una parte) nel browser, copiala e incollala qui: titoli, elenchi e blocchi di codice restano in Markdown.",
       "content": "Contenuto (Markdown)",
       "pastePlaceholder": "Incolla qui…",
-      "save": "Salva e apri"
-    }
+      "save": "Salva e apri",
+      "fileTitle": "Importa un file",
+      "fileHint": "Un documento Word (.docx) o PDF, oppure Markdown, HTML o testo: titoli, elenchi e tabelle restano, e gli stili codice o il testo a spaziatura fissa diventano blocchi di comandi con Incolla ed Esegui. Controlla il risultato qui sotto prima di salvare.",
+      "chooseFile": "Scegli un file…",
+      "reading": "Lettura…",
+      "fileFailed": "Impossibile leggere {{name}}: {{detail}}"
+    },
+    "forEnv": "Per {{name}}:",
+    "linkEnv": "Collega a {{name}}: mostrata quando un suo terminale è attivo",
+    "unlinkEnv": "Collegata a {{name}}: clicca per scollegare",
+    "shareSource": "Condividi questo repository con un team",
+    "sharedSource": "{{name}} è condiviso: ogni membro lo trova in Procedure."
   },
   "personal": {
     "title": "Valori personali",
@@ -2258,5 +2283,30 @@
     "add": "Aggiungi",
     "remove": "Rimuovi",
     "removeNamed": "Rimuovi {{name}}"
+  },
+  "kubeForward": {
+    "title": "Port-forward su {{context}}",
+    "hint": "Un service o un pod attivo del namespace {{namespace}}, raggiunto come questo terminale raggiunge il cluster (il suo tunnel e il suo login). Shellvane tiene attivo il forward: quando il pod viene sostituito riparte da solo.",
+    "loading": "Lettura di service e pod…",
+    "filter": "Filtra per nome",
+    "targets": "Service e pod",
+    "none": "Nessun service o pod con una porta qui.",
+    "remotePort": "Porta nel cluster",
+    "localPort": "Porta su questo computer",
+    "anyPort": "Una porta libera",
+    "start": "Inoltra",
+    "menu": "Port-forward verso un service o un pod…",
+    "section": "Port-forward Kubernetes",
+    "stop": "Ferma",
+    "stopNamed": "Ferma il port-forward verso {{name}}",
+    "kinds": {
+      "service": "service",
+      "pod": "pod"
+    },
+    "states": {
+      "starting": "in avvio",
+      "running": "attivo",
+      "restarting": "in riavvio"
+    }
   }
 }

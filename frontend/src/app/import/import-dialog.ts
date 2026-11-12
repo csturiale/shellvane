@@ -10,13 +10,14 @@ import { Modal } from '../shared/modal';
 import { ImportRow, importRows, withDefaultUser } from './import-tree';
 import { UsageStore } from '../core/usage/usage.store';
 import { VaultGate } from '../vault/vault-gate';
+import { PathPicker } from '../shared/path-picker';
 
 type Step = 'source' | 'preview' | 'done';
 
 /** Import wizard: source → preview → import → summary (plan §8). */
 @Component({
   selector: 'app-import-dialog',
-  imports: [FormsModule, TranslocoDirective, Modal],
+  imports: [FormsModule, TranslocoDirective, Modal, PathPicker],
   templateUrl: './import-dialog.html',
   styleUrls: ['../shared/form.scss', './import-dialog.scss'],
 })

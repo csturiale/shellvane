@@ -24,7 +24,15 @@ When a cluster is reached only through a server, an [environment](shellvane:topi
 
 ## Production safety {#prod}
 
-The context is shown in the pane header and on the tab. Contexts matching the **Production contexts** pattern (Settings › Local terminal, default `prod`) are shown in red. The pattern is matched against the kubectl context's name (as `kubectl config get-contexts` shows it), not against the environment's name on the pane's badge.
+The context is shown in the pane header and on the tab. Contexts matching the **Production contexts** pattern (Settings › Local terminal, default `prod|prd`) are shown in red. The pattern is matched against the kubectl context's name (as `kubectl config get-contexts` shows it), not against the environment's name on the pane's badge.
+
+**Confirm risky commands in production** (on by default): when you press Enter on a `kubectl delete`, `drain`, `cordon`, `taint`, `replace`, `scale --replicas=0`, `rollout restart|undo`, `apply --prune`, `edit`, `patch`, `set`, `label`, `annotate`, or a `helm upgrade|install|uninstall|rollback`, and the pane's context or the one the command names (`--context`, `--kube-context`) is a production one, Shellvane asks before the command reaches the shell. A context chosen inside the shell with `kubectl config use-context` is not seen: use the pane's context picker or `--context`.
+
+## Port-forwards {#forward}
+
+In a local terminal with a context (an environment's kubectl terminal, or one where you chose a context), the terminal menu has **Port-forward to a service or pod…**. Pick a service or running pod of the namespace and its port; the local port is the same one when it is a high one (8080, 3000…), any free one otherwise, or one you type. The forward reaches the cluster as the terminal does (the environment's tunnel and gcloud profile), so it works for private clusters behind a jump host.
+
+The forwards are listed in **Tunnels › Kubernetes port-forwards**, with the local address, a button to open web ports in the browser (https for 443 and 8443) and **Stop**. When kubectl's forward ends (the pod was replaced, the connection dropped) it starts again by itself, after 1, 2, 4… up to 30 seconds; a forward to a service then reaches the new pod. Forwards last while the app runs.
 
 ## Limits {#limits}
 

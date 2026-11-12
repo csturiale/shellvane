@@ -53,7 +53,7 @@ gcloud tiene account, progetto e credenziali application default in un'unica car
 Ogni terminale aperto da un ambiente mostra il suo badge nell'intestazione: il nome dell'ambiente, e il suo stato quando non è pronto. Quando Shellvane ripristina la sessione precedente, quei terminali tornano come shell semplici: l'ambiente riparte da solo su di essi — verifica del login (aprendo il login se serve), tunnel, route di kubectl — senza riaprirli. Finché non è pronto il badge lo dice, in rosso.
 
 - **Login scaduto**: la verifica del login viene ripetuta ogni 5 minuti. Quando fallisce (ad esempio `gcloud` chiede di autenticarsi di nuovo) il badge e il pannello Ambienti indicano *login scaduto*: clicca il badge oppure **Rifai il login e riprendi**.
-- **Un altro terminale**: clicca il badge di un ambiente pronto, usa **Nuovo terminale nell'ambiente** nel menu del pannello, oppure il pulsante terminale dell'ambiente nel pannello Ambienti. Apre una shell locale con il contesto kubectl e il tunnel dell'ambiente (o il suo host remoto se non ha terminali locali). Aprine quanti ne servono.
+- **Un altro terminale**: clicca il badge di un ambiente pronto, usa **Nuovo terminale nell'ambiente** nel menu del pannello, oppure il pulsante terminale dell'ambiente nel pannello Ambienti. Apre una shell locale con il contesto kubectl e il tunnel dell'ambiente (o il suo host remoto se non ha terminali locali). Aprine quanti ne servono. Dalla palette dei comandi, **kubectl su GKE shop prd** (ogni ambiente con un contesto kubectl locale) fa lo stesso, e avvia prima l'ambiente se non è attivo.
 - Le variabili con cui è partito l'ambiente sono salvate con la sessione, così il ripristino le riusa.
 - **Chiudere l'ultimo terminale** di un ambiente avviato lo ferma: si chiudono i tunnel che ha avviato, ma non quelli già attivi prima, avviati all'apertura o usati da un altro ambiente avviato. Un avviso offre **Annulla** per qualche secondo (login e tunnel di nuovo, senza terminali). Gli ambienti che non aprono terminali restano attivi fino a **Stop**. Si disattiva in **Impostazioni › Sessioni › Ferma un ambiente con il suo ultimo terminale**.
 
@@ -70,6 +70,8 @@ Accanto a ogni valore personale scegli dove ricordarlo:
 
 - **Ricorda ovunque** (predefinito): il valore è tenuto per nome, e lo riceve ogni ambiente, [snippet](shellvane:topic/snippets#variables) e [procedura](shellvane:topic/procedures#placeholders) che usa lo stesso nome. Scrivi `googleEmail` una volta e tutti i tuoi ambienti GKE lo hanno.
 - **Solo qui**: questo ambiente tiene un valore suo, che vince su quello usato ovunque. Serve per un secondo account, ad esempio `nome@cliente.com` per i cluster di un cliente mentre gli altri tengono `nome@azienda.com`. Scegliere di nuovo **Ricorda ovunque** lo elimina.
+
+Quando gli ambienti usano valori personali che non hai ancora dato (ad esempio dopo essere entrato in un team), il pannello li elenca e **Inseriscili** li chiede tutti insieme.
 
 **Impostazioni › Valori personali** elenca i valori tenuti ovunque: lì li modifichi, aggiungi o rimuovi. Eliminare un ambiente cancella solo i suoi valori.
 

@@ -14,6 +14,9 @@ export class ConfirmDialog {
   readonly message = input.required<string>();
   readonly confirmLabel = input.required<string>();
   readonly danger = input(false);
+  /** A third choice between Cancel and the confirmation ("" for none). */
+  readonly secondaryLabel = input('');
   readonly confirmed = output<void>();
+  readonly secondary = output<void>();
   readonly cancelled = output<void>();
 }

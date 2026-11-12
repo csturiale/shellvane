@@ -1,0 +1,46 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('kubeForward.title', { context: scope().selection.context })" (closed)="closed.emit()">
+    <form id="kube-forward" class="form" (ngSubmit)="start()">
+      <p class="hint">{{ t('kubeForward.hint', { namespace: scope().selection.namespace || 'default' }) }}</p>
+      @if (loading()) {
+        <p class="hint">{{ t('kubeForward.loading') }}</p>
+      } @else {
+        <input name="filter" spellcheck="false" [placeholder]="t('kubeForward.filter')" [attr.aria-label]="t('kubeForward.filter')" [(ngModel)]="filter" (ngModelChange)="query.set($event)" />
+        <div class="targets" role="listbox" [attr.aria-label]="t('kubeForward.targets')">
+          @for (x of shown(); track x.kind + '/' + x.name) {
+            <button type="button" role="option" class="target" [class.chosen]="chosen === x" [attr.aria-selected]="chosen === x" (click)="choose(x)">
+              <span class="kind">{{ t('kubeForward.kinds.' + x.kind) }}</span>
+              <span class="name mono">{{ x.name }}</span>
+              <span class="ports mono">{{ (x.ports ?? []).join(', ') }}</span>
+            </button>
+          } @empty {
+            <p class="hint">{{ t('kubeForward.none') }}</p>
+          }
+        </div>
+        @if (chosen; as c) {
+          <div class="ports-row">
+            <label class="field">
+              <span>{{ t('kubeForward.remotePort') }}</span>
+              <select name="remotePort" [(ngModel)]="remotePort">
+                @for (p of c.ports ?? []; track p) {
+                  <option [ngValue]="p">{{ p }}</option>
+                }
+              </select>
+            </label>
+            <label class="field">
+              <span>{{ t('kubeForward.localPort') }}</span>
+              <input name="localPort" type="number" min="1" max="65535" [placeholder]="t('kubeForward.anyPort')" [(ngModel)]="localPort" />
+            </label>
+          </div>
+        }
+      }
+      @if (error(); as e) {
+        <p class="error" role="alert">{{ t(e.key, e.params) }}</p>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="kube-forward" class="btn primary" [disabled]="!chosen || busy()">{{ t('kubeForward.start') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

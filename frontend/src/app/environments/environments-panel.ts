@@ -13,7 +13,7 @@ import { HostsStore } from '../hosts/hosts.store';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { Modal } from '../shared/modal';
 import { RememberSelect } from '../shared/remember-select';
-import { Remember } from '../core/personal-values';
+import { PersonalValues, Remember } from '../core/personal-values';
 import { EnvironmentDialog } from './environment-dialog';
 import { EnvironmentsStore, StepId } from './environments.store';
 
@@ -26,6 +26,7 @@ import { EnvironmentsStore, StepId } from './environments.store';
 })
 export class EnvironmentsPanel {
   protected readonly store = inject(EnvironmentsStore);
+  private readonly personalValues = inject(PersonalValues);
   /** Ticks every second while a step runs, for the elapsed time. */
   private readonly now = signal(Date.now());
   private readonly ticker = setInterval(() => {
@@ -65,6 +66,11 @@ export class EnvironmentsPanel {
   protected readonly message = signal<string | null>(null);
   protected readonly hostNames = computed(() => new Map(this.hosts.hosts().map((h) => [h.id, h.name])));
   protected values: Record<string, string> = {};
+  /** Personal values missing in some environments, asked all at once. */
+  protected readonly missing = computed(() => this.store.missingPersonal());
+  protected readonly fillingMissing = signal(false);
+  protected readonly missingNames = computed(() => this.missing().map((m) => m.name).join(', '));
+  protected missingValues: Record<string, string> = {};
   /** Where each personal value typed in the dialog is remembered. */
   protected where: Record<string, Remember> = {};
   protected importText = '';
@@ -107,6 +113,21 @@ export class EnvironmentsPanel {
     const sources = this.store.personalSources(env);
     this.where = Object.fromEntries(Object.entries(sources).map(([n, src]) => [n, src === 'here' ? 'here' : 'global']));
     this.asking.set({ env, from, mine });
+  }
+
+  protected fillMissing(): void {
+    this.missingValues = Object.fromEntries(this.missing().map((m) => [m.name, '']));
+    this.fillingMissing.set(true);
+  }
+
+  /** Remembers the values typed, everywhere (every environment that uses the name). */
+  protected saveMissing(): void {
+    for (const [name, value] of Object.entries(this.missingValues)) {
+      if (value.trim()) {
+        this.personalValues.setGlobal(name, value.trim());
+      }
+    }
+    this.fillingMissing.set(false);
   }
 
   protected confirmValues(): void {

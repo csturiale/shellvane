@@ -44,6 +44,11 @@
                 [(ngModel)]="d.secrets[s.key]"
                 [placeholder]="secretSet(s.key) ? t('plugins.secretSet') : t('plugins.secretHint')"
               />
+            } @else if (s.kind === 'file' || s.kind === 'folder') {
+              <span class="path-field">
+                <input spellcheck="false" class="mono" [name]="'setting-' + s.key" [(ngModel)]="d.settings[s.key]" [placeholder]="s.placeholder" />
+                <app-path-picker [kind]="s.kind" [current]="d.settings[s.key] ?? ''" (picked)="d.settings[s.key] = $event" />
+              </span>
             } @else {
               <input spellcheck="false" class="mono" [name]="'setting-' + s.key" [(ngModel)]="d.settings[s.key]" [placeholder]="s.placeholder" />
             }
@@ -172,6 +177,7 @@
         <input name="file" spellcheck="false" class="mono" [placeholder]="t('plugins.store.filePlaceholder')" [attr.aria-label]="t('plugins.store.file')" [(ngModel)]="filePath" />
         <button type="submit" class="btn small" [disabled]="busy() || !filePath.trim()">{{ t('plugins.store.installFile') }}</button>
         <button type="button" class="btn small" [disabled]="busy()" (click)="chooseFile()">{{ t('plugins.store.choose') }}</button>
+        <app-path-picker kind="folder" [current]="filePath" [title]="t('plugins.store.chooseFolder')" (picked)="filePath = $event" />
       </form>
       <p class="hint">{{ t('plugins.store.trust') }}</p>
     }

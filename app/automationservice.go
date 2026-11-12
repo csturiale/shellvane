@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"strings"
 
 	"github.com/csturiale/shellvane/core/audit"
 	"github.com/csturiale/shellvane/core/automation"
@@ -36,6 +37,26 @@ func (s *AutomationService) DeleteRule(ctx context.Context, id string) error {
 // Audit returns the newest audit entries first.
 func (s *AutomationService) Audit(ctx context.Context, limit int) ([]audit.Entry, error) {
 	return s.audit.List(ctx, limit)
+}
+
+// RecordProcedure adds to the audit log a command of a procedure sent to a
+// terminal: action is "run" (Enter pressed) or "paste"; target names the
+// terminal (host or environment), procedure the document. The command is
+// kept on one line and shortened.
+func (s *AutomationService) RecordProcedure(ctx context.Context, action, target, procedure, command string) error {
+	if action != "run" {
+		action = "paste" // only these two
+	}
+	return s.audit.Add(ctx, "procedure."+action, target, procedure, oneLine(command, 500))
+}
+
+// oneLine joins a command's lines with " ⏎ " and keeps at most max runes.
+func oneLine(s string, max int) string {
+	s = strings.Join(strings.Fields(strings.ReplaceAll(strings.TrimSpace(s), "\n", " ⏎ ")), " ")
+	if r := []rune(s); len(r) > max {
+		return string(r[:max]) + "…"
+	}
+	return s
 }
 
 // ExportAudit renders the whole audit log as "csv" or "json".

@@ -50,6 +50,7 @@ func init() {
 	application.RegisterEvent[app.Prompt](app.EventSessionPrompt)
 	application.RegisterEvent[string](app.EventSessionReturn)
 	application.RegisterEvent[string](app.EventProcedureReceived)
+	application.RegisterEvent[[]app.KubeForward](app.EventKubeForwards)
 	application.RegisterEvent[app.TriggerEvent](app.EventSessionTrigger)
 	application.RegisterEvent[app.FileEdit](app.EventFileEdit)
 	application.RegisterEvent[app.RunbookCell](app.EventRunbookCell)
@@ -163,6 +164,8 @@ func main() {
 			application.NewServiceWithOptions(app.NewImportService(db, repo, tunnel.NewRepo(db), filepath.Join(filepath.Dir(dbPath), "backups")), serviceOptions),
 			application.NewServiceWithOptions(app.NewDownloadsService(os.Getenv("SHELLVANE_DOWNLOADS")), serviceOptions),
 			application.NewServiceWithOptions(pluginService, serviceOptions),
+			application.NewServiceWithOptions(app.NewDialogService(), serviceOptions),
+			application.NewServiceWithOptions(app.NewKubeForwardService(dataDir, emitter), serviceOptions),
 		}, extensionServices...),
 		MarshalError: errs.Marshal,
 		// A second launch (a link clicked while Shellvane runs) hands its

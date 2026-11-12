@@ -80,7 +80,7 @@ A plugin is a folder with a `plugin.json` and a program in any language:
 }
 ```
 
-Shellvane starts `command` in the plugin's folder for each call and writes one JSON-RPC 2.0 request on its standard input; the plugin writes its answer on standard output, one JSON message per line, and exits. Settings marked `secret` are kept in the vault and passed in `params.settings`.
+Shellvane starts `command` in the plugin's folder for each call and writes one JSON-RPC 2.0 request on its standard input; the plugin writes its answer on standard output, one JSON message per line, and exits. Settings marked `secret` are kept in the vault and passed in `params.settings`; a setting with `"kind": "file"` or `"kind": "folder"` (a path on the user's computer) gets a **Browse…** button that opens the system's chooser.
 
 | Method | Params | Result |
 | --- | --- | --- |

@@ -1,7 +1,7 @@
 import { Component, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { writeClipboard } from '../core/clipboard';
 import { Modal } from '../shared/modal';
@@ -23,6 +23,7 @@ export class WebPageDialog {
   readonly closed = output<void>();
 
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly transloco = inject(TranslocoService);
   private readonly code = bookmarklet();
   /** The bookmarklet as a link to drag to the bookmarks bar. */
   protected readonly link = this.sanitizer.bypassSecurityTrustUrl(this.code);
@@ -33,6 +34,31 @@ export class WebPageDialog {
   protected async copyCode(): Promise<void> {
     await writeClipboard(this.code);
     this.copied.set(true);
+  }
+
+  protected readonly reading = signal(false);
+  protected readonly fileError = signal<string | null>(null);
+
+  /** A Word, PDF, Markdown or HTML file: its content becomes the procedure, to check before saving. */
+  protected async onFile(ev: Event): Promise<void> {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    this.reading.set(true);
+    this.fileError.set(null);
+    try {
+      const { importDocument } = await import('./document-import');
+      const doc = await importDocument(file);
+      this.markdown = doc.markdown;
+      this.title ||= /^#{1,6} (.+)$/m.exec(doc.markdown)?.[1] ?? doc.title;
+    } catch (err) {
+      this.fileError.set(this.transloco.translate('procedures.web.fileFailed', { name: file.name, detail: err instanceof Error ? err.message : String(err) }));
+    } finally {
+      this.reading.set(false);
+    }
   }
 
   /** A pasted page keeps its formatting: its HTML becomes Markdown. */

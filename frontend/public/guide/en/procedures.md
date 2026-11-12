@@ -17,6 +17,7 @@ Procedures on Confluence, a wiki or any page behind your company sign-in come in
 
 - **Send to Shellvane**: drag the button to the browser's bookmarks bar (or copy its code and create a bookmark with it as address). On a procedure's page, click the bookmark: the selected text, or else the page's article, is turned into Markdown (headings, lists, tables, links and code blocks with their language) and opens in Procedures › **Received pages**. The browser may ask once whether to open Shellvane. A long page travels through the clipboard; Shellvane takes from the clipboard only what the bookmark put there, recognized by a marker, never anything else you copied.
 - **Paste a page**: copy the page, or a part of it, in the browser and paste it in the dialog; the formatting becomes Markdown, which you can still correct before saving.
+- **Import a file**: a Word (.docx) or PDF document, or a Markdown, HTML or text file. Headings, lists and tables are kept; paragraphs in a code style (Code, HTML Preformatted…) or in a monospace font (Consolas, Courier, Menlo…) become command blocks with **Paste** and **Run**. A PDF has no styles, only fonts and sizes: check the result before saving. Scanned PDFs (images) have no text to read.
 
 Received pages are kept on this computer (the last 200), with the page's address at the top; delete one with its bin icon. The content of a page is never trusted: nothing in it runs by itself.
 
@@ -30,13 +31,17 @@ Each code block of the procedure gets a number and its actions:
 
 Nothing runs by itself: every command is a click. In a session transcript (a `console` block, or lines that start with `$ `) only the commands are sent, without the prompt and without the output shown in the document. When the focused pane broadcasts to others, the commands go to all of them, and dangerous commands ask for confirmation as for snippets ([Broadcast](shellvane:topic/broadcast#safety)).
 
-A command pasted or run is marked as done: the counter in the header shows how far you are, the circle of a block marks it done or not by hand, and **Start again** clears the marks. Links to other Markdown files of the source open them in the panel; web links open in your browser. Raw HTML and images of the document are not shown.
+A command pasted or run is marked as done: the counter in the header shows how far you are, the circle of a block marks it done or not by hand, and **Start again** clears the marks. Each command pasted or run is also written in **Automation › Audit log** (when, which terminal or environment, which procedure, the command on one line), which you can export as CSV or JSON for a change record. Links to other Markdown files of the source open them in the panel; web links open in your browser. Raw HTML and images of the document are not shown.
 
 ## Placeholders {#placeholders}
 
 Write `<name>` or `{{name}}` in a command, e.g. `kubectl -n <namespace> rollout restart deploy/web`. The first time a command with a placeholder is used, Shellvane asks its value; the value then fills that placeholder in every command of the source until the app is closed. **Values of the placeholders** in the header changes them. A value left empty keeps the placeholder as written.
 
-A value can also be remembered as a [personal value](shellvane:topic/environments#personal), kept on this computer after the app is closed: **Remember everywhere** fills that name in every procedure, snippet and environment, **Only here** in this source alone. Procedures from a shared Git repository then work for everyone with their own values.
+A value can also be remembered as a [personal value](shellvane:topic/environments#personal), kept on this computer after the app is closed: **Remember everywhere** fills that name in every procedure, snippet and environment, **Only here** in this source alone. Procedures from a shared Git repository then work for everyone with their own values. When the focused terminal belongs to an [environment](shellvane:topic/environments#variables), its variables fill the placeholders with the same name (e.g. `<namespace>`, `<project>`), after the values typed in this session.
+
+## Procedures of an environment {#environment}
+
+With a terminal of an [environment](shellvane:topic/environments) focused, the pin button of an open procedure links it to that environment. From then on, whenever one of its terminals is focused, the panel shows **For <environment>:** with its procedures, one click away, and their placeholders take the environment's variables. Links are kept on this computer; the pin again unlinks.
 
 ## Make a runbook {#runbook}
 

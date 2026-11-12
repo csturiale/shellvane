@@ -24,7 +24,15 @@ Quando un cluster si raggiunge solo passando da un server, un [ambiente](shellva
 
 ## Sicurezza in produzione {#prod}
 
-Il contesto è mostrato nell'intestazione del pannello e sulla tab. I contesti che corrispondono al pattern **Contesti di produzione** (Impostazioni › Terminale locale, predefinito `prod`) sono mostrati in rosso. Il pattern si confronta con il nome del contesto kubectl (come lo mostra `kubectl config get-contexts`), non con il nome dell'ambiente sul badge del pannello.
+Il contesto è mostrato nell'intestazione del pannello e sulla tab. I contesti che corrispondono al pattern **Contesti di produzione** (Impostazioni › Terminale locale, predefinito `prod|prd`) sono mostrati in rosso. Il pattern si confronta con il nome del contesto kubectl (come lo mostra `kubectl config get-contexts`), non con il nome dell'ambiente sul badge del pannello.
+
+**Conferma i comandi rischiosi in produzione** (attivo per default): quando premi Invio su `kubectl delete`, `drain`, `cordon`, `taint`, `replace`, `scale --replicas=0`, `rollout restart|undo`, `apply --prune`, `edit`, `patch`, `set`, `label`, `annotate`, o su `helm upgrade|install|uninstall|rollback`, e il contesto del pannello o quello indicato dal comando (`--context`, `--kube-context`) è di produzione, Shellvane chiede conferma prima che il comando arrivi alla shell. Un contesto scelto dentro la shell con `kubectl config use-context` non viene visto: usa il selettore di contesto del pannello o `--context`.
+
+## Port-forward {#forward}
+
+In un terminale locale con un contesto (il terminale kubectl di un ambiente, o uno in cui hai scelto un contesto), il menu del terminale ha **Port-forward verso un service o un pod…**. Scegli un service o un pod attivo del namespace e la sua porta; la porta locale è la stessa se è alta (8080, 3000…), altrimenti una libera, oppure quella che scrivi. Il forward raggiunge il cluster come il terminale (tunnel e profilo gcloud dell'ambiente), quindi funziona anche con cluster privati dietro un jump host.
+
+I forward sono elencati in **Tunnel › Port-forward Kubernetes**, con l'indirizzo locale, un pulsante per aprire nel browser le porte web (https per 443 e 8443) e **Ferma**. Quando il forward di kubectl termina (il pod è stato sostituito, la connessione è caduta) riparte da solo, dopo 1, 2, 4… fino a 30 secondi; un forward verso un service raggiunge così il nuovo pod. I forward durano finché l'app è aperta.
 
 ## Limiti {#limits}
 

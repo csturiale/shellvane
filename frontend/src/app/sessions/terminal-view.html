@@ -195,8 +195,25 @@
       [heading]="t('sessions.pasteTitle')"
       [message]="t('sessions.pasteMessage', { lines: pasteLines(), preview: text.slice(0, 200) })"
       [confirmLabel]="t('sessions.paste')"
+      [secondaryLabel]="t('sessions.pasteAlways')"
       (confirmed)="confirmPaste()"
+      (secondary)="pasteAlways()"
       (cancelled)="cancelPaste()"
+    />
+  </ng-container>
+}
+@if (forwarding(); as scope) {
+  <app-kube-forward-dialog [scope]="scope" (closed)="forwarding.set(null)" />
+}
+@if (pendingRisky(); as r) {
+  <ng-container *transloco="let t">
+    <app-confirm-dialog
+      [heading]="t('kube.riskyTitle', { context: r.context })"
+      [message]="t('kube.riskyMessage', { context: r.context, command: r.command })"
+      [confirmLabel]="t('kube.riskyRun')"
+      [danger]="true"
+      (confirmed)="runRisky()"
+      (cancelled)="cancelRisky()"
     />
   </ng-container>
 }

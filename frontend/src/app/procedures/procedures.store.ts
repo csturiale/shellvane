@@ -3,11 +3,19 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Doc, ProcedureApi, Source } from '../core/backend/procedure-api';
 import { toTranslatableError, TranslatableError } from '../core/backend/errors';
 import { readPreference, writePreference } from '../core/preferences';
+import type { SharedProcedureSource } from '../extensions/extension';
 
 /** A source of procedures as saved: a Git repository or a folder. */
 export interface SavedSource extends Source {
   id: string;
   name: string;
+}
+
+/** A procedure linked to an environment: shown when one of its terminals is focused. */
+export interface ProcedureLink {
+  sourceId: string;
+  path: string;
+  title: string;
 }
 
 export interface OpenDoc {
@@ -29,8 +37,18 @@ export class ProceduresStore {
   readonly sources = signal<SavedSource[]>(parse(readPreference('procedures.sources')));
   /** Pages received from the browser or pasted: a folder of the app's data. */
   readonly inbox = signal<SavedSource | null>(null);
-  /** Every source: the user's, then the received pages. */
-  readonly all = computed(() => [...this.sources(), ...(this.inbox() ? [this.inbox()!] : [])]);
+  /** Repositories the user's teams share: read-only here, kept by the team. */
+  readonly teamSources = signal<SharedProcedureSource[]>([]);
+  /** Every source: the user's, the teams', then the received pages. */
+  readonly all = computed(() => [
+    ...this.sources(),
+    ...this.teamSources()
+      .filter((t) => !this.sources().some((s) => s.kind === 'git' && s.url === t.url && (s.folder ?? '') === t.folder))
+      .map((t): SavedSource => ({ id: TEAM_PREFIX + t.key, name: `${t.name} · ${t.team}`, kind: 'git', url: t.url, branch: t.branch, folder: t.folder })),
+    ...(this.inbox() ? [this.inbox()!] : []),
+  ]);
+  /** The current source comes from a team: it is changed there, not here. */
+  readonly isTeam = computed(() => (this.current()?.id ?? '').startsWith(TEAM_PREFIX));
   readonly currentId = signal<string>(readPreference('procedures.current') ?? '');
   readonly current = computed(() => this.all().find((s) => s.id === this.currentId()) ?? this.all()[0] ?? null);
   readonly isInbox = computed(() => this.current()?.id === INBOX);
@@ -43,6 +61,9 @@ export class ProceduresStore {
   /** Steps done in each procedure (source id + path → block indexes). */
   private readonly doneByDoc = signal<Record<string, number[]>>({});
   private readonly valuesBySource = signal<Record<string, Record<string, string>>>({});
+
+  /** Procedures linked to each environment (environment id → links), on this computer. */
+  readonly links = signal<Record<string, ProcedureLink[]>>(parseLinks(readPreference('procedures.envLinks')));
 
   readonly done = computed(() => new Set(this.doneByDoc()[this.docKey()] ?? []));
   readonly values = computed(() => this.valuesBySource()[this.current()?.id ?? ''] ?? {});
@@ -104,6 +125,44 @@ export class ProceduresStore {
     if (this.currentId() === id) {
       void this.select(this.all()[0]?.id ?? '');
     }
+  }
+
+  /** Links of an environment whose source still exists. */
+  linksOf(envId: string): ProcedureLink[] {
+    const ids = new Set(this.all().map((s) => s.id));
+    return (this.links()[envId] ?? []).filter((l) => ids.has(l.sourceId));
+  }
+
+  isLinked(envId: string, path: string): boolean {
+    const src = this.current()?.id;
+    return (this.links()[envId] ?? []).some((l) => l.sourceId === src && l.path === path);
+  }
+
+  /** Links the open procedure to an environment, or unlinks it. */
+  toggleLink(envId: string): void {
+    const src = this.current();
+    const doc = this.doc();
+    if (!src || !doc) {
+      return;
+    }
+    const list = this.links()[envId] ?? [];
+    const next = this.isLinked(envId, doc.path)
+      ? list.filter((l) => !(l.sourceId === src.id && l.path === doc.path))
+      : [...list, { sourceId: src.id, path: doc.path, title: doc.title }];
+    const all = { ...this.links(), [envId]: next };
+    if (next.length === 0) {
+      delete all[envId];
+    }
+    this.links.set(all);
+    writePreference('procedures.envLinks', JSON.stringify(all));
+  }
+
+  /** Opens a linked procedure, in its source. */
+  async openLink(link: ProcedureLink): Promise<void> {
+    if (this.current()?.id !== link.sourceId) {
+      await this.select(link.sourceId);
+    }
+    await this.open(link.path);
   }
 
   async select(id: string): Promise<void> {
@@ -180,6 +239,15 @@ export class ProceduresStore {
 /** Id of the source of received pages. */
 export const INBOX = 'inbox';
 
+function parseLinks(raw: string | null): Record<string, ProcedureLink[]> {
+  try {
+    const v = JSON.parse(raw ?? '{}');
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+  } catch {
+    return {};
+  }
+}
+
 function parse(raw: string | null): SavedSource[] {
   try {
     const list = JSON.parse(raw ?? '[]');
@@ -188,3 +256,6 @@ function parse(raw: string | null): SavedSource[] {
     return [];
   }
 }
+
+/** Ids of the sources shared by a team. */
+const TEAM_PREFIX = 'team:';
