@@ -541,7 +541,7 @@ export class TerminalView {
       // Only the usage statistics (with consent) follow the line then.
       if (this.usage.consent() === 'yes' && !this.broadcasting()) {
         for (const cmd of this.line.feed(data)) {
-          this.usage.command(cmd);
+          void this.usage.command(cmd);
         }
       }
       return;
@@ -555,7 +555,7 @@ export class TerminalView {
     for (const cmd of this.line.feed(data)) {
       if (normal && !this.broadcasting() && shown.includes(cmd)) {
         this.history.remember(scope, cmd);
-        this.usage.command(cmd);
+        void this.usage.command(cmd);
       }
     }
     this.scheduleGhost();

@@ -28,9 +28,9 @@ describe('UsageStore', () => {
     store.count('pane.split');
     store.view('tunnels');
     store.view('not-a-view');
-    store.command('sudo systemctl restart nginx');
-    store.command('./secret.sh --token=x');
-    await new Promise((r) => setTimeout(r, 50)); // the tool list loads lazily
+    // The tool list loads lazily: wait for each command to be counted.
+    await store.command('sudo systemctl restart nginx');
+    await store.command('./secret.sh --token=x');
     const r = (await store.preview()) as unknown as { features: Record<string, number>; tools: Record<string, number> };
     expect(r.features).toEqual({ 'pane.split': 2, 'view.tunnels': 1 });
     expect(r.tools).toEqual({ systemctl: 1 });

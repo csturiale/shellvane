@@ -51,13 +51,16 @@ export class UsageStore {
     }
   }
 
-  /** A command run in a terminal: only a well-known program's name counts. */
-  command(line: string): void {
+  /**
+   * A command run in a terminal: only a well-known program's name counts.
+   * Resolves once it is counted (callers need not wait).
+   */
+  command(line: string): Promise<void> {
     if (this.consent() !== 'yes') {
-      return;
+      return Promise.resolve();
     }
     // The list of tools is loaded only once the person agreed.
-    void import('./tools').then(({ toolOf }) => {
+    return import('./tools').then(({ toolOf }) => {
       const tool = toolOf(line);
       if (tool) {
         this.add('tools', tool);
