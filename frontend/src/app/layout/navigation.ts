@@ -8,6 +8,8 @@ import { UsageStore } from '../core/usage/usage.store';
 export class Navigation {
   private readonly usage = inject(UsageStore);
   readonly view = signal<View>('hosts');
+  /** A procedure received from the browser, for the Procedures panel to open. */
+  readonly procedure = signal<string | null>(null);
   /** Host to open in the file browser next time it is shown. */
   readonly filesHost = signal<string | null>(null);
   /** Folder to show there ('' = the home folder). */

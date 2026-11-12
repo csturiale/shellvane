@@ -70,6 +70,11 @@
           <app-snippets-panel class="panel" />
         }
       }
+      @case ('procedures') {
+        @defer (on immediate) {
+          <app-procedures-panel class="panel" />
+        }
+      }
       @case ('tunnels') {
         @defer (on immediate) {
           <app-tunnels-panel class="panel" />

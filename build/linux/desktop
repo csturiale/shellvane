@@ -9,4 +9,4 @@ Type=Application
 Icon=shellvane
 Categories=Utility;
 StartupWMClass=shellvane
-MimeType=x-scheme-handler/ssh;x-scheme-handler/sftp;
+MimeType=x-scheme-handler/ssh;x-scheme-handler/sftp;x-scheme-handler/shellvane;

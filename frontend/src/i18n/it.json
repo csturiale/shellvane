@@ -17,7 +17,8 @@
     "showPanel": "Mostra il pannello laterale",
     "resizePanel": "Trascina per ridimensionare il pannello, doppio clic per nasconderlo",
     "plugins": "Plugin",
-    "gallery": "Galleria della comunità"
+    "gallery": "Galleria della comunità",
+    "procedures": "Procedure"
   },
   "panels": {
     "hosts": {
@@ -377,6 +378,12 @@
     },
     "proxy": {
       "invalid": "Non è un indirizzo di proxy: {{url}} (http://host:porta, https://… o socks5://…)."
+    },
+    "procedures": {
+      "source": "La sorgente non è completa ({{detail}}).",
+      "notFound": "Non trovato: {{path}}",
+      "tooLarge": "{{path}} è troppo grande da mostrare.",
+      "link": "Il link non è uno creato da Shellvane."
     }
   },
   "common": {
@@ -1424,7 +1431,8 @@
       "runbooks": "Runbook",
       "integration": "Riga di comando e link",
       "sync": "Sincronizzazione tra computer",
-      "contribute": "Contribuisci"
+      "contribute": "Contribuisci",
+      "procedures": "Procedure"
     }
   },
   "environments": {
@@ -2159,5 +2167,59 @@
     "reached": "raggiunto ({{status}})",
     "status": "risposta {{status}}",
     "blocked": "bloccato dal filtro web aziendale: chiedi all'IT di consentire il sito"
+  },
+  "procedures": {
+    "addSource": "Aggiungi una sorgente di procedure",
+    "editSource": "Modifica la sorgente",
+    "removeSource": "Rimuovi",
+    "source": "Sorgente delle procedure",
+    "kind": "Tipo di sorgente",
+    "kindGit": "Repository Git",
+    "kindFolder": "Cartella di questo computer",
+    "url": "URL del repository",
+    "branch": "Branch",
+    "branchDefault": "branch predefinito",
+    "subfolder": "Cartella nel repository (facoltativa)",
+    "folder": "Cartella",
+    "name": "Nome",
+    "nameHint": "es. Runbook operativi",
+    "gitHint": "Shellvane tiene una copia del repository in sola lettura e usa il tuo accesso Git (chiave SSH o credential helper). Non scrive mai nulla nel repository.",
+    "sync": "Aggiorna dal repository",
+    "empty": "Tieni le tue procedure in Markdown in un repository Git o in una cartella, e incolla o esegui i loro comandi da qui senza cambiare finestra.",
+    "noDocs": "Nessun file Markdown in questa sorgente.",
+    "loading": "Caricamento…",
+    "filter": "Filtra le procedure",
+    "back": "Torna all’elenco",
+    "paste": "Incolla",
+    "run": "Esegui",
+    "copy": "Copia",
+    "done": "Segna come fatto",
+    "copied": "Copiato negli appunti.",
+    "noTerminal": "Apri o seleziona prima un terminale: i comandi vanno al pannello attivo.",
+    "progress": "{{done}} di {{total}} comandi fatti",
+    "values": "Valori dei segnaposto",
+    "reset": "Ricomincia (azzera i passi fatti)",
+    "toRunbook": "Crea un runbook da questa procedura",
+    "runbookFrom": "Dalla procedura {{path}}",
+    "valuesTitle": "Valori per la procedura",
+    "valuesHint": "I segnaposto come <namespace> (o un nome tra doppie parentesi graffe) vengono sostituiti in tutti i comandi di questa sorgente. Lascia un valore vuoto per mantenere il segnaposto.",
+    "continue": "Continua",
+    "inbox": "Pagine ricevute",
+    "deletePage": "Elimina questa pagina",
+    "web": {
+      "title": "Da una pagina web",
+      "sendTitle": "Invia a Shellvane dal browser",
+      "sendHint": "Per le procedure su Confluence, su un wiki o su qualsiasi pagina dietro l’accesso aziendale: il browser, già autenticato, invia la pagina a Shellvane.",
+      "button": "Invia a Shellvane",
+      "drag": "Trascina questo pulsante nella barra dei preferiti del browser.",
+      "copyCode": "Copia il codice del preferito",
+      "copied": "Codice copiato: crea un preferito e incollalo come indirizzo",
+      "sendHow": "Sulla pagina, fai clic sul preferito: il testo selezionato, o l’articolo della pagina, si apre in Procedure › Pagine ricevute con i suoi comandi. Il browser può chiedere una volta se aprire Shellvane. Le pagine lunghe passano dagli appunti.",
+      "pasteTitle": "Oppure incolla una pagina",
+      "pasteHint": "Seleziona la pagina (o una parte) nel browser, copiala e incollala qui: titoli, elenchi e blocchi di codice restano in Markdown.",
+      "content": "Contenuto (Markdown)",
+      "pastePlaceholder": "Incolla qui…",
+      "save": "Salva e apri"
+    }
   }
 }

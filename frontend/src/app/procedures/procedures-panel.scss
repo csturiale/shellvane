@@ -1,0 +1,311 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px 6px 12px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+button.icon {
+  box-sizing: border-box;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--text);
+    background: var(--hover);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.source {
+  margin: 0 8px 6px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 6px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-muted);
+
+  &:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+  }
+}
+
+.message {
+  margin: 0 8px 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--hover);
+  white-space: pre-wrap;
+
+  &.error {
+    color: var(--danger);
+  }
+}
+
+.muted {
+  margin: 8px 12px;
+  color: var(--text-muted);
+}
+
+.list {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 16px;
+}
+
+.doc-row {
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+
+  .remove {
+    visibility: hidden;
+  }
+  &:hover .remove,
+  &:focus-within .remove {
+    visibility: visible;
+  }
+}
+
+.doc {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  width: 100%;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--hover);
+    outline: none;
+  }
+  .name,
+  .path {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .path {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 40px;
+  padding: 0 20px;
+  text-align: center;
+  color: var(--text-muted);
+
+  p {
+    margin: 0;
+  }
+}
+
+.doc-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.progress {
+  padding: 0 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* The procedure itself: rendered Markdown with command blocks. */
+.procedure {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 12px 24px;
+  line-height: 1.5;
+
+  ::ng-deep {
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 16px 0 6px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--text);
+    }
+    h1 {
+      font-size: 16px;
+    }
+    p,
+    ul,
+    ol,
+    blockquote,
+    table {
+      margin: 6px 0;
+    }
+    ul,
+    ol {
+      padding-left: 20px;
+    }
+    blockquote {
+      padding-left: 10px;
+      border-left: 3px solid var(--border);
+      color: var(--text-muted);
+    }
+    table {
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th,
+    td {
+      padding: 3px 6px;
+      border: 1px solid var(--border);
+    }
+    a {
+      color: var(--accent);
+    }
+    :not(pre) > code {
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: var(--hover);
+      font-size: 12px;
+    }
+
+    .proc-code {
+      margin: 8px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      overflow: hidden;
+    }
+    .proc-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .proc-n {
+      display: grid;
+      place-items: center;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--hover);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .proc-lang {
+      flex: 1;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .proc-done {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+    }
+    pre {
+      margin: 0;
+      padding: 8px 10px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .proc-code.done {
+      opacity: 0.6;
+
+      .proc-n {
+        color: #fff;
+        background: var(--success, #16a34a);
+      }
+      .proc-done {
+        border-color: var(--success, #16a34a);
+        background: var(--success, #16a34a) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E") center / 12px no-repeat;
+      }
+    }
+  }
+}

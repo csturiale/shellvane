@@ -171,7 +171,7 @@ tasks:
     cmds:
       - mkdir -p {{.ROOT_DIR}}/build/linux/appimage
       # build/linux/shellvane.desktop is kept by hand: it registers the
-      # ssh:// and sftp:// handlers (MimeType, Exec with %u).
+      # ssh://, sftp:// and shellvane:// handlers (MimeType, Exec with %u).
       - echo "using build/linux/{{.APP_NAME}}.desktop"
     vars:
       APP_NAME: '{{.APP_NAME}}'

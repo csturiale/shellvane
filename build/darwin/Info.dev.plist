@@ -36,6 +36,14 @@
 					<string>sftp</string>
 				</array>
 			</dict>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>io.github.csturiale.shellvane.link</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>shellvane</string>
+				</array>
+			</dict>
 		</array>
 		<key>CFBundleVersion</key>
 		<string>0.0.1</string>

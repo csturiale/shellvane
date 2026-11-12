@@ -8,4 +8,4 @@ Categories=Network;RemoteAccess;Development;
 Terminal=false
 StartupNotify=false
 StartupWMClass=shellvane
-MimeType=x-scheme-handler/ssh;x-scheme-handler/sftp;
+MimeType=x-scheme-handler/ssh;x-scheme-handler/sftp;x-scheme-handler/shellvane;

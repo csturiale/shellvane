@@ -69,3 +69,15 @@ func TestResolveOpenAndControl(t *testing.T) {
 		t.Fatalf("missing tunnel = %+v", resp)
 	}
 }
+
+func TestControlSendsProcedureLinks(t *testing.T) {
+	c := NewControl(nil, nil, func(string, any) {})
+	var got []string
+	shown := 0
+	c.Show = func() { shown++ }
+	c.Procedure = func(l string) { got = append(got, l) }
+	c.OpenAll(context.Background(), []string{"--flag", "shellvane://procedure?md=x", "https://example.com"})
+	if len(got) != 1 || got[0] != "shellvane://procedure?md=x" || shown != 1 {
+		t.Fatalf("got %v, shown %d", got, shown)
+	}
+}

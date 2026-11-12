@@ -6,6 +6,7 @@ import { BackendService } from './core/backend/backend.service';
 import { HostsPanel } from './hosts/hosts-panel';
 import { SnippetsPanel } from './snippets/snippets-panel';
 import { TunnelsPanel } from './tunnels/tunnels-panel';
+import { ProceduresPanel } from './procedures/procedures-panel';
 import { KeysPanel } from './keys/keys-panel';
 import { TunnelsStore } from './tunnels/tunnels.store';
 import { ActivityBar } from './layout/activity-bar';
@@ -69,6 +70,7 @@ const HOUR = 60 * 60 * 1000;
     HostsPanel,
     SnippetsPanel,
     TunnelsPanel,
+    ProceduresPanel,
     KeysPanel,
     SettingsPage,
     Workspace,

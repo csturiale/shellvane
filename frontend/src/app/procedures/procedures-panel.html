@@ -1,0 +1,118 @@
+<section *transloco="let t" class="panel">
+  <header>
+    <h2>{{ t('nav.procedures') }} <app-help-link topic="procedures" /></h2>
+    <span class="header-actions">
+      @if (store.current(); as src) {
+        @if (!store.isInbox()) {
+        <button type="button" class="icon" [attr.aria-label]="t('procedures.sync')" [title]="t('procedures.sync')" [disabled]="store.loading()" (click)="store.load(true)">
+          <svg lucideRefreshCw [size]="16" aria-hidden="true"></svg>
+        </button>
+        <button type="button" class="icon" [attr.aria-label]="t('procedures.editSource')" [title]="t('procedures.editSource')" (click)="editing.set(src)">
+          <svg lucidePencil [size]="16" aria-hidden="true"></svg>
+        </button>
+        }
+      }
+      <button type="button" class="icon" [attr.aria-label]="t('procedures.web.title')" [title]="t('procedures.web.title')" (click)="webOpen.set(true)">
+        <svg lucideLink [size]="16" aria-hidden="true"></svg>
+      </button>
+      <button type="button" class="icon" [attr.aria-label]="t('procedures.addSource')" [title]="t('procedures.addSource')" (click)="editing.set('new')">
+        <svg lucidePlus [size]="16" aria-hidden="true"></svg>
+      </button>
+    </span>
+  </header>
+
+  @if (store.all().length > 1) {
+    <select class="source" [attr.aria-label]="t('procedures.source')" (change)="onSource($event)">
+      @for (s of store.all(); track s.id) {
+        <option [value]="s.id" [selected]="s.id === store.current()?.id">{{ s.name }}</option>
+      }
+    </select>
+  }
+
+  @if (store.error(); as e) {
+    <p class="message error" role="alert">{{ t(e.key, e.params) }}</p>
+  }
+  @if (message(); as m) {
+    <p class="message" role="status">{{ m }}</p>
+  }
+
+  @if (!store.current() || (store.isInbox() && store.sources().length === 0 && store.docs().length === 0 && !store.loading())) {
+    <div class="empty">
+      <p>{{ t('procedures.empty') }}</p>
+      <button type="button" class="btn primary" (click)="editing.set('new')">{{ t('procedures.addSource') }}</button>
+      <button type="button" class="btn" (click)="webOpen.set(true)">{{ t('procedures.web.title') }}</button>
+    </div>
+  } @else if (store.doc(); as doc) {
+    <div class="doc-bar">
+      <button type="button" class="icon" [attr.aria-label]="t('procedures.back')" [title]="t('procedures.back')" (click)="store.close()">
+        <svg lucideArrowLeft [size]="16" aria-hidden="true"></svg>
+      </button>
+      <span class="doc-title" [title]="doc.path">{{ doc.title }}</span>
+      @if (progress().total > 0) {
+        <span class="progress" [title]="t('procedures.progress', progress())">{{ progress().done }}/{{ progress().total }}</span>
+      }
+      @if (names().length > 0) {
+        <button type="button" class="icon" [attr.aria-label]="t('procedures.values')" [title]="t('procedures.values')" (click)="editValues()">
+          <svg lucideVariable [size]="16" aria-hidden="true"></svg>
+        </button>
+      }
+      <button type="button" class="icon" [attr.aria-label]="t('procedures.reset')" [title]="t('procedures.reset')" (click)="store.resetDone()">
+        <svg lucideRotateCcw [size]="16" aria-hidden="true"></svg>
+      </button>
+      @if (progress().total > 0) {
+        <button type="button" class="icon" [attr.aria-label]="t('procedures.toRunbook')" [title]="t('procedures.toRunbook')" (click)="toRunbook()">
+          <svg lucideWorkflow [size]="16" aria-hidden="true"></svg>
+        </button>
+      }
+    </div>
+    <article #article class="markdown procedure" [innerHTML]="html()" (click)="onClick($event)"></article>
+  } @else {
+    @if (store.docs().length > 0) {
+      <label class="filter">
+        <svg lucideSearch [size]="14" aria-hidden="true"></svg>
+        <input type="search" [placeholder]="t('procedures.filter')" [attr.aria-label]="t('procedures.filter')" (input)="filter.set($any($event.target).value)" />
+      </label>
+    }
+    <div class="list">
+      @if (store.loading()) {
+        <p class="muted">{{ t('procedures.loading') }}</p>
+      }
+      @for (d of filtered(); track d.path) {
+        <div class="doc-row">
+          <button type="button" class="doc" (click)="store.open(d.path)">
+            <span class="name">{{ d.title }}</span>
+            <span class="path">{{ d.path }}</span>
+          </button>
+          @if (store.isInbox()) {
+            <button type="button" class="icon remove" [attr.aria-label]="t('procedures.deletePage')" [title]="t('procedures.deletePage')" (click)="store.deleteReceived(d.path)">
+              <svg lucideTrash2 [size]="14" aria-hidden="true"></svg>
+            </button>
+          }
+        </div>
+      }
+      @if (!store.loading() && !store.error() && store.docs().length === 0) {
+        <p class="muted">{{ t('procedures.noDocs') }}</p>
+      }
+    </div>
+  }
+
+  @if (editing(); as e) {
+    <app-procedure-source-dialog [source]="e === 'new' ? null : e" (saved)="saveSource($event)" (removed)="removeSource($event)" (closed)="editing.set(null)" />
+  }
+  @if (webOpen()) {
+    <app-procedure-web-dialog (saved)="saveWeb($event)" (closed)="webOpen.set(false)" />
+  }
+  @if (asking(); as a) {
+    <app-procedure-values-dialog [names]="a.names" [initial]="store.values()" (done)="answer($event)" (closed)="asking.set(null)" />
+  }
+  @if (confirming(); as c) {
+    <app-confirm-dialog
+      [heading]="t('snippets.dangerousTitle')"
+      [message]="c.message"
+      [confirmLabel]="t('snippets.sendAnyway')"
+      [danger]="true"
+      (confirmed)="deliver(c.text, c.run, c.index)"
+      (cancelled)="confirming.set(null)"
+    />
+  }
+</section>

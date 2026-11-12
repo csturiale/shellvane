@@ -1,0 +1,17 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('procedures.valuesTitle')" (closed)="closed.emit()">
+    <form id="proc-values" class="form" (ngSubmit)="done.emit(values)">
+      <p class="hint">{{ t('procedures.valuesHint') }}</p>
+      @for (n of names(); track n) {
+        <label class="field">
+          <span class="mono">{{ n }}</span>
+          <input [name]="'v-' + n" spellcheck="false" [(ngModel)]="values[n]" />
+        </label>
+      }
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="proc-values" class="btn primary">{{ t('procedures.continue') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

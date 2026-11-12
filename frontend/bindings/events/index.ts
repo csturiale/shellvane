@@ -24,6 +24,11 @@ export const FilesDropped = "files:dropped";
 export const FilesEdit = "files:edit";
 
 /**
+ * Name of the custom event "procedures:received".
+ */
+export const ProceduresReceived = "procedures:received";
+
+/**
  * Name of the custom event "runbook:cell".
  */
 export const RunbookCell = "runbook:cell";

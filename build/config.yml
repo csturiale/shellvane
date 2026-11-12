@@ -67,12 +67,15 @@ dev_mode:
       type: primary
       exit_policy: shutdown
 
-# URL schemes handled by Shellvane (ssh://user@host:port, sftp://host/path).
+# URL schemes handled by Shellvane (ssh://user@host:port, sftp://host/path,
+# shellvane://procedure from the "Send to Shellvane" bookmarklet).
 protocols:
   - scheme: ssh
     description: SSH connection
   - scheme: sftp
     description: SFTP folder
+  - scheme: shellvane
+    description: Shellvane link (procedures sent from a web page)
 
 # File Associations
 # More information at: https://v3.wails.io/noit/done/yet

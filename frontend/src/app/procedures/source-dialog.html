@@ -1,0 +1,41 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t(source() ? 'procedures.editSource' : 'procedures.addSource')" (closed)="closed.emit()">
+    <form id="proc-source" class="form" (ngSubmit)="submit()">
+      <div class="row" role="radiogroup" [attr.aria-label]="t('procedures.kind')">
+        <label class="check"><input type="radio" name="kind" value="git" [(ngModel)]="kind" /> {{ t('procedures.kindGit') }}</label>
+        <label class="check"><input type="radio" name="kind" value="folder" [(ngModel)]="kind" /> {{ t('procedures.kindFolder') }}</label>
+      </div>
+      @if (kind === 'git') {
+        <label class="field">
+          <span>{{ t('procedures.url') }}</span>
+          <input name="url" class="mono" spellcheck="false" autofocus [(ngModel)]="url" placeholder="git@bitbucket.org:acme/runbooks.git" />
+        </label>
+        <label class="field">
+          <span>{{ t('procedures.branch') }}</span>
+          <input name="branch" class="mono" spellcheck="false" [(ngModel)]="branch" [placeholder]="t('procedures.branchDefault')" />
+        </label>
+        <label class="field">
+          <span>{{ t('procedures.subfolder') }}</span>
+          <input name="folder" class="mono" spellcheck="false" [(ngModel)]="folder" placeholder="docs/ops" />
+        </label>
+        <p class="hint">{{ t('procedures.gitHint') }}</p>
+      } @else {
+        <label class="field">
+          <span>{{ t('procedures.folder') }}</span>
+          <input name="folder" class="mono" spellcheck="false" [(ngModel)]="folder" placeholder="~/work/runbooks" />
+        </label>
+      }
+      <label class="field">
+        <span>{{ t('procedures.name') }}</span>
+        <input name="name" [(ngModel)]="name" [placeholder]="t('procedures.nameHint')" />
+      </label>
+    </form>
+    <ng-container modal-actions>
+      @if (source(); as s) {
+        <button type="button" class="btn danger" (click)="removed.emit(s.id)">{{ t('procedures.removeSource') }}</button>
+      }
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.cancel') }}</button>
+      <button type="submit" form="proc-source" class="btn primary" [disabled]="!valid()">{{ t('common.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

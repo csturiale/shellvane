@@ -21,6 +21,9 @@ import * as kube$0 from "../core/kube/models.js";
 import * as plugins$0 from "../core/plugins/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as procedures$0 from "../core/procedures/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as runbooks$0 from "../core/runbooks/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -445,6 +448,18 @@ export interface PluginInfo {
      */
     "missing": string[] | null;
     "installed": boolean;
+}
+
+/**
+ * ProcedureList is a source's procedures and when it was last updated.
+ */
+export interface ProcedureList {
+    "docs": procedures$0.Doc[] | null;
+
+    /**
+     * Synced is RFC 3339, "" when a repository was never cloned.
+     */
+    "synced": string;
 }
 
 /**

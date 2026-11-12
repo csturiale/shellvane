@@ -17,7 +17,8 @@
     "showPanel": "Show the side panel",
     "resizePanel": "Drag to resize the panel, double-click to hide it",
     "plugins": "Plugins",
-    "gallery": "Community gallery"
+    "gallery": "Community gallery",
+    "procedures": "Procedures"
   },
   "panels": {
     "hosts": {
@@ -377,6 +378,12 @@
     },
     "proxy": {
       "invalid": "Not a proxy address: {{url}} (http://host:port, https://… or socks5://…)."
+    },
+    "procedures": {
+      "source": "The source is not complete ({{detail}}).",
+      "notFound": "Not found: {{path}}",
+      "tooLarge": "{{path}} is too large to show.",
+      "link": "The link is not one made by Shellvane."
     }
   },
   "common": {
@@ -1424,7 +1431,8 @@
       "runbooks": "Runbooks",
       "integration": "Command line and links",
       "sync": "Sync between computers",
-      "contribute": "Contribute"
+      "contribute": "Contribute",
+      "procedures": "Procedures"
     }
   },
   "environments": {
@@ -2159,5 +2167,59 @@
     "reached": "reached ({{status}})",
     "status": "answer {{status}}",
     "blocked": "blocked by the company's web filter: ask IT to allow the site"
+  },
+  "procedures": {
+    "addSource": "Add a source of procedures",
+    "editSource": "Edit the source",
+    "removeSource": "Remove",
+    "source": "Source of procedures",
+    "kind": "Kind of source",
+    "kindGit": "Git repository",
+    "kindFolder": "Folder on this computer",
+    "url": "Repository URL",
+    "branch": "Branch",
+    "branchDefault": "default branch",
+    "subfolder": "Folder in the repository (optional)",
+    "folder": "Folder",
+    "name": "Name",
+    "nameHint": "e.g. Ops runbooks",
+    "gitHint": "Shellvane keeps a read-only copy of the repository and uses your own Git access (SSH key or credential helper). Nothing is ever written back.",
+    "sync": "Update from the repository",
+    "empty": "Keep your procedures in Markdown in a Git repository or a folder, and paste or run their commands here without switching window.",
+    "noDocs": "No Markdown files in this source.",
+    "loading": "Loading…",
+    "filter": "Filter procedures",
+    "back": "Back to the list",
+    "paste": "Paste",
+    "run": "Run",
+    "copy": "Copy",
+    "done": "Mark as done",
+    "copied": "Copied to the clipboard.",
+    "noTerminal": "Open or focus a terminal first: commands go to the focused pane.",
+    "progress": "{{done}} of {{total}} commands done",
+    "values": "Values of the placeholders",
+    "reset": "Start again (clear the steps done)",
+    "toRunbook": "Make a runbook from this procedure",
+    "runbookFrom": "From the procedure {{path}}",
+    "valuesTitle": "Values for the procedure",
+    "valuesHint": "Placeholders such as <namespace> (or a name between double curly braces) are replaced in every command of this source. Leave a value empty to keep the placeholder.",
+    "continue": "Continue",
+    "inbox": "Received pages",
+    "deletePage": "Delete this page",
+    "web": {
+      "title": "From a web page",
+      "sendTitle": "Send to Shellvane from the browser",
+      "sendHint": "For procedures on Confluence, a wiki or any page behind your company sign-in: the browser, already signed in, sends the page to Shellvane.",
+      "button": "Send to Shellvane",
+      "drag": "Drag this button to your browser’s bookmarks bar.",
+      "copyCode": "Copy the bookmark code",
+      "copied": "Code copied: create a bookmark and paste it as its address",
+      "sendHow": "On the page, click the bookmark: the selected text, or the page’s article, opens in Procedures › Received pages with its commands. The browser may ask once whether to open Shellvane. Long pages go through the clipboard.",
+      "pasteTitle": "Or paste a page",
+      "pasteHint": "Select the page (or a part) in the browser, copy it and paste it here: headings, lists and code blocks are kept as Markdown.",
+      "content": "Content (Markdown)",
+      "pastePlaceholder": "Paste here…",
+      "save": "Save and open"
+    }
   }
 }

@@ -267,6 +267,12 @@ func (g GitStore) Where() string {
 
 func (g GitStore) folder() FolderStore { return FolderStore{Folder: g.Dir} }
 
+// Run runs git in dir the way the store does: the user's credentials, the
+// app's proxy, never a prompt; errors carry an auth or network code.
+func (g GitStore) Run(ctx context.Context, dir string, args ...string) (string, error) {
+	return g.git(ctx, dir, args...)
+}
+
 func (g GitStore) git(ctx context.Context, dir string, args ...string) (string, error) {
 	bin := g.Git
 	if bin == "" {

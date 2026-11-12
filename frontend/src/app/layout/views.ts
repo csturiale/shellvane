@@ -1,7 +1,7 @@
 import { EXTENSIONS } from '../extensions/extensions';
 
 /** Sections reachable from the activity bar; settings is pinned at the bottom. */
-export const SECTIONS = ['hosts', 'environments', 'snippets', 'tunnels', 'files', 'keys', 'automation', 'plugins'] as const;
+export const SECTIONS = ['hosts', 'environments', 'snippets', 'procedures', 'tunnels', 'files', 'keys', 'automation', 'plugins'] as const;
 export type Section = (typeof SECTIONS)[number];
 /** A built-in view, or the id of an extension's view. */
 export type View = Section | 'settings' | 'guide' | 'recordings' | (string & {});

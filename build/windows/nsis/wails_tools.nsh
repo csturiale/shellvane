@@ -256,6 +256,7 @@ RequestExecutionLevel "${REQUEST_EXECUTION_LEVEL}"
       !insertmacro CUSTOM_PROTOCOL_ASSOCIATE "ssh" "SSH connection" "$INSTDIR\${PRODUCT_EXECUTABLE},0" "$INSTDIR\${PRODUCT_EXECUTABLE} $\"%1$\""
     
       !insertmacro CUSTOM_PROTOCOL_ASSOCIATE "sftp" "SFTP folder" "$INSTDIR\${PRODUCT_EXECUTABLE},0" "$INSTDIR\${PRODUCT_EXECUTABLE} $\"%1$\""
+      !insertmacro CUSTOM_PROTOCOL_ASSOCIATE "shellvane" "Shellvane link" "$INSTDIR\${PRODUCT_EXECUTABLE},0" "$INSTDIR\${PRODUCT_EXECUTABLE} $\"%1$\""
     
 !macroend
 
@@ -265,5 +266,6 @@ RequestExecutionLevel "${REQUEST_EXECUTION_LEVEL}"
       !insertmacro CUSTOM_PROTOCOL_UNASSOCIATE "ssh"
     
       !insertmacro CUSTOM_PROTOCOL_UNASSOCIATE "sftp"
+      !insertmacro CUSTOM_PROTOCOL_UNASSOCIATE "shellvane"
     
 !macroend

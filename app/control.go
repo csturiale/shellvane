@@ -12,6 +12,7 @@ import (
 
 	"github.com/csturiale/shellvane/core/errs"
 	"github.com/csturiale/shellvane/core/hosts"
+	"github.com/csturiale/shellvane/core/procedures"
 	"github.com/csturiale/shellvane/core/sshengine"
 	"github.com/csturiale/shellvane/core/sshurl"
 	"github.com/csturiale/shellvane/core/tunnel"
@@ -58,7 +59,10 @@ type Control struct {
 	emit    Emitter
 	// Show brings the window to the front; set by main.
 	Show func()
-	ln   net.Listener
+	// Procedure receives shellvane://procedure links (pages sent from the
+	// browser); nil ignores them.
+	Procedure func(link string)
+	ln        net.Listener
 
 	mu      sync.Mutex
 	ready   bool          // the UI listens for EventOpen
@@ -82,6 +86,13 @@ func (c *Control) Ready() []OpenRequest {
 // OpenAll opens the links among args (command line of a launch).
 func (c *Control) OpenAll(ctx context.Context, args []string) {
 	for _, a := range args {
+		if procedures.IsLink(a) {
+			if c.Procedure != nil {
+				c.Show()
+				c.Procedure(a)
+			}
+			continue
+		}
 		if sshurl.Is(a) {
 			if err := c.Open(ctx, a); err != nil {
 				log.Printf("open %s: %v", a, err)

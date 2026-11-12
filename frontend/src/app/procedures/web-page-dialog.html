@@ -1,0 +1,29 @@
+<ng-container *transloco="let t">
+  <app-modal [heading]="t('procedures.web.title')" (closed)="closed.emit()">
+    <form id="proc-web" class="form" (ngSubmit)="save()">
+      <h3>{{ t('procedures.web.sendTitle') }}</h3>
+      <p class="hint">{{ t('procedures.web.sendHint') }}</p>
+      <div class="bookmarklet">
+        <a class="drag" [href]="link" draggable="true" (click)="$event.preventDefault()" [title]="t('procedures.web.drag')">{{ t('procedures.web.button') }}</a>
+        <span class="hint">{{ t('procedures.web.drag') }}</span>
+        <button type="button" class="btn small" (click)="copyCode()">{{ t(copied() ? 'procedures.web.copied' : 'procedures.web.copyCode') }}</button>
+      </div>
+      <p class="hint">{{ t('procedures.web.sendHow') }}</p>
+
+      <h3>{{ t('procedures.web.pasteTitle') }}</h3>
+      <p class="hint">{{ t('procedures.web.pasteHint') }}</p>
+      <label class="field">
+        <span>{{ t('procedures.name') }}</span>
+        <input name="title" [(ngModel)]="title" />
+      </label>
+      <label class="field">
+        <span>{{ t('procedures.web.content') }}</span>
+        <textarea name="markdown" class="mono" rows="10" spellcheck="false" [(ngModel)]="markdown" (paste)="onPaste($event)" [placeholder]="t('procedures.web.pastePlaceholder')"></textarea>
+      </label>
+    </form>
+    <ng-container modal-actions>
+      <button type="button" class="btn" (click)="closed.emit()">{{ t('common.close') }}</button>
+      <button type="submit" form="proc-web" class="btn primary" [disabled]="!markdown.trim()">{{ t('procedures.web.save') }}</button>
+    </ng-container>
+  </app-modal>
+</ng-container>

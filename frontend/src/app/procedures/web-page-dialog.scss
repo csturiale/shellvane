@@ -1,0 +1,37 @@
+h3 {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bookmarklet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  a.drag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: grab;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+
+    &::before {
+      content: '\2605';
+    }
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+textarea {
+  resize: vertical;
+}

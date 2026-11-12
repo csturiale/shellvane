@@ -1,6 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 
+import { Events } from '@wailsio/runtime';
+
+import { ProceduresReceived } from '../../../bindings/events';
 import { ControlApi, OpenRequest } from './backend/control-api';
+import { ProcedureApi } from './backend/procedure-api';
 import { Navigation } from '../layout/navigation';
 import { FULL_VIEWS } from '../layout/views';
 import { SessionsStore } from '../sessions/sessions.store';
@@ -11,6 +15,7 @@ export class OpenRequests {
   private readonly api = inject(ControlApi);
   private readonly sessions = inject(SessionsStore);
   private readonly nav = inject(Navigation);
+  private readonly procedures = inject(ProcedureApi);
 
   async start(): Promise<void> {
     try {
@@ -18,9 +23,20 @@ export class OpenRequests {
       for (const r of await this.api.ready()) {
         this.open(r);
       }
+      // Pages sent from the browser ("Send to Shellvane") open in Procedures.
+      Events.On(ProceduresReceived, (ev) => this.procedure(ev.data));
+      const received = await this.procedures.takeReceived();
+      if (received) {
+        this.procedure(received);
+      }
     } catch {
       // Outside the desktop app.
     }
+  }
+
+  procedure(path: string): void {
+    this.nav.view.set('procedures');
+    this.nav.procedure.set(path);
   }
 
   open(r: OpenRequest): void {

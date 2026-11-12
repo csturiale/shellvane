@@ -12,6 +12,7 @@ export const GUIDE_TOPICS = [
   'terminal',
   'broadcast',
   'snippets',
+  'procedures',
   'tunnels',
   'files',
   'continuity',

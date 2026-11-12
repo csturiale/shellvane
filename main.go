@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	gosync "sync"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -48,6 +49,7 @@ func init() {
 	application.RegisterEvent[app.SessionState](app.EventSessionState)
 	application.RegisterEvent[app.Prompt](app.EventSessionPrompt)
 	application.RegisterEvent[string](app.EventSessionReturn)
+	application.RegisterEvent[string](app.EventProcedureReceived)
 	application.RegisterEvent[app.TriggerEvent](app.EventSessionTrigger)
 	application.RegisterEvent[app.FileEdit](app.EventFileEdit)
 	application.RegisterEvent[app.RunbookCell](app.EventRunbookCell)
@@ -111,6 +113,20 @@ func main() {
 		AddBroker: func(prefix string, b app.Broker) { brokers[prefix] = b },
 	})
 	app.EnableBrokers(sessions, app.RouteBrokers(app.PluginBroker(pluginService), brokers))
+	procedureService := app.NewProcedureService(dataDir, func(name string, data any) { emit(name, data) })
+	// A page sent while the app starts may sit on the clipboard, which is
+	// only readable once the app runs: such links wait for the start.
+	var linksMu gosync.Mutex
+	started, waiting := false, []string{}
+	control.Procedure = func(link string) {
+		linksMu.Lock()
+		defer linksMu.Unlock()
+		if !started {
+			waiting = append(waiting, link)
+			return
+		}
+		go app.ReceiveProcedureLink(procedureService, link)
+	}
 	environmentService := app.NewEnvironmentService(environments.New(db), repo, tunnel.NewRepo(db), workspaces.New(db))
 	app.EnableEnvironmentLogin(environmentService, sessions, plugins.NewConfigs(db), dataDir)
 
@@ -134,6 +150,7 @@ func main() {
 			application.NewServiceWithOptions(app.NewRunbookService(runbooks.NewRepo(db), repo, sessions, auditLog, emitter), serviceOptions),
 			application.NewServiceWithOptions(app.NewWorkspaceService(workspaces.New(db)), serviceOptions),
 			application.NewServiceWithOptions(environmentService, serviceOptions),
+			application.NewServiceWithOptions(procedureService, serviceOptions),
 			application.NewServiceWithOptions(app.NewUpdateService(), serviceOptions),
 			application.NewServiceWithOptions(app.NewSyncService(db, vaultStore, dataDir, emitter), serviceOptions),
 			application.NewServiceWithOptions(app.NewLaunchService(sessions, tunnelService), serviceOptions),
@@ -213,7 +230,17 @@ func main() {
 	tray := app.NewTray(repo, tunnelService, vaultService, control, app.TranslatorOf(appService))
 	appService.OnLanguageChange = tray.SetTranslator
 	tray.Start(wailsApp, trayIcon)
-	// Links opened through the system (ssh:// and sftp:// handlers).
+	wailsApp.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
+		linksMu.Lock()
+		started = true
+		pending := waiting
+		waiting = nil
+		linksMu.Unlock()
+		for _, l := range pending {
+			go app.ReceiveProcedureLink(procedureService, l)
+		}
+	})
+	// Links opened through the system (ssh://, sftp:// and shellvane:// handlers).
 	wailsApp.Event.OnApplicationEvent(events.Common.ApplicationLaunchedWithUrl, func(e *application.ApplicationEvent) {
 		control.OpenAll(context.Background(), []string{e.Context().URL()})
 	})

@@ -16,6 +16,7 @@ import * as LaunchService from "./launchservice.js";
 import * as MonitorService from "./monitorservice.js";
 import * as NetworkService from "./networkservice.js";
 import * as PluginService from "./pluginservice.js";
+import * as ProcedureService from "./procedureservice.js";
 import * as RunbookService from "./runbookservice.js";
 import * as SessionService from "./sessionservice.js";
 import * as SnippetService from "./snippetservice.js";
@@ -42,6 +43,7 @@ export {
     MonitorService,
     NetworkService,
     PluginService,
+    ProcedureService,
     RunbookService,
     SessionService,
     SnippetService,
@@ -80,6 +82,7 @@ export type {
     OpenRequest,
     PluginConfig,
     PluginInfo,
+    ProcedureList,
     Prompt,
     PromptAnswer,
     ReachResult,

@@ -17,6 +17,8 @@ La CLI comunica con l'app tramite un socket locale che solo il tuo utente può a
 
 Shellvane gestisce i link `ssh://utente@host:porta` e `sftp://utente@host:porta/percorso` dal browser, dalla documentazione o da altre app. Un link che corrisponde a un host salvato (stesso indirizzo, porta e utente) apre quell'host, con le sue credenziali, jump host e opzioni; altrimenti apre una connessione rapida. I link `sftp://` aprono la cartella in File. Un link cliccato mentre Shellvane è aperto va alla finestra già aperta.
 
+I link `shellvane://procedure` sono creati dal preferito **Invia a Shellvane** e portano una pagina web in Procedure ([Procedure](shellvane:topic/procedures#web)).
+
 ## Modalità portable {#portable}
 
 Metti un file vuoto chiamato `shellvane.portable` accanto all'eseguibile di Shellvane (su macOS, accanto a `Shellvane.app`): Shellvane tiene allora tutti i suoi dati in una cartella `ShellvaneData` lì accanto, per esempio su una chiavetta USB. La variabile d'ambiente `SHELLVANE_DATA_DIR` sceglie esplicitamente la cartella dei dati.
