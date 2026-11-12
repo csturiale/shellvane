@@ -46,6 +46,8 @@ export interface Run {
   reuse: boolean;
   /** The last periodic login check failed: the login has expired. */
   loginExpired?: string;
+  /** Stops fetching the login secret (the user skips the password). */
+  skipSecret?: () => void;
 }
 
 /** How to start a run. */
@@ -437,6 +439,11 @@ export class EnvironmentsStore {
   }
 
   /** Goes on without waiting for the login check (it may never pass). */
+  /** Goes on without the login secret's password (typed or copied by hand). */
+  skipSecret(envId: string): void {
+    this.runOf(envId)?.skipSecret?.();
+  }
+
   continueWithoutLogin(envId: string): void {
     const run = this.runOf(envId);
     if (run) {
@@ -454,10 +461,17 @@ export class EnvironmentsStore {
     let note: TranslatableError | undefined;
     if (env.login.secret?.source) {
       this.act(run, 'login', 'fetchingSecret');
-      note = await this.api.copyLoginSecret(env.id, values, this.browserPrefs.settings().seconds).then(
+      let skipped = false;
+      const copying = this.api.copyLoginSecret(env.id, values, this.browserPrefs.settings().seconds);
+      run.skipSecret = () => {
+        skipped = true;
+        copying.cancel?.();
+      };
+      note = await copying.then(
         (c) => ({ key: 'environments.secretCopied', params: { ...c } }),
-        toTranslatableError,
+        (err) => (skipped ? { key: 'environments.secretSkipped', params: {} } : toTranslatableError(err)),
       );
+      run.skipSecret = undefined;
     }
     this.act(run, 'login', 'loggingIn', {}, note);
   }

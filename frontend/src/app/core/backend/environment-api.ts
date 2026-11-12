@@ -22,7 +22,8 @@ export class EnvironmentApi {
     return EnvironmentService.CheckLogin(command, values, gcloud);
   }
   /** Copies the login secret's password to the clipboard (it never reaches the UI). */
-  copyLoginSecret(envId: string, values: Record<string, string>, seconds = 0): Promise<CopiedSecret> {
+  /** cancel() stops it (a sign-in waiting in the browser, the user skips the password). */
+  copyLoginSecret(envId: string, values: Record<string, string>, seconds = 0): Promise<CopiedSecret> & { cancel?: () => void } {
     return EnvironmentService.CopyLoginSecret(envId, values, seconds);
   }
   async gcloudProfiles(): Promise<string[]> {

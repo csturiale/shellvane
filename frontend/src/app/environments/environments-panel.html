@@ -89,6 +89,10 @@
                       }
                     </span>
                   }
+                  @if (s.state === 'running' && s.id === 'login' && s.activity?.key === 'environments.activity.fetchingSecret') {
+                    <span class="waiting">{{ t('environments.browserSignIn.waiting') }}</span>
+                    <button type="button" class="retry" (click)="store.skipSecret(env.id)">{{ t('environments.skipSecret') }}</button>
+                  }
                   @if (s.state === 'running' && s.id === 'login' && (s.waiting || s.activity?.key === 'environments.activity.loggingIn')) {
                     @if (s.waiting) {
                       <span class="waiting">{{ t('environments.checkFails', { detail: s.waiting }) }}</span>

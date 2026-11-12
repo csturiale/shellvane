@@ -1,0 +1,5 @@
+<div class="bookmarklet" *transloco="let t; read: 'environments.browserSignIn'">
+  <a class="drag" [href]="link" draggable="true" (click)="$event.preventDefault()" [title]="t('drag')">{{ t('button') }}</a>
+  <span class="hint">{{ t('drag') }}</span>
+  <button type="button" class="btn small" (click)="copyCode()">{{ t(copied() ? 'copied' : 'copyCode') }}</button>
+</div>

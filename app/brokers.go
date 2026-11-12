@@ -79,6 +79,7 @@ func (s *SessionService) askBroker(ctx context.Context, broker Broker, ref strin
 		return a.Answers[0], nil
 	})
 	ctx = plugins.WithWebLogin(ctx, WebLoginWindow)
+	ctx = plugins.WithBrowserLogin(ctx, BrowserLoginLink)
 	cred, err := broker(ctx, ref, t)
 	if errs.CodeOf(err) == vault.ErrLocked && s.vault != nil {
 		pr := &prompter{svc: s, sessionID: owner, host: ht, tried: map[string]bool{}}

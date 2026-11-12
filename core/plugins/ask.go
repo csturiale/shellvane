@@ -51,3 +51,29 @@ func OpenWebLogin(ctx context.Context, title, url, probe string, accept func(map
 	}
 	return w(ctx, title, url, probe, accept)
 }
+
+// BrowserLogin opens url in the user's own browser (browser: an id such
+// as "safari" or "edge", "" for the system's default), for a sign-in that a
+// window of the app cannot do (an identity provider's conditional access
+// that only trusts the managed browsers). The page cannot be probed from
+// the app: what it finds comes back from the "Send to Shellvane"
+// bookmarklet, run by the user once signed in, and goes through accept as
+// for WebLogin; true ends the sign-in.
+type BrowserLogin func(ctx context.Context, title, url, browser string, accept func(values map[string]string) bool) error
+
+type browserLoginKey struct{}
+
+// WithBrowserLogin lets the plugins called with ctx sign in in the browser.
+func WithBrowserLogin(ctx context.Context, b BrowserLogin) context.Context {
+	return context.WithValue(ctx, browserLoginKey{}, b)
+}
+
+// OpenBrowserLogin runs a sign-in in the user's browser through the ctx's
+// BrowserLogin; without one it fails with ErrUnsupported.
+func OpenBrowserLogin(ctx context.Context, title, url, browser string, accept func(map[string]string) bool) error {
+	b, _ := ctx.Value(browserLoginKey{}).(BrowserLogin)
+	if b == nil {
+		return errs.New(ErrUnsupported, nil)
+	}
+	return b(ctx, title, url, browser, accept)
+}

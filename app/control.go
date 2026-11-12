@@ -86,6 +86,13 @@ func (c *Control) Ready() []OpenRequest {
 // OpenAll opens the links among args (command line of a launch).
 func (c *Control) OpenAll(ctx context.Context, args []string) {
 	for _, a := range args {
+		if IsSignInLink(a) {
+			// The browser sign-in's bookmarklet: the app stays where it is.
+			if !ReceiveSignInLink(a) {
+				log.Printf("sign-in link received with no sign-in waiting")
+			}
+			continue
+		}
 		if procedures.IsLink(a) {
 			if c.Procedure != nil {
 				c.Show()

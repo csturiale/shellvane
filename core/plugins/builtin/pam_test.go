@@ -331,6 +331,22 @@ func TestCyberArkPVWABrowserSignIn(t *testing.T) {
 		t.Fatalf("oidc = %+v, %v", cred, err)
 	}
 
+	// In the user's browser: the bookmarklet sends the web session's storage.
+	resetPVWA()
+	browserOpened := ""
+	ctx = plugins.WithBrowserLogin(context.Background(), func(_ context.Context, title, u, browser string, accept func(map[string]string) bool) error {
+		browserOpened = u + " in " + browser
+		if accept(map[string]string{"s:session": `{"token":"web-session-token-abcdef"}`}) {
+			return nil
+		}
+		return errs.New(plugins.ErrCommand, errs.Params{"command": "sign-in", "detail": "timed out"})
+	})
+	s["webLoginIn"] = "Safari"
+	if cred, err := (CyberArk{}).Credentials(ctx, s, web); err != nil || cred.Password != "pw!" || browserOpened != srv.URL+"/PasswordVault/v10/logon/oidc?app=x in safari" {
+		t.Fatalf("browser = %+v, %v, opened %q", cred, err, browserOpened)
+	}
+	delete(s, "webLoginIn")
+
 	// Closed window or no session found: an error, nothing kept.
 	resetPVWA()
 	ctx = plugins.WithWebLogin(context.Background(), signIn(map[string]string{"l:x": "not-a-token-at-all-really"}))

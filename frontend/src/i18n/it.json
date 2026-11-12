@@ -1559,7 +1559,18 @@
     "myValuesNamed": "I miei valori per {{name}}",
     "myValuesTitle": "I miei valori per {{name}}",
     "personalTag": "personale",
-    "personalHint": "I valori personali (per esempio la tua email di accesso o il tuo utente nel vault) sono tuoi: tenuti su questo computer e richiesti di nuovo solo se mancano, non sono mai salvati nell'ambiente, quindi esportazioni e condivisioni col team ne portano solo il nome. \"Ricorda ovunque\" riempie lo stesso nome in altri ambienti, snippet e procedure; \"Solo qui\" tiene un valore solo per questo ambiente."
+    "personalHint": "I valori personali (per esempio la tua email di accesso o il tuo utente nel vault) sono tuoi: tenuti su questo computer e richiesti di nuovo solo se mancano, non sono mai salvati nell'ambiente, quindi esportazioni e condivisioni col team ne portano solo il nome. \"Ricorda ovunque\" riempie lo stesso nome in altri ambienti, snippet e procedure; \"Solo qui\" tiene un valore solo per questo ambiente.",
+    "skipSecret": "Salta la password",
+    "secretSkipped": "Password saltata: copiala tu dal vault e incollala nella pagina di accesso.",
+    "browserSignIn": {
+      "title": "Accesso al vault nel tuo browser",
+      "hint": "Quando l’azienda permette l’accesso solo da browser riconosciuti (“You cannot access this right now”, errore 53003), imposta l’accesso del plugin CyberArk su “browser” (il tuo predefinito) o su un browser per nome: il vault si apre lì; una volta entrato, clicca questo segnalibro in quel browser e Shellvane prende la sessione. Trascinalo nella barra dei preferiti, o copia il codice in un nuovo segnalibro.",
+      "button": "Shellvane: sessione del vault",
+      "drag": "Trascina nella barra dei preferiti",
+      "copyCode": "Copia il codice",
+      "copied": "Copiato",
+      "waiting": "Se il vault si è aperto nel browser: accedi lì, poi clicca il segnalibro “Shellvane: sessione del vault”."
+    }
   },
   "logs": {
     "title": "Log e registrazioni",
@@ -2006,7 +2017,8 @@
       "conjurUser": "Variabile dell'utente",
       "cyberarkOtpMode": "Codice (RADIUS): challenge, oppure append alla password",
       "cyberarkOtpDelimiter": "Separatore per la modalità append",
-      "cyberarkWebLogin": "Pagina di accesso (SAML/OIDC, facoltativa)"
+      "cyberarkWebLogin": "Pagina di accesso (SAML/OIDC, facoltativa)",
+      "cyberarkWebLoginIn": "Accesso SAML/OIDC in: window (finestra dell’app), browser (il tuo predefinito), o un browser per nome: safari, edge, chrome, firefox, brave"
     },
     "panel": {
       "open": "Docker, servizi e log",

@@ -189,6 +189,32 @@ describe('EnvironmentsStore', () => {
     expect(opened.length).toBe(1);
   }, 15000);
 
+  it('goes on without the password when the user skips a sign-in in the browser', async () => {
+    checks = Array(100).fill(false);
+    const api = TestBed.inject(EnvironmentApi) as unknown as Record<string, unknown>;
+    let cancelled = false;
+    api['copyLoginSecret'] = () => {
+      let reject: (e: unknown) => void = () => undefined;
+      const p = new Promise((_, rej) => (reject = rej)) as Promise<unknown> & { cancel?: () => void };
+      p.cancel = () => {
+        cancelled = true;
+        reject(new Error('cancelled'));
+      };
+      return p;
+    };
+    const started = store.start(env({ login: { check: 'c', login: 'gcloud auth login', prepare: '', secret: { source: 'cfg-1', address: '', user: 'alice', safe: '' } } }), {});
+    await new Promise((r) => setTimeout(r, 20));
+    expect(store.runOf('e1')!.steps[0].activity?.key).toBe('environments.activity.fetchingSecret');
+    store.skipSecret('e1');
+    await new Promise((r) => setTimeout(r, 20));
+    const a = store.runOf('e1')!.steps[0].activity;
+    expect(cancelled).toBe(true);
+    expect(a?.key).toBe('environments.activity.loggingIn');
+    expect(a?.detail?.key).toBe('environments.secretSkipped');
+    store.continueWithoutLogin('e1');
+    await started;
+  }, 15000);
+
   it('keeps personal values on this computer and adds them to every start', async () => {
     const calls: string[] = [];
     const api = TestBed.inject(EnvironmentApi) as unknown as Record<string, unknown>;

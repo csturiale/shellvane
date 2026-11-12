@@ -95,6 +95,7 @@ func (CyberArk) Manifest() plugins.Manifest {
 			{Key: "password", Label: "plugins.settings.cyberarkPassword", Secret: true},
 			{Key: "authMethod", Label: "plugins.settings.cyberarkAuth", Placeholder: "SAML"},
 			{Key: "webLoginUrl", Label: "plugins.settings.cyberarkWebLogin", Placeholder: "https://cyberark.example.org/PasswordVault/v10/logon/saml"},
+			{Key: "webLoginIn", Label: "plugins.settings.cyberarkWebLoginIn", Placeholder: "window"},
 			{Key: "otpMode", Label: "plugins.settings.cyberarkOtpMode", Placeholder: "challenge"},
 			{Key: "otpDelimiter", Label: "plugins.settings.cyberarkOtpDelimiter", Placeholder: ","},
 			{Key: "reason", Label: "plugins.settings.cyberarkReason", Placeholder: "SSH to {{host}}"},
@@ -428,11 +429,22 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 		}
 		return false
 	}
-	err := plugins.OpenWebLogin(call.ctx, "CyberArk", start, pvwaProbe, accept)
+	var err error
+	if in := strings.ToLower(strings.TrimSpace(s["webLoginIn"])); in != "" && in != "window" {
+		// Conditional access that refuses the app's window: a browser the
+		// company trusts signs in ("browser": the default one, or one by
+		// name such as safari or edge), the bookmarklet sends the session.
+		if in == "browser" {
+			in = ""
+		}
+		err = plugins.OpenBrowserLogin(call.ctx, "CyberArk", start, in, accept)
+	} else {
+		err = plugins.OpenWebLogin(call.ctx, "CyberArk", start, pvwaProbe, accept)
+	}
 	if token != "" {
 		return token, nil
 	}
-	if err != nil && errs.CodeOf(err) == plugins.ErrUnsupported {
+	if err != nil && (errs.CodeOf(err) == plugins.ErrUnsupported || call.ctx.Err() != nil) {
 		return "", err
 	}
 	detail := "the browser sign-in gave no PVWA session"

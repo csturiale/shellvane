@@ -1559,7 +1559,18 @@
     "myValuesNamed": "My values for {{name}}",
     "myValuesTitle": "My values for {{name}}",
     "personalTag": "personal",
-    "personalHint": "Personal values (for example your sign-in email or your user in the vault) are yours: kept on this computer and asked again only when missing, they are never stored in the environment, so exports and team shares carry only their names. \"Remember everywhere\" fills the same name in other environments, snippets and procedures; \"Only here\" keeps a value for this environment alone."
+    "personalHint": "Personal values (for example your sign-in email or your user in the vault) are yours: kept on this computer and asked again only when missing, they are never stored in the environment, so exports and team shares carry only their names. \"Remember everywhere\" fills the same name in other environments, snippets and procedures; \"Only here\" keeps a value for this environment alone.",
+    "skipSecret": "Skip the password",
+    "secretSkipped": "Password skipped: copy it from the vault yourself and paste it in the sign-in page.",
+    "browserSignIn": {
+      "title": "Vault sign-in in your browser",
+      "hint": "When your company only lets trusted browsers sign in (“You cannot access this right now”, error 53003), set the CyberArk plugin’s sign-in to “browser” (your default one) or to a browser by name: the vault opens there; once signed in, click this bookmark in that browser and Shellvane takes the session. Drag it to the bookmarks bar, or copy its code into a new bookmark.",
+      "button": "Shellvane: vault session",
+      "drag": "Drag to the bookmarks bar",
+      "copyCode": "Copy the code",
+      "copied": "Copied",
+      "waiting": "If the vault opened in your browser: sign in there, then click the “Shellvane: vault session” bookmark."
+    }
   },
   "logs": {
     "title": "Logs and recordings",
@@ -2006,7 +2017,8 @@
       "conjurUser": "User variable",
       "cyberarkOtpMode": "Code (RADIUS): challenge, or append to the password",
       "cyberarkOtpDelimiter": "Separator for append mode",
-      "cyberarkWebLogin": "Sign-in page (SAML/OIDC, optional)"
+      "cyberarkWebLogin": "Sign-in page (SAML/OIDC, optional)",
+      "cyberarkWebLoginIn": "SAML/OIDC sign-in in: window (the app’s), browser (your default one), or a browser by name: safari, edge, chrome, firefox, brave"
     },
     "panel": {
       "open": "Docker, services and logs",

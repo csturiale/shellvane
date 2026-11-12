@@ -150,6 +150,13 @@
         {{ t('seconds') }}
       </span>
     </div>
+    <div class="row stacked">
+      <div class="label">
+        <span>{{ g('environments.browserSignIn.title') }}</span>
+        <small>{{ g('environments.browserSignIn.hint') }}</small>
+      </div>
+      <app-signin-bookmarklet />
+    </div>
   </section>
 
   <section>
