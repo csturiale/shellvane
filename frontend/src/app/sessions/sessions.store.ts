@@ -301,6 +301,14 @@ export class SessionsStore {
     await this.reconnect(paneKey);
   }
 
+  /** Whether a local pane reaches its cluster through its own kubeconfig (throws why not). */
+  async checkKube(paneKey: number): Promise<void> {
+    const pane = this.pane(paneKey);
+    if (pane) {
+      await this.api.checkKube(pane.sessionId);
+    }
+  }
+
   /** Opens a host with Mosh (roaming, survives sleep and network changes). */
   async openMosh(hostId: string, title: string): Promise<void> {
     this.usage.count('session.mosh');

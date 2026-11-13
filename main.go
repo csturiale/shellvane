@@ -67,6 +67,9 @@ func main() {
 	// Apps opened from the Finder/Dock miss the login shell's PATH, where
 	// kubectl, gcloud, aws and their credential plugins live.
 	shellenv.Start(context.Background())
+	// Sites that ask for a client certificate (Microsoft Entra checking a
+	// registered device) get one, as in a browser.
+	app.EnableClientCertificates()
 	dbPath, err := store.DefaultPath()
 	if err != nil {
 		log.Fatalf("locate data directory: %v", err)

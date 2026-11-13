@@ -28,6 +28,8 @@ describe('EnvironmentsStore', () => {
   let store: EnvironmentsStore;
   let panes: Map<number, Record<string, unknown>>;
   let kubeSet: number[];
+  let kubeChecked: number[];
+  let kubeFails: boolean;
   let stopped: string[];
   let api: { list: () => Promise<Environment[]> };
   const tunnels = signal([
@@ -40,6 +42,8 @@ describe('EnvironmentsStore', () => {
     let key = 0;
     panes = new Map();
     kubeSet = [];
+    kubeChecked = [];
+    kubeFails = false;
     stopped = [];
     tunnels.set([{ profile: { id: 't1', kind: 'dynamic' }, status: { state: 'stopped', addr: '' } }] as never);
     api = { list: async () => [] };
@@ -64,6 +68,12 @@ describe('EnvironmentsStore', () => {
             movedAway: new Set<number>(),
             setKube: async (k: number) => {
               kubeSet.push(k);
+            },
+            checkKube: async (k: number) => {
+              kubeChecked.push(k);
+              if (kubeFails) {
+                throw { cause: { code: 'kube.kubectl', params: { detail: 'dial tcp 10.0.0.12:443: connect: connection refused' } } };
+              }
             },
             closePane: async (k: number) => panes.delete(k),
           },
@@ -122,11 +132,24 @@ describe('EnvironmentsStore', () => {
   it('gives restored panes their context again, without reopening them', async () => {
     // A restored local pane of the environment, without its context.
     panes.set(7, { key: 7, state: 'connected', local: true, source: { kind: 'local' }, env: { id: 'e1', name: 'GKE', values: {} }, kubeOverride: null });
-    // One that already has it is left alone.
+    // One that remembers it gets it again too: restored before kubectl
+    // could be asked, its file may hold nothing.
     panes.set(8, { key: 8, state: 'connected', local: true, source: { kind: 'local' }, env: { id: 'e1', name: 'GKE', values: {} }, kubeOverride: { context: 'gke_prd', namespace: 'web' } });
     await store.start(env({ localKube: { context: 'gke_prd', namespace: 'web', tunnelId: '', terminals: 1 } }), {}, 'login', { adopt: [7, 8] });
     expect(opened).toEqual([]);
-    expect(kubeSet).toEqual([7]);
+    expect(kubeSet).toEqual([7, 8]);
+    expect(kubeChecked).toEqual([7]); // and a terminal must reach the cluster
+    expect(store.stateOf('e1')).toBe('ready');
+  });
+
+  it('is not ready when a restored terminal does not reach its cluster', async () => {
+    panes.set(7, { key: 7, state: 'connected', local: true, source: { kind: 'local' }, env: { id: 'e1', name: 'GKE', values: {} }, kubeOverride: null });
+    kubeFails = true;
+    await store.start(env({ localKube: { context: 'shop-prd', namespace: '', tunnelId: '', terminals: 1 } }), {}, 'login', { adopt: [7] });
+    const step = store.runOf('e1')!.steps.find((x) => x.id === 'localKube')!;
+    expect(step.state).toBe('failed');
+    expect(step.error).toEqual({ key: 'errors.environments.kubeUnreachable', params: { detail: 'dial tcp 10.0.0.12:443: connect: connection refused' } });
+    expect(store.stateOf('e1')).toBe('failed');
   });
 
   it('fails a login step without a login command', async () => {

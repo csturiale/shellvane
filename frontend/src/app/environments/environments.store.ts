@@ -458,6 +458,21 @@ export class EnvironmentsStore {
     return [...out.entries()].map(([name, envs]) => ({ name, envs }));
   }
 
+  /**
+   * Checks that a terminal of the environment reaches its cluster (through
+   * the tunnel, with the login): the step fails with kubectl's reason
+   * instead of looking ready when it does not.
+   */
+  private async verifyKube(run: Run, paneKey: number): Promise<void> {
+    this.act(run, 'localKube', 'verifying');
+    try {
+      await this.sessions.checkKube(paneKey);
+    } catch (err) {
+      const e = toTranslatableError(err);
+      throw { cause: { code: 'environments.kubeUnreachable', params: { detail: (e.params as { detail?: string })?.detail ?? e.key } } };
+    }
+  }
+
   /** Whether the environment is up and ready for one more terminal. */
   isUp(envId: string): boolean {
     return this.stateOf(envId) === 'ready';
@@ -592,21 +607,25 @@ export class EnvironmentsStore {
         if (open.length > 0) {
           // Restored panes come back without their context, and the tunnel
           // may listen on another port now: give each shell the
-          // environment's context, namespace and route again.
+          // environment's context, namespace and route again, always (a
+          // pane restored before kubectl could be asked has an empty
+          // file even when it remembers the selection).
           this.act(run, 'localKube', 'reusing');
-          const same = (a: KubeSelection | null | undefined, b: KubeSelection) =>
-            !!a && a.context === b.context && (a.namespace ?? '') === (b.namespace ?? '') && JSON.stringify(a.route ?? null) === JSON.stringify(b.route ?? null);
           for (const key of open) {
-            const pane = this.sessions.pane(key);
-            if (kube && pane && !same(pane.kubeOverride, kube)) {
-              await this.sessions.setKube(key, kube).catch(() => undefined);
+            if (kube && this.sessions.pane(key)) {
+              await this.sessions.setKube(key, kube);
             }
           }
+          await this.verifyKube(run, open[0]);
           return true;
         }
         this.act(run, 'localKube', 'opening', { count: k.terminals });
         for (let i = 0; i < k.terminals; i++) {
           run.panes.push(await this.sessions.openLocal(undefined, { kube, env: this.tag(env, values), gcloud: env.gcloud }));
+        }
+        const first = run.panes.at(-k.terminals);
+        if (kube && first !== undefined) {
+          await this.verifyKube(run, first);
         }
         return true;
       }

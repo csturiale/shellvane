@@ -254,7 +254,8 @@
       "reviewNeeded": "I suoi comandi sono stati modificati nel team: rivedili e approvali prima.",
       "noLoginSecret": "Questo ambiente non ha una sorgente per la password del login.",
       "loginSecretEmpty": "L'account {{user}} non ha una password nel plugin delle credenziali.",
-      "clipboard": "Gli appunti non sono disponibili."
+      "clipboard": "Gli appunti non sono disponibili.",
+      "kubeUnreachable": "Il terminale non raggiunge il cluster: {{detail}}"
     },
     "sessionlog": {
       "createFailed": "Impossibile creare {{path}}.",
@@ -1537,7 +1538,8 @@
       "preparing": "Preparazione: {{command}}",
       "connecting": "Avvio {{names}} attraverso il jump host (potrebbe essere chiesta una password)…",
       "opening": "Apro {count, plural, one {1 terminale} other {# terminali}}…",
-      "fetchingSecret": "Lettura della password del login dal plugin delle credenziali (può chiedere l’MFA)…"
+      "fetchingSecret": "Lettura della password del login dal plugin delle credenziali (può chiedere l’MFA)…",
+      "verifying": "Verifico che il terminale raggiunga il cluster…"
     },
     "elapsed": "{{seconds}} s",
     "gcloud": "Profilo gcloud",

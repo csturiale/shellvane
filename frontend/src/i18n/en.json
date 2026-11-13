@@ -254,7 +254,8 @@
       "reviewNeeded": "Its commands were changed in the team: review and approve them first.",
       "noLoginSecret": "This environment has no password source for its login.",
       "loginSecretEmpty": "The account {{user}} has no password in the credential plugin.",
-      "clipboard": "The clipboard is not available."
+      "clipboard": "The clipboard is not available.",
+      "kubeUnreachable": "The terminal does not reach the cluster: {{detail}}"
     },
     "sessionlog": {
       "createFailed": "Cannot create {{path}}.",
@@ -1537,7 +1538,8 @@
       "preparing": "Preparing: {{command}}",
       "connecting": "Connecting {{names}} through the jump host (a password may be asked)…",
       "opening": "Opening {count, plural, one {1 terminal} other {# terminals}}…",
-      "fetchingSecret": "Reading the login password from the credential plugin (it may ask for MFA)…"
+      "fetchingSecret": "Reading the login password from the credential plugin (it may ask for MFA)…",
+      "verifying": "Checking that the terminal reaches the cluster…"
     },
     "elapsed": "{{seconds}} s",
     "gcloud": "gcloud profile",

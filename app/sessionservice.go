@@ -198,6 +198,8 @@ type session struct {
 	err    error
 	local  bool
 	client *ssh.Client // SSH sessions: runs kubectl on the server
+	// gcloud is a local pane's gcloud profile ("" for gcloud's own).
+	gcloud string
 	kube   kubeState
 
 	flow    *flowGate

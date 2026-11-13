@@ -32,6 +32,15 @@ export function Answer(promptID: string, answer: $models.PromptAnswer): $Cancell
 }
 
 /**
+ * CheckKube asks the cluster of a local pane for its version through the
+ * pane's own kubeconfig (its context, namespace and the environment's
+ * route): an environment checks that a restored terminal reaches it.
+ */
+export function CheckKube(id: string): $CancellablePromise<void> {
+    return $Call.ByID(3258341339, id);
+}
+
+/**
  * Close ends a session, connected or not.
  */
 export function Close(id: string): $CancellablePromise<void> {

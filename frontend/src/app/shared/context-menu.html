@@ -1,23 +1,64 @@
 @if (service.menu(); as menu) {
-  <div
-    #list
-    *transloco="let t"
-    class="context-menu"
-    role="menu"
-    [style.left.px]="position()?.x ?? menu.x"
-    [style.top.px]="position()?.y ?? menu.y"
-    [style.visibility]="position() ? 'visible' : 'hidden'"
-    (keydown)="onKeydown($event)"
-    (contextmenu)="$event.preventDefault()"
-  >
-    @for (item of menu.items; track $index) {
-      @if (item) {
-        <button type="button" role="menuitem" [class.danger]="item.danger" [disabled]="item.disabled" (click)="run(item)">
-          {{ t(item.label, item.params ?? {}) }}
-        </button>
-      } @else {
-        <hr role="separator" />
+  <ng-container *transloco="let t">
+    <div
+      #list
+      class="context-menu"
+      role="menu"
+      [style.left.px]="position()?.x ?? menu.x"
+      [style.top.px]="position()?.y ?? menu.y"
+      [style.visibility]="position() ? 'visible' : 'hidden'"
+      (keydown)="onKeydown($event)"
+      (contextmenu)="$event.preventDefault()"
+    >
+      @for (item of menu.items; track $index) {
+        @if (item) {
+          <button
+            type="button"
+            role="menuitem"
+            [attr.data-index]="$index"
+            [attr.aria-haspopup]="item.children ? 'menu' : null"
+            [attr.aria-expanded]="item.children ? sub()?.index === $index : null"
+            [class.danger]="item.danger"
+            [class.parent]="!!item.children"
+            [class.open]="sub()?.index === $index"
+            [disabled]="item.disabled"
+            (mouseenter)="hover(item, $index, $event)"
+            (click)="run(item, $index, $event)"
+          >
+            <span class="text">{{ t(item.label, item.params ?? {}) }}</span>
+            @if (item.children) {
+              <span class="arrow" aria-hidden="true">›</span>
+            }
+          </button>
+        } @else {
+          <hr role="separator" />
+        }
+      }
+    </div>
+    @if (sub(); as s) {
+      @if (menu.items[s.index]?.children; as children) {
+        <div
+          #subList
+          class="context-menu sub"
+          role="menu"
+          [class.left]="s.left"
+          [style.left.px]="s.left ? null : s.x"
+          [style.right.px]="s.left ? windowWidth() - s.x : null"
+          [style.top.px]="s.y"
+          (keydown)="onKeydown($event, 'sub')"
+          (contextmenu)="$event.preventDefault()"
+        >
+          @for (child of children; track $index) {
+            @if (child) {
+              <button type="button" role="menuitem" [class.danger]="child.danger" [disabled]="child.disabled" (click)="run(child, $index)">
+                <span class="text">{{ t(child.label, child.params ?? {}) }}</span>
+              </button>
+            } @else {
+              <hr role="separator" />
+            }
+          }
+        </div>
       }
     }
-  </div>
+  </ng-container>
 }

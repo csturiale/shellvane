@@ -8,6 +8,13 @@ export interface MenuItem {
   action: () => void;
   disabled?: boolean;
   danger?: boolean;
+  /** A second level, opened beside the entry (its action is not run). */
+  children?: (MenuItem | null)[];
+}
+
+/** An entry that opens a second level with items. */
+export function submenu(label: string, items: (MenuItem | null)[], params?: Record<string, unknown>): MenuItem {
+  return { label, params, action: () => undefined, children: tidy(items) };
 }
 
 export interface OpenMenu {

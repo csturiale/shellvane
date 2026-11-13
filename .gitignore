@@ -13,3 +13,7 @@ build/linux/appimage/shellvane.png
 /shellvane
 __pycache__/
 /dist-local/
+
+# Local build output of `go build` at the root
+/termora
+/shellvane

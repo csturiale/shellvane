@@ -20,6 +20,10 @@ import (
 	"github.com/csturiale/shellvane/core/sshengine"
 )
 
+// signInUserAgentSuffix ends the sign-in window's user agent on macOS,
+// after "AppleWebKit/605.1.15 (KHTML, like Gecko)", as Safari's does.
+const signInUserAgentSuffix = "Version/18.5 Safari/605.1.15"
+
 // webLoginTimeout bounds a browser sign-in.
 const webLoginTimeout = 5 * time.Minute
 
@@ -92,6 +96,10 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 		Width:  520,
 		Height: 720,
 		URL:    startURL,
+		// macOS: WKWebView's user agent ends with the app's name (by
+		// default "wails.io"), which identity providers do not know as a
+		// browser; it ends like Safari's instead, which this WebKit is.
+		Mac: application.MacWindow{WebviewPreferences: application.MacWebviewPreferences{ApplicationNameForUserAgent: signInUserAgentSuffix}},
 	})
 	closed := make(chan struct{})
 	var closeOnce sync.Once

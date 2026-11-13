@@ -47,6 +47,10 @@ export class SessionApi {
   async kubeContexts(id: string): Promise<string[]> {
     return (await SessionService.KubeContexts(id)) ?? [];
   }
+  /** Asks the cluster of a local pane for its version, through the pane's kubeconfig. */
+  checkKube(id: string): Promise<void> {
+    return SessionService.CheckKube(id);
+  }
   setKube(id: string, sel: KubeSelection): Promise<void> {
     return SessionService.SetKube(id, sel);
   }

@@ -47,3 +47,25 @@ hr {
   border: 0;
   border-block-start: 1px solid var(--border);
 }
+
+button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .arrow {
+    color: var(--text-muted);
+  }
+  &.open {
+    background: var(--hover);
+  }
+}
+.sub {
+  max-height: 60vh;
+  overflow-y: auto;
+}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -131,15 +132,13 @@ func (s *SessionService) OpenLocal(ctx context.Context, cols, rows int, opts Loc
 			env = append(env, "BROWSER="+b)
 		}
 	}
-	if err := s.writeLocalKube(ctx, file, sel); err == nil {
+	if file = s.ensureLocalKube(ctx, file, sel); file != "" {
 		env = append(env, "KUBECONFIG="+kube.Env(file, kube.Original()))
-	} else {
-		file = ""
 	}
 
 	sessCtx, cancel := context.WithCancel(context.Background())
 	sess := &session{id: uuid.NewString(), ctx: sessCtx, cancel: cancel, ready: make(chan struct{}), flow: newFlowGate(),
-		cols: cols, rows: rows, local: true, kube: kubeState{file: file, sel: sel}, capture: &capture{name: program.Name}}
+		cols: cols, rows: rows, local: true, kube: kubeState{file: file, sel: sel}, gcloud: opts.Gcloud, capture: &capture{name: program.Name}}
 	highlights, active := splitRules(s.loadRules(ctx, resolvedHost{}))
 	sess.auto = &automationState{
 		host:      program.Name,
@@ -233,6 +232,54 @@ func (s *SessionService) kubeDir() string {
 		dir = filepath.Join(dir, "Shellvane")
 	}
 	return filepath.Join(dir, "kube")
+}
+
+// ensureLocalKube writes a local pane's file and returns it, "" when no
+// file can be written at all. The pane always gets its own file, even
+// when the full one cannot be written yet (at startup kubectl or its PATH
+// may not be ready, the context may come with the environment's login):
+// a later SetKube rewrites it, which a pane started without it could
+// never take.
+func (s *SessionService) ensureLocalKube(ctx context.Context, file string, sel kube.Selection) string {
+	err := s.writeLocalKube(ctx, file, sel)
+	if err == nil {
+		return file
+	}
+	log.Printf("local kube overlay %s: %v (context only for now)", filepath.Base(file), err)
+	if os.MkdirAll(filepath.Dir(file), 0o700) != nil || os.WriteFile(file, kube.Overlay(kube.Selection{Context: sel.Context}, kube.ContextDef{}), 0o600) != nil {
+		return ""
+	}
+	return file
+}
+
+// CheckKube asks the cluster of a local pane for its version through the
+// pane's own kubeconfig (its context, namespace and the environment's
+// route): an environment checks that a restored terminal reaches it.
+func (s *SessionService) CheckKube(ctx context.Context, id string) error {
+	sess, err := s.get(id)
+	if err != nil {
+		return err
+	}
+	if !sess.local || sess.kube.file == "" {
+		return errs.New(kube.ErrOverlayDisabled, nil)
+	}
+	shellenv.Wait(ctx)
+	ctx, cancel := context.WithTimeout(ctx, kubectlTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "kubectl", "get", "--raw", "/version", "--request-timeout=10s")
+	cmd.Env = append(append(os.Environ(), netproxy.ChildEnv()...), "KUBECONFIG="+kube.Env(sess.kube.file, kube.Original()))
+	if dir, err := gcloudDir(s.dataDir, sess.gcloud); err == nil && dir != "" {
+		cmd.Env = append(cmd.Env, "CLOUDSDK_CONFIG="+dir)
+	}
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return errs.Wrap(err, kube.ErrNotInstalled, nil)
+		}
+		return errs.Wrap(err, kube.ErrKubectl, errs.Params{"detail": orString(lastLine(stderr.String()), err.Error())})
+	}
+	return nil
 }
 
 // writeLocalKube writes a local pane's file; a namespace needs the
