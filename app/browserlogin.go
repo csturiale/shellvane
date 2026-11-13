@@ -138,7 +138,7 @@ func BrowserLoginLink(ctx context.Context, title, startURL, browser string, acce
 	for {
 		select {
 		case values := <-ch:
-			if accept(values) {
+			if accept(values) || values[plugins.WebLoginStop] != "" {
 				return nil
 			}
 		case <-ctx.Done():

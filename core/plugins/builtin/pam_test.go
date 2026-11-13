@@ -320,6 +320,15 @@ func TestCyberArkPVWABrowserSignIn(t *testing.T) {
 		t.Fatalf("reuse: %v, opened %v", err, opened)
 	}
 
+	// A response the PVWA refuses: the window is told to stop (posted on
+	// it would be refused as used) and the reason reaches the user.
+	resetPVWA()
+	refused := map[string]string{"SAMLResponse": "not-this-one"}
+	ctx = plugins.WithWebLogin(context.Background(), signIn(refused))
+	if _, err := (CyberArk{}).Credentials(ctx, s, web); err == nil || !strings.Contains(err.Error(), "SAML exchange") || refused[plugins.WebLoginStop] == "" {
+		t.Fatalf("refused: %v, stop %q", err, refused[plugins.WebLoginStop])
+	}
+
 	// OpenID Connect: the web session's token, found among the storage values.
 	resetPVWA()
 	s = map[string]string{"url": srv.URL, "authMethod": "OIDC", "webLoginUrl": srv.URL + "/PasswordVault/v10/logon/oidc?app=x"}

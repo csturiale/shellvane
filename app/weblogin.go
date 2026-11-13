@@ -100,6 +100,12 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 			finish()
 			return
 		}
+		// Refused for good (the caller has the reason): the window closes.
+		if values[plugins.WebLoginStop] != "" {
+			w.Write([]byte(`<!doctype html><meta charset="utf-8"><title>` + html.EscapeString(title) + `</title>`))
+			finish()
+			return
+		}
 		// A form the probe stopped (a SAML response on its way): posted on to
 		// where it was going, so the sign-in in the page goes on.
 		if action := values["__action"]; strings.HasPrefix(action, "https://") || strings.HasPrefix(action, "http://") {

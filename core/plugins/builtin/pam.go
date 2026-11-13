@@ -153,7 +153,9 @@ func (p CyberArk) client(s map[string]string) (*http.Client, error) {
 	}
 	cert := strings.TrimSpace(s["clientCert"])
 	if cert == "" {
-		return c, nil
+		// The PVWA may ask for the device's certificate, as it does of the
+		// browser: the system's, where the app can use it.
+		return plugins.WithSystemClientCertificate(c), nil
 	}
 	pair, err := tls.LoadX509KeyPair(expandHome(cert), expandHome(or(s["clientKey"], cert)))
 	if err != nil {
@@ -418,6 +420,10 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 			}
 			if err != nil {
 				seen = append(seen, "(SAML exchange: "+err.Error()+")")
+				// The PVWA has seen the response: posted on to the web
+				// page it would be refused as used ("Access is denied.").
+				// The window closes and the reason shows in the app.
+				values[plugins.WebLoginStop] = "1"
 			}
 			return false
 		}
