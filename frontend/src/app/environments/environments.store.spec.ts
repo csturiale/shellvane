@@ -356,6 +356,28 @@ describe('EnvironmentsStore', () => {
     localStorage.clear();
   });
 
+  it('offers a new login once when the login expires, and drops the offer when it is back', async () => {
+    const e = env({ login: { check: 'gcloud auth print-access-token', login: 'gcloud auth login', prepare: '' } });
+    api.list = async () => [e];
+    await store.load();
+    checks = [true];
+    await store.start(e, {});
+    expect(store.expiredNotice()).toBeNull();
+    checks = [false];
+    await store.recheckLogins();
+    expect(store.stateOf('e1')).toBe('expired');
+    expect(store.expiredNotice()).toEqual({ envId: 'e1', name: 'GKE' });
+    store.expiredNotice.set(null); // closed by hand: not shown again while still expired
+    checks = [false];
+    await store.recheckLogins();
+    expect(store.expiredNotice()).toBeNull();
+    checks = [false];
+    await store.recheckLogins();
+    checks = [true];
+    await store.recheckLogins(); // logged in again elsewhere
+    expect(store.stateOf('e1')).toBe('ready');
+  });
+
   it('stops with its last terminal, only the tunnels it started, and can undo', async () => {
     const e = env({ tunnelIds: ['t1', 't2'], localKube: { context: 'gke', namespace: '', tunnelId: 't1', terminals: 1 } });
     api.list = async () => [e];

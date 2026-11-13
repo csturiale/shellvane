@@ -7,3 +7,12 @@
     </button>
   </div>
 }
+@if (store.expiredNotice(); as n) {
+  <div *transloco="let t" class="notice expired" role="alert">
+    <span class="text">{{ t('environments.expiredNotice', { name: n.name }) }}</span>
+    <button type="button" class="undo" (click)="store.resume(n.envId)">{{ t('environments.relogin') }}</button>
+    <button type="button" class="icon" [attr.aria-label]="t('common.close')" (click)="store.expiredNotice.set(null)">
+      <svg lucideX [size]="14" aria-hidden="true"></svg>
+    </button>
+  </div>
+}

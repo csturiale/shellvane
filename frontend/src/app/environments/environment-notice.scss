@@ -42,3 +42,8 @@
   color: var(--text-muted);
   cursor: pointer;
 }
+.notice.expired {
+  /* Above the auto-stop notice when both show. */
+  inset-block-end: 84px;
+  border-color: var(--danger);
+}

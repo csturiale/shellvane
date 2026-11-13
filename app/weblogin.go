@@ -8,6 +8,7 @@ import (
 	"html"
 	"net"
 	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +24,36 @@ import (
 // signInUserAgentSuffix ends the sign-in window's user agent on macOS,
 // after "AppleWebKit/605.1.15 (KHTML, like Gecko)", as Safari's does.
 const signInUserAgentSuffix = "Version/18.5 Safari/605.1.15"
+
+// samlFormHook runs at the start of every page of a sign-in window: a form
+// carrying a SAML response (the identity provider sending it on) goes to
+// the app's address instead, which uses it or posts it on to where it was
+// going (__action). Not on the app's own pages, which post it on.
+const samlFormHook = `(function () {
+  if (location.href.indexOf(__SHELLVANE_RETURN__) === 0) return;
+  function grab(form) {
+    var s = form && form.querySelector && form.querySelector('input[name="SAMLResponse"]');
+    if (!s || !s.value) return false;
+    var q = 'SAMLResponse=' + encodeURIComponent(s.value) + '&__action=' + encodeURIComponent(form.action || '');
+    var relay = form.querySelector('input[name="RelayState"]');
+    if (relay) q += '&RelayState=' + encodeURIComponent(relay.value);
+    location.href = __SHELLVANE_RETURN__ + '?' + q;
+    return true;
+  }
+  var submit = HTMLFormElement.prototype.submit;
+  HTMLFormElement.prototype.submit = function () {
+    if (!grab(this)) return submit.apply(this, arguments);
+  };
+  document.addEventListener('submit', function (e) {
+    if (grab(e.target)) e.preventDefault();
+  }, true);
+})();`
+
+// signInRedirectPage is a page that only goes to startURL.
+func signInRedirectPage(startURL string) string {
+	u, _ := json.Marshal(startURL)
+	return `<!doctype html><meta charset="utf-8"><script>location.replace(` + string(u) + `)</script>`
+}
 
 // webLoginTimeout bounds a browser sign-in.
 const webLoginTimeout = 5 * time.Minute
@@ -91,7 +122,8 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 
 	ret, _ := json.Marshal(back)
 	script := "var __SHELLVANE_RETURN__ = " + string(ret) + ";\n" + probe
-	win := a.Window.NewWithOptions(application.WebviewWindowOptions{
+	startHook := "var __SHELLVANE_RETURN__ = " + string(ret) + ";\n" + samlFormHook
+	opts := application.WebviewWindowOptions{
 		Title:  title,
 		Width:  520,
 		Height: 720,
@@ -100,7 +132,16 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 		// default "wails.io"), which identity providers do not know as a
 		// browser; it ends like Safari's instead, which this WebKit is.
 		Mac: application.MacWindow{WebviewPreferences: application.MacWebviewPreferences{ApplicationNameForUserAgent: signInUserAgentSuffix}},
-	})
+	}
+	if runtime.GOOS == "windows" {
+		// WebView2 runs a window's JS at the start of every document
+		// (AddScriptToExecuteOnDocumentCreated) only for a window opened on
+		// its own HTML: a page that goes straight to the sign-in.
+		opts.URL = ""
+		opts.HTML = signInRedirectPage(startURL)
+		opts.JS = startHook
+	}
+	win := a.Window.NewWithOptions(opts)
 	closed := make(chan struct{})
 	var closeOnce sync.Once
 	win.OnWindowEvent(events.Common.WindowClosing, func(*application.WindowEvent) {
@@ -118,6 +159,10 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 
 	tick := time.NewTicker(150 * time.Millisecond)
 	defer tick.Stop()
+	// An identity provider's page posts its SAML response as soon as it
+	// loads, faster than the probe's ticks: a script at the start of every
+	// page catches the post instead (where the web view allows it).
+	hooked := runtime.GOOS == "windows" // set with the window's options there
 	for {
 		select {
 		case <-done:
@@ -130,6 +175,9 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 			}
 			return errs.Wrap(ctx.Err(), sshengine.ErrCancelled, nil)
 		case <-tick.C:
+			if !hooked {
+				hooked = addDocumentStartScript(win, startHook)
+			}
 			win.ExecJS(script)
 		}
 	}

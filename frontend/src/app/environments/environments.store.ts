@@ -299,8 +299,14 @@ export class EnvironmentsStore {
     }
   }
 
+  /** An environment whose login just expired, offered a new login. */
+  readonly expiredNotice = signal<{ envId: string; name: string } | null>(null);
+
   /** Starts an environment again over its open panes (login expired, a pane's header). */
   async resume(envId: string, values?: Record<string, string>): Promise<void> {
+    if (this.expiredNotice()?.envId === envId) {
+      this.expiredNotice.set(null);
+    }
     if (this.list().length === 0) {
       await this.load();
     }
@@ -418,8 +424,15 @@ export class EnvironmentsStore {
       }
       const expired = res.ok ? undefined : res.detail || '?';
       if (expired !== run.loginExpired) {
+        const justExpired = !!expired && !run.loginExpired;
         run.loginExpired = expired;
         this.runs.update((list) => [...list]);
+        if (justExpired) {
+          this.expiredNotice.set({ envId: env.id, name: env.name });
+          systemNotification(env.name, expired);
+        } else if (!expired && this.expiredNotice()?.envId === env.id) {
+          this.expiredNotice.set(null);
+        }
       }
     }
   }
@@ -732,4 +745,19 @@ export class EnvironmentsStore {
 /** The scope of an environment's own personal values. */
 function scopeOf(id: string): string {
   return `env:${id}`;
+}
+
+/**
+ * Tells about an expired login with a system notification when Shellvane
+ * is not in front (the in-app notice is there when it is).
+ */
+function systemNotification(name: string, detail: string): void {
+  if (typeof document === 'undefined' || document.hasFocus() || !globalThis.Notification || Notification.permission !== 'granted') {
+    return;
+  }
+  try {
+    new Notification(name, { body: detail.split('\n')[0].slice(0, 160) });
+  } catch {
+    // Not supported here.
+  }
 }

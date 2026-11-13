@@ -1586,7 +1586,9 @@
     "missingPersonal": "Your personal values are still missing for some environments: {{names}}.",
     "fillMissing": "Fill them in",
     "fillMissingTitle": "Your personal values",
-    "fillMissingHint": "Asked once, for every environment that uses them, and kept on this computer only. Leave a field empty to be asked when that environment starts."
+    "fillMissingHint": "Asked once, for every environment that uses them, and kept on this computer only. Leave a field empty to be asked when that environment starts.",
+    "expiredNotice": "{{name}}: the login has expired, its terminals cannot reach the cluster.",
+    "relogin": "Log in again"
   },
   "logs": {
     "title": "Logs and recordings",

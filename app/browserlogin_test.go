@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -59,5 +60,12 @@ func TestBrowserLoginCancelled(t *testing.T) {
 func TestBrowserArgvKeepsTheLinkWhole(t *testing.T) {
 	if browserArgv("no-such-browser", "darwin", "https://x.example") != nil {
 		t.Fatal("unknown browser")
+	}
+}
+
+func TestSignInRedirectPageEscapesTheAddress(t *testing.T) {
+	page := signInRedirectPage(`https://pvwa.example/PasswordVault/v10/logon/saml?x=</script><b>`)
+	if strings.Contains(page, "</script><b>") || !strings.Contains(page, `location.replace("https://pvwa.example/PasswordVault/v10/logon/saml?x=\u003c/script\u003e\u003cb\u003e")`) {
+		t.Fatalf("page = %s", page)
 	}
 }
