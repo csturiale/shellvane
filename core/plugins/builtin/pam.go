@@ -304,8 +304,21 @@ func (p CyberArk) pvwaLogon(call pamCall, s map[string]string, base, method stri
 const pvwaProbe = `(function () {
   if (location.href.indexOf(__SHELLVANE_RETURN__) === 0) return; // the app's own pages
   var out = {};
-  var saml = document.querySelector('input[name="SAMLResponse"]');
-  if (saml && saml.value) {
+  // The PVWA's answer to the SAML form posted with apiUse=true: its API
+  // session token as a JSON string, or its error.
+  var body = document.body && document.body.innerText ? document.body.innerText.trim() : '';
+  if (/^"[^"\s]{16,}"$/.test(body)) {
+    out.token = JSON.parse(body);
+  } else if (/^\{[\s\S]*"ErrorCode"/.test(body)) {
+    try {
+      var e = JSON.parse(body);
+      out.__pvwaError = (e.ErrorCode || '') + ' ' + (e.ErrorMessage || '');
+    } catch (x) {}
+  }
+  var saml = window.__shellvaneHooked ? null : document.querySelector('input[name="SAMLResponse"]');
+  if (out.token || out.__pvwaError) {
+    // reported below
+  } else if (saml && saml.value) {
     out.SAMLResponse = saml.value;
     var form = saml.form;
     if (form) {
@@ -409,6 +422,11 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 			}
 		}
 		sort.Strings(seen)
+		if e := strings.TrimSpace(values["__pvwaError"]); e != "" {
+			seen = append(seen, "(PVWA: "+e+")")
+			values[plugins.WebLoginStop] = "1"
+			return false
+		}
 		if r := values["SAMLResponse"]; r != "" {
 			form := url.Values{"concurrentSession": {"true"}, "apiUse": {"true"}, "SAMLResponse": {r}}
 			data, err := call.do(http.MethodPost, base+"/auth/SAML/Logon", []byte(form.Encode()),
@@ -419,7 +437,11 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 				return true
 			}
 			if err != nil {
-				seen = append(seen, "(SAML exchange: "+err.Error()+")")
+				detail := err.Error()
+				if d, ok := errs.ToPayload(err).Params["detail"].(string); ok && d != "" {
+					detail = d // the PVWA's own message, not the error's code
+				}
+				seen = append(seen, "(SAML exchange: "+detail+")")
 				// The PVWA has seen the response: posted on to the web
 				// page it would be refused as used ("Access is denied.").
 				// The window closes and the reason shows in the app.
@@ -445,7 +467,11 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 		}
 		err = plugins.OpenBrowserLogin(call.ctx, "CyberArk", start, in, accept)
 	} else {
-		err = plugins.OpenWebLogin(call.ctx, "CyberArk", start, pvwaProbe, accept)
+		// The identity provider's SAML form goes to the PVWA from the page,
+		// with the PVWA's cookies and the device's certificate, asking for
+		// an API session: the window then shows its token.
+		ctx := plugins.WithSAMLFields(call.ctx, map[string]string{"apiUse": "true", "concurrentSession": "true"})
+		err = plugins.OpenWebLogin(ctx, "CyberArk", start, pvwaProbe, accept)
 	}
 	if token != "" {
 		return token, nil

@@ -29,11 +29,26 @@ const signInUserAgentSuffix = "Version/18.5 Safari/605.1.15"
 // carrying a SAML response (the identity provider sending it on) goes to
 // the app's address instead, which uses it or posts it on to where it was
 // going (__action). Not on the app's own pages, which post it on.
+//
+// With fields (__SHELLVANE_SAML_FIELDS__, plugins.WithSAMLFields) the form
+// keeps its way: the fields are added and the page posts it itself.
 const samlFormHook = `(function () {
   if (location.href.indexOf(__SHELLVANE_RETURN__) === 0) return;
+  window.__shellvaneHooked = true;
   function grab(form) {
     var s = form && form.querySelector && form.querySelector('input[name="SAMLResponse"]');
     if (!s || !s.value) return false;
+    if (__SHELLVANE_SAML_FIELDS__) {
+      for (var k in __SHELLVANE_SAML_FIELDS__) {
+        if (form.querySelector('input[name="' + k + '"]')) continue;
+        var i = document.createElement('input');
+        i.type = 'hidden';
+        i.name = k;
+        i.value = __SHELLVANE_SAML_FIELDS__[k];
+        form.appendChild(i);
+      }
+      return false;
+    }
     var q = 'SAMLResponse=' + encodeURIComponent(s.value) + '&__action=' + encodeURIComponent(form.action || '');
     var relay = form.querySelector('input[name="RelayState"]');
     if (relay) q += '&RelayState=' + encodeURIComponent(relay.value);
@@ -48,6 +63,16 @@ const samlFormHook = `(function () {
     if (grab(e.target)) e.preventDefault();
   }, true);
 })();`
+
+// startScript is the script run at the start of every page of a sign-in
+// window: the SAML form hook, with the app's address and the fields to add.
+func startScript(ret string, fields map[string]string) string {
+	f := []byte("null")
+	if len(fields) > 0 {
+		f, _ = json.Marshal(fields)
+	}
+	return "var __SHELLVANE_RETURN__ = " + ret + ";\nvar __SHELLVANE_SAML_FIELDS__ = " + string(f) + ";\n" + samlFormHook
+}
 
 // signInRedirectPage is a page that only goes to startURL.
 func signInRedirectPage(startURL string) string {
@@ -128,7 +153,7 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 
 	ret, _ := json.Marshal(back)
 	script := "var __SHELLVANE_RETURN__ = " + string(ret) + ";\n" + probe
-	startHook := "var __SHELLVANE_RETURN__ = " + string(ret) + ";\n" + samlFormHook
+	startHook := startScript(string(ret), plugins.SAMLFields(ctx))
 	opts := application.WebviewWindowOptions{
 		Title:  title,
 		Width:  520,

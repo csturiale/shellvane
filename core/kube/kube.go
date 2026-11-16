@@ -20,9 +20,13 @@ import (
 
 // Error codes returned by this package.
 const (
-	ErrKubectl         errs.Code = "kube.kubectlFailed"
-	ErrNotInstalled    errs.Code = "kube.notInstalled" // no kubectl where the pane runs
-	ErrUnknownContext  errs.Code = "kube.unknownContext"
+	ErrKubectl        errs.Code = "kube.kubectlFailed"
+	ErrNotInstalled   errs.Code = "kube.notInstalled" // no kubectl where the pane runs
+	ErrUnknownContext errs.Code = "kube.unknownContext"
+	// ErrContextMissing: a pane's context is not in the kubeconfig its
+	// kubectl reads (kubectl then tries localhost:8080). Params: context,
+	// files (the kubeconfig files), available (the contexts there).
+	ErrContextMissing  errs.Code = "kube.contextMissing"
 	ErrOverlayDisabled errs.Code = "kube.notEnabled"
 )
 

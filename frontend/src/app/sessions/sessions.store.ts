@@ -355,6 +355,7 @@ export class SessionsStore {
   }
 
   focusPane(tabKey: number, paneKey: number): void {
+    this.usedAt.set(paneKey, ++this.useClock);
     this.updateTab(tabKey, (t) => ({ ...t, focus: paneKey }));
     if (this.pane(paneKey)?.bell) {
       this.patchPane(paneKey, { bell: false });
@@ -460,6 +461,9 @@ export class SessionsStore {
   activate(tabKey: number): void {
     this.activeKey.set(tabKey);
     const tab = this.tabs().find((t) => t.key === tabKey);
+    if (tab) {
+      this.usedAt.set(tab.focus, ++this.useClock);
+    }
     for (const k of tab ? panesOf(tab.layout) : []) {
       if (this.pane(k)?.bell) {
         this.patchPane(k, { bell: false });
@@ -548,6 +552,30 @@ export class SessionsStore {
       this.senders.get(k)?.(text);
     }
     return targets.length;
+  }
+
+  /** When each pane was last focused (a counter: higher is more recent). */
+  private readonly usedAt = new Map<number, number>();
+  private useClock = 0;
+
+  /** The most recently focused of these panes (the last one when none was). */
+  lastUsed(keys: number[]): number | null {
+    const open = keys.filter((k) => this.pane(k));
+    if (open.length === 0) {
+      return null;
+    }
+    return open.reduce((best, k) => ((this.usedAt.get(k) ?? 0) > (this.usedAt.get(best) ?? 0) ? k : best), open[open.length - 1]);
+  }
+
+  /** Brings a pane forward: its tab becomes active and the pane takes focus. */
+  reveal(paneKey: number): boolean {
+    const tab = this.tabOf(paneKey);
+    if (!tab) {
+      return false;
+    }
+    this.activate(tab.key);
+    this.focusPane(tab.key, paneKey);
+    return true;
   }
 
   private tabOf(paneKey: number): Tab | undefined {

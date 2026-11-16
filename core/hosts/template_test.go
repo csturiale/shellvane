@@ -150,3 +150,31 @@ func TestExportWithHosts(t *testing.T) {
 		t.Fatalf("second import = %+v, %v", res, err)
 	}
 }
+
+func TestExportHostsFollowsJumpHostsWithEffectiveSettings(t *testing.T) {
+	ctx := context.Background()
+	r := newRepo(t)
+	edge, _ := r.CreateGroup(ctx, GroupInput{Name: "edge", Settings: settings.Settings{User: ptr("a123456"), Port: ptr(2222)}})
+	jump, _ := r.CreateHost(ctx, HostInput{GroupID: edge.ID, Name: "jump", Hostname: "jump.example.com", Settings: settings.Settings{IdentityID: ptr("key-1")}})
+	inner, _ := r.CreateHost(ctx, HostInput{GroupID: edge.ID, Name: "inner", Hostname: "10.0.0.12", Settings: settings.Settings{JumpChain: []string{jump.ID}}})
+	// The group's jump chain, inherited by the jump host too: no loop.
+	r.UpdateGroup(ctx, edge.ID, GroupInput{Name: "edge", Settings: settings.Settings{User: ptr("a123456"), Port: ptr(2222), JumpChain: []string{jump.ID}}})
+	hs, err := r.ExportHosts(ctx, []string{inner.ID, inner.ID}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hs) != 2 || hs[0].Name != "inner" || hs[1].Name != "jump" {
+		t.Fatalf("hosts %+v", hs)
+	}
+	if len(hs[0].Jumps) != 1 || hs[0].Jumps[0] != "jump" || len(hs[1].Jumps) != 0 {
+		t.Fatalf("jumps %v %v", hs[0].Jumps, hs[1].Jumps)
+	}
+	j := hs[1].Settings
+	if j.Port == nil || *j.Port != 2222 || j.User != nil || j.IdentityID != nil || j.JumpChain != nil || j.KeepAliveSeconds != nil {
+		t.Fatalf("jump settings %+v", j)
+	}
+	kept := KeepLocalSettings(settings.Settings{User: ptr("b654321"), IdentityID: ptr("mine")}, j)
+	if *kept.User != "b654321" || *kept.IdentityID != "mine" || *kept.Port != 2222 {
+		t.Fatalf("kept %+v", kept)
+	}
+}

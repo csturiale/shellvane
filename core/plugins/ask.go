@@ -42,6 +42,23 @@ func WithWebLogin(ctx context.Context, w WebLogin) context.Context {
 	return context.WithValue(ctx, webLoginKey{}, w)
 }
 
+type samlFieldsKey struct{}
+
+// WithSAMLFields asks the sign-in window to add fields to the identity
+// provider's SAML form and let the page post it itself, instead of
+// handing the response to the app: the service provider gets it from its
+// own sign-in, with its cookies (the PVWA answers its API session to
+// apiUse=true).
+func WithSAMLFields(ctx context.Context, fields map[string]string) context.Context {
+	return context.WithValue(ctx, samlFieldsKey{}, fields)
+}
+
+// SAMLFields are the fields set with WithSAMLFields, nil when none.
+func SAMLFields(ctx context.Context) map[string]string {
+	f, _ := ctx.Value(samlFieldsKey{}).(map[string]string)
+	return f
+}
+
 // OpenWebLogin runs a browser sign-in through the ctx's WebLogin; without
 // one (no window can open) it fails with ErrUnsupported.
 func OpenWebLogin(ctx context.Context, title, url, probe string, accept func(map[string]string) bool) error {

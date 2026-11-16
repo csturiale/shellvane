@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -266,20 +267,58 @@ func (s *SessionService) CheckKube(ctx context.Context, id string) error {
 	shellenv.Wait(ctx)
 	ctx, cancel := context.WithTimeout(ctx, kubectlTimeout)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "kubectl", "get", "--raw", "/version", "--request-timeout=10s")
-	cmd.Env = append(append(os.Environ(), netproxy.ChildEnv()...), "KUBECONFIG="+kube.Env(sess.kube.file, kube.Original()))
+	kubeconfig := kube.Env(sess.kube.file, kube.Original())
+	env := append(append(os.Environ(), netproxy.ChildEnv()...), "KUBECONFIG="+kubeconfig)
 	if dir, err := gcloudDir(s.dataDir, sess.gcloud); err == nil && dir != "" {
-		cmd.Env = append(cmd.Env, "CLOUDSDK_CONFIG="+dir)
+		env = append(env, "CLOUDSDK_CONFIG="+dir)
 	}
+	cmd := exec.CommandContext(ctx, "kubectl", "get", "--raw", "/version", "--request-timeout=10s")
+	cmd.Env = env
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			return errs.Wrap(err, kube.ErrNotInstalled, nil)
 		}
-		return errs.Wrap(err, kube.ErrKubectl, errs.Params{"detail": orString(lastLine(stderr.String()), err.Error())})
+		detail := orString(lastLine(stderr.String()), err.Error())
+		// kubectl without a usable context falls back to localhost:8080:
+		// say which context is missing and which ones the files have.
+		if strings.Contains(detail, "localhost:8080") {
+			if missing := missingContext(ctx, env, sess.kube.sel.Context, kubeconfig); missing != nil {
+				return missing
+			}
+		}
+		return errs.Wrap(err, kube.ErrKubectl, errs.Params{"detail": detail})
 	}
 	return nil
+}
+
+// missingContext tells why kubectl has no cluster: the pane's context is
+// not in the kubeconfig files it reads (nil when it is).
+func missingContext(ctx context.Context, env []string, want, kubeconfig string) error {
+	cmd := exec.CommandContext(ctx, "kubectl", "config", "get-contexts", "-o", "name")
+	cmd.Env = env
+	out, err := cmd.Output()
+	if err != nil {
+		return nil
+	}
+	var names []string
+	for _, n := range strings.Fields(string(out)) {
+		if n == want {
+			return nil
+		}
+		names = append(names, n)
+	}
+	sort.Strings(names)
+	available := strings.Join(names, ", ")
+	if available == "" {
+		available = "—"
+	}
+	files := strings.Join(filepath.SplitList(kubeconfig)[1:], ", ") // the pane's own file is first
+	if files == "" {
+		files = "~/.kube/config"
+	}
+	return errs.New(kube.ErrContextMissing, errs.Params{"context": orString(want, "—"), "files": files, "available": available})
 }
 
 // writeLocalKube writes a local pane's file; a namespace needs the

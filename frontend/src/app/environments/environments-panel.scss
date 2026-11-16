@@ -198,3 +198,13 @@ small.personal {
 .mono {
   font-family: ui-monospace, Menlo, Consolas, monospace;
 }
+
+.text.link {
+  cursor: pointer;
+  border-radius: 4px;
+
+  &:hover .name,
+  &:focus-visible .name {
+    text-decoration: underline;
+  }
+}

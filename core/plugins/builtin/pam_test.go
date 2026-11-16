@@ -320,6 +320,28 @@ func TestCyberArkPVWABrowserSignIn(t *testing.T) {
 		t.Fatalf("reuse: %v, opened %v", err, opened)
 	}
 
+	// The page posted the SAML form with apiUse=true (fields asked of the
+	// window) and shows the PVWA's API token.
+	resetPVWA()
+	var asked map[string]string
+	ctx = plugins.WithWebLogin(context.Background(), func(c context.Context, _, _, _ string, accept func(map[string]string) bool) error {
+		asked = plugins.SAMLFields(c)
+		if accept(map[string]string{"token": "saml-token-123456"}) {
+			return nil
+		}
+		return errs.New(plugins.ErrCommand, nil)
+	})
+	if cred, err := (CyberArk{}).Credentials(ctx, s, web); err != nil || cred.Password != "pw!" || asked["apiUse"] != "true" || asked["concurrentSession"] != "true" {
+		t.Fatalf("token from the page = %+v, %v, fields %v", cred, err, asked)
+	}
+	// The PVWA's error in the page: the window stops and says it.
+	resetPVWA()
+	failed := map[string]string{"__pvwaError": "PASWS035E Authentication failure."}
+	ctx = plugins.WithWebLogin(context.Background(), signIn(failed))
+	if _, err := (CyberArk{}).Credentials(ctx, s, web); err == nil || !strings.Contains(err.Error(), "PASWS035E") || failed[plugins.WebLoginStop] == "" {
+		t.Fatalf("PVWA error: %v", err)
+	}
+
 	// A response the PVWA refuses: the window is told to stop (posted on
 	// it would be refused as used) and the reason reaches the user.
 	resetPVWA()

@@ -239,6 +239,7 @@
     "kube": {
       "kubectlFailed": "kubectl non è riuscito: {{detail}}",
       "unknownContext": "Il contesto “{{context}}” non esiste.",
+      "contextMissing": "Il contesto “{{context}}” non è nel kubeconfig che il terminale legge ({{files}}), quindi kubectl prova localhost:8080. Contesti presenti: {{available}}. Ottieni le credenziali del cluster su questo computer (per GKE: gcloud container clusters get-credentials …, nel login dell’ambiente) oppure imposta nell’ambiente il nome esatto del contesto.",
       "notEnabled": "Questo pannello non ha un contesto kubectl proprio: riaprilo per sceglierne uno.",
       "notInstalled": "kubectl non è installato dove gira questo pannello: il contesto si sceglie qui solo dove c'è kubectl."
     },
@@ -255,6 +256,7 @@
       "noLoginSecret": "Questo ambiente non ha una sorgente per la password del login.",
       "loginSecretEmpty": "L'account {{user}} non ha una password nel plugin delle credenziali.",
       "clipboard": "Gli appunti non sono disponibili.",
+      "showTerminal": "Vai al suo terminale (l’ultimo usato)",
       "kubeUnreachable": "Il terminale non raggiunge il cluster: {{detail}}"
     },
     "sessionlog": {

@@ -389,6 +389,22 @@ export class EnvironmentsStore {
     return key;
   }
 
+  /**
+   * Shows the environment's terminal used last (its tab active, the pane
+   * focused): the ones it opened and the restored ones that carry its
+   * badge. False when it has none open.
+   */
+  showTerminal(envId: string): boolean {
+    const keys = new Set(this.runOf(envId)?.panes ?? []);
+    for (const p of this.sessions.panes()) {
+      if (p.env?.id === envId) {
+        keys.add(p.key);
+      }
+    }
+    const key = this.sessions.lastUsed([...keys]);
+    return key !== null && this.sessions.reveal(key);
+  }
+
   /** The state a pane header shows for its environment. */
   stateOf(envId: string): EnvState {
     const run = this.runOf(envId);
@@ -482,6 +498,9 @@ export class EnvironmentsStore {
       await this.sessions.checkKube(paneKey);
     } catch (err) {
       const e = toTranslatableError(err);
+      if (e.key === 'errors.kube.contextMissing') {
+        throw err; // says itself which context is missing and where
+      }
       throw { cause: { code: 'environments.kubeUnreachable', params: { detail: (e.params as { detail?: string })?.detail ?? e.key } } };
     }
   }

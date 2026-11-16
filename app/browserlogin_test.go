@@ -69,3 +69,11 @@ func TestSignInRedirectPageEscapesTheAddress(t *testing.T) {
 		t.Fatalf("page = %s", page)
 	}
 }
+
+func TestStartScriptCarriesTheSAMLFields(t *testing.T) {
+	with := startScript(`"http://127.0.0.1:1/x"`, map[string]string{"apiUse": "true"})
+	without := startScript(`"http://127.0.0.1:1/x"`, nil)
+	if !strings.Contains(with, `var __SHELLVANE_SAML_FIELDS__ = {"apiUse":"true"};`) || !strings.Contains(without, "var __SHELLVANE_SAML_FIELDS__ = null;") {
+		t.Fatalf("%s\n%s", with[:200], without[:200])
+	}
+}

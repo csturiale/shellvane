@@ -52,7 +52,15 @@
               <svg lucidePlay [size]="14" aria-hidden="true"></svg>
             </button>
           }
-          <div class="text">
+          <div
+            class="text"
+            [class.link]="!!run"
+            [attr.role]="run ? 'button' : null"
+            [attr.tabindex]="run ? 0 : null"
+            [attr.title]="run ? t('environments.showTerminal') : null"
+            (click)="run && showTerminal(env)"
+            (keydown.enter)="run && showTerminal(env)"
+          >
             <span class="name">{{ env.name }}</span>
             @if (env.remote.hostId) {
               <span class="detail">{{ t('environments.via', { host: hostNames().get(env.remote.hostId) ?? '?' }) }}</span>

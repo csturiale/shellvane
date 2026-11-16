@@ -308,3 +308,70 @@ func (r *Repo) ImportTemplate(ctx context.Context, parentID string, t Template) 
 	}
 	return res, nil
 }
+
+// ExportHosts returns the hosts ids and the jump hosts they go through
+// (set on them or on their groups, at any depth), as template hosts with
+// their effective settings: hosts shared without their groups, for
+// something that needs them on another computer (an environment shared
+// with a team). As in a template, secrets and settings of this computer
+// are left out, and so are user names (each person has their own); keep
+// keeps the credential settings it accepts.
+func (r *Repo) ExportHosts(ctx context.Context, ids []string, keep func(ref string) bool) ([]TemplateHost, error) {
+	inv, err := r.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	byID := map[string]Host{}
+	for _, h := range inv.Hosts {
+		byID[h.ID] = h
+	}
+	var out []TemplateHost
+	seen := map[string]bool{}
+	queue := append([]string{}, ids...)
+	for len(queue) > 0 {
+		id := queue[0]
+		queue = queue[1:]
+		h, ok := byID[id]
+		if !ok || seen[id] {
+			continue
+		}
+		seen[id] = true
+		chain, err := r.Chain(ctx, h.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		// The host's and its groups' values, not the built-in defaults.
+		s := settings.Resolve(append([]settings.Level{{ID: h.ID, Settings: h.Settings}}, chain[:len(chain)-1]...)...).Settings
+		var jumps []string
+		for _, j := range s.JumpChain {
+			if jh, ok := byID[j]; ok && j != id {
+				jumps = append(jumps, jh.Name)
+				queue = append(queue, j)
+			}
+		}
+		cred := s.CredentialPlugin
+		s = templateSettings(s)
+		if cred != nil && keep != nil && keep(*cred) {
+			s.CredentialPlugin = cred
+		}
+		s.User = nil
+		out = append(out, TemplateHost{Name: h.Name, Hostname: h.Hostname, Tags: h.Tags, Settings: s, Jumps: jumps})
+	}
+	return out, nil
+}
+
+// KeepLocalSettings returns shared settings with what stays this
+// computer's kept from old: the user name, the key, the credential plugin
+// (when the shared one sets none), the theme, Wake-on-LAN and knocking.
+func KeepLocalSettings(old, shared settings.Settings) settings.Settings {
+	shared.User = old.User
+	shared.IdentityID = old.IdentityID
+	if shared.CredentialPlugin == nil {
+		shared.CredentialPlugin = old.CredentialPlugin
+	}
+	shared.TerminalThemeID = old.TerminalThemeID
+	shared.MACAddress = old.MACAddress
+	shared.WakeBroadcast = old.WakeBroadcast
+	shared.KnockSequence = old.KnockSequence
+	return shared
+}

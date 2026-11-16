@@ -85,6 +85,13 @@ export class EnvironmentsPanel {
   }
 
   /** Starts, asking for the variables first when there are any. */
+  /** Goes to the running environment's terminal used last, or opens one when none is left. */
+  protected showTerminal(env: Environment): void {
+    if (!this.store.showTerminal(env.id) && this.store.isUp(env.id)) {
+      void this.store.openTerminal(env.id);
+    }
+  }
+
   protected start(env: Environment, from: StepId = 'login'): void {
     if (this.sharing.needsReview('environment', env.id)) {
       this.reviewing.set(env); // its commands changed in the team: approve them first

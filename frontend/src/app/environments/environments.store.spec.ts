@@ -29,6 +29,7 @@ describe('EnvironmentsStore', () => {
   let panes: Map<number, Record<string, unknown>>;
   let kubeSet: number[];
   let kubeChecked: number[];
+  let revealed: number[];
   let kubeFails: boolean;
   let stopped: string[];
   let api: { list: () => Promise<Environment[]> };
@@ -43,6 +44,7 @@ describe('EnvironmentsStore', () => {
     panes = new Map();
     kubeSet = [];
     kubeChecked = [];
+    revealed = [];
     kubeFails = false;
     stopped = [];
     tunnels.set([{ profile: { id: 't1', kind: 'dynamic' }, status: { state: 'stopped', addr: '' } }] as never);
@@ -76,6 +78,11 @@ describe('EnvironmentsStore', () => {
               }
             },
             closePane: async (k: number) => panes.delete(k),
+            lastUsed: (keys: number[]) => (keys.length ? keys[keys.length - 1] : null),
+            reveal: (k: number) => {
+              revealed.push(k);
+              return panes.has(k);
+            },
           },
         },
         {
@@ -94,6 +101,18 @@ describe('EnvironmentsStore', () => {
       ],
     });
     store = TestBed.inject(EnvironmentsStore);
+  });
+
+  it('shows the terminal of an environment, restored ones included', () => {
+    expect(store.showTerminal('e1')).toBe(false);
+    (TestBed.inject(SessionsStore) as unknown as { panes: () => unknown[] }).panes = () => [{ key: 7, env: { id: 'e1' } }, { key: 8, env: { id: 'e2' } }];
+    const sessions = TestBed.inject(SessionsStore) as unknown as { pane: (k: number) => unknown; reveal: (k: number) => boolean };
+    sessions.reveal = (k: number) => {
+      revealed.push(k);
+      return true;
+    };
+    expect(store.showTerminal('e1')).toBe(true);
+    expect(revealed).toEqual([7]);
   });
 
   it('expands variables and builds routes', () => {
