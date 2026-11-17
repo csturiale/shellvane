@@ -334,6 +334,13 @@ func TestCyberArkPVWABrowserSignIn(t *testing.T) {
 	if cred, err := (CyberArk{}).Credentials(ctx, s, web); err != nil || cred.Password != "pw!" || asked["apiUse"] != "true" || asked["concurrentSession"] != "true" {
 		t.Fatalf("token from the page = %+v, %v, fields %v", cred, err, asked)
 	}
+	// A token the API refuses: the window stops and says so.
+	resetPVWA()
+	bad := map[string]string{"token": "not-the-session-token-at-all"}
+	ctx = plugins.WithWebLogin(context.Background(), signIn(bad))
+	if _, err := (CyberArk{}).Credentials(ctx, s, web); err == nil || !strings.Contains(err.Error(), "refused its session token") || bad[plugins.WebLoginStop] == "" {
+		t.Fatalf("refused token: %v", err)
+	}
 	// The PVWA's error in the page: the window stops and says it.
 	resetPVWA()
 	failed := map[string]string{"__pvwaError": "PASWS035E Authentication failure."}

@@ -305,10 +305,14 @@ const pvwaProbe = `(function () {
   if (location.href.indexOf(__SHELLVANE_RETURN__) === 0) return; // the app's own pages
   var out = {};
   // The PVWA's answer to the SAML form posted with apiUse=true: its API
-  // session token as a JSON string, or its error.
+  // session token (a JSON string, or plain text on its SAML address), or
+  // its error.
   var body = document.body && document.body.innerText ? document.body.innerText.trim() : '';
   if (/^"[^"\s]{16,}"$/.test(body)) {
     out.token = JSON.parse(body);
+  } else if (/\/auth\/saml/i.test(location.pathname) && /^[A-Za-z0-9+\/=._-]{32,}$/.test(body)) {
+    // Some PVWAs answer the token as plain text, without quotes.
+    out.token = body;
   } else if (/^\{[\s\S]*"ErrorCode"/.test(body)) {
     try {
       var e = JSON.parse(body);
@@ -437,17 +441,24 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 				return true
 			}
 			if err != nil {
-				detail := err.Error()
-				if d, ok := errs.ToPayload(err).Params["detail"].(string); ok && d != "" {
-					detail = d // the PVWA's own message, not the error's code
-				}
-				seen = append(seen, "(SAML exchange: "+detail+")")
+				seen = append(seen, "(SAML exchange: "+errDetail(err)+")")
 				// The PVWA has seen the response: posted on to the web
 				// page it would be refused as used ("Access is denied.").
 				// The window closes and the reason shows in the app.
 				values[plugins.WebLoginStop] = "1"
 			}
 			return false
+		}
+		// The token the PVWA answered to the SAML form (apiUse): it is the
+		// session, or the reason why not.
+		if t := strings.TrimSpace(values["token"]); t != "" {
+			if err := p.pvwaCheck(call, base, t); err != nil {
+				seen = append(seen, "(the PVWA's API refused its session token: "+errDetail(err)+")")
+				values[plugins.WebLoginStop] = "1"
+				return false
+			}
+			token = t
+			return true
 		}
 		for _, c := range tokenCandidates(values) {
 			if p.pvwaWorks(call, base, c) {
@@ -490,8 +501,22 @@ func (p CyberArk) pvwaWebLogon(call pamCall, s map[string]string, base, method s
 
 // pvwaWorks tells whether the API accepts token.
 func (p CyberArk) pvwaWorks(call pamCall, base, token string) bool {
+	return p.pvwaCheck(call, base, token) == nil
+}
+
+// pvwaCheck asks the API for one account with token.
+func (p CyberArk) pvwaCheck(call pamCall, base, token string) error {
 	_, err := call.do(http.MethodGet, base+"/Accounts?limit=1", nil, http.Header{"Accept": {"application/json"}, "Authorization": {token}}, cyberarkError)
-	return err == nil
+	return err
+}
+
+// errDetail is an error's detail parameter (the service's own message), or
+// the error itself.
+func errDetail(err error) string {
+	if d, ok := errs.ToPayload(err).Params["detail"].(string); ok && d != "" {
+		return d
+	}
+	return err.Error()
 }
 
 // pvwa uses the user's PVWA session (signing in when there is none),
