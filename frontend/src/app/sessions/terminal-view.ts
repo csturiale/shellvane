@@ -40,7 +40,7 @@ import { TerminalPrefs } from '../terminal/terminal-prefs';
 import { Navigation } from '../layout/navigation';
 import { KubePicker } from './kube-picker';
 import { panesOf } from './layout';
-import { clipboardAction, combo, isAppShortcut, shortcutAction } from './shortcuts';
+import { clipboardAction, combo, isAppShortcut, macLineEdit, shortcutAction } from './shortcuts';
 import { readClipboard, writeClipboard } from '../core/clipboard';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { FormsModule } from '@angular/forms';
@@ -423,6 +423,13 @@ export class TerminalView {
         return false;
       }
       if (isAppShortcut(ev)) {
+        return false;
+      }
+      const edit = macLineEdit(ev);
+      if (edit) {
+        ev.preventDefault();
+        this.send(encoder.encode(edit));
+        this.store.typed(this.pane().key, edit);
         return false;
       }
       if (ev.type === 'keydown' && ev.key === 'Backspace' && this.prefs.backspaceCtrlH() && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {

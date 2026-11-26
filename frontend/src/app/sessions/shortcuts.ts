@@ -70,7 +70,9 @@ export function shortcutAction(ev: KeyboardEvent): ShortcutAction | null {
         return 'togglePanel';
     }
   }
-  if (ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey) {
+  // Moving between panes: Alt+arrows, or ⌘⌥+arrows on macOS, where ⌥+arrows
+  // move by word in the shell (see macLineEdit).
+  if (ev.altKey && !ev.ctrlKey && !ev.shiftKey && ev.metaKey === isMac) {
     switch (ev.key) {
       case 'ArrowLeft':
         return 'focusLeft';
@@ -108,4 +110,29 @@ export function clipboardAction(ev: KeyboardEvent): 'copy' | 'paste' | null {
 
 export function isAppShortcut(ev: KeyboardEvent): boolean {
   return shortcutAction(ev) !== null;
+}
+
+/**
+ * macOS text-editing keys, sent to the shell as readline/zle sequences (as
+ * Terminal and iTerm2 do): ⌥←/→ by word, ⌘←/→ to the start or end of the
+ * line, ⌥⌫ deletes a word, ⌘⌫ the line before the cursor, ⌥⌦ the word
+ * after it, ⌘⌦ the rest of the line. Null for any other key, and outside
+ * macOS.
+ */
+export function macLineEdit(ev: KeyboardEvent, mac = isMac): string | null {
+  if (!mac || ev.type !== 'keydown' || ev.ctrlKey || ev.shiftKey || ev.altKey === ev.metaKey) {
+    return null;
+  }
+  const word = ev.altKey;
+  switch (ev.key) {
+    case 'ArrowLeft':
+      return word ? '\x1bb' : '\x01';
+    case 'ArrowRight':
+      return word ? '\x1bf' : '\x05';
+    case 'Backspace':
+      return word ? '\x1b\x7f' : '\x15';
+    case 'Delete':
+      return word ? '\x1bd' : '\x0b';
+  }
+  return null;
 }

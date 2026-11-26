@@ -305,14 +305,12 @@ const pvwaProbe = `(function () {
   if (location.href.indexOf(__SHELLVANE_RETURN__) === 0) return; // the app's own pages
   var out = {};
   // The PVWA's answer to the SAML form posted with apiUse=true: its API
-  // session token (a JSON string, or plain text on its SAML address), or
-  // its error.
+  // session token, or its error.
   var body = document.body && document.body.innerText ? document.body.innerText.trim() : '';
-  if (/^"[^"\s]{16,}"$/.test(body)) {
-    out.token = JSON.parse(body);
-  } else if (/\/auth\/saml/i.test(location.pathname) && /^[A-Za-z0-9+\/=._-]{32,}$/.test(body)) {
-    // Some PVWAs answer the token as plain text, without quotes.
-    out.token = body;
+  if (body.length < 8192 && /^"?[A-Za-z0-9+\/=._-]{40,}"?$/.test(body)) {
+    // A page that is only a token, quoted (JSON) or not, wherever the
+    // PVWA answers it; the app checks it with the API before using it.
+    out.token = body.replace(/^"|"$/g, '');
   } else if (/^\{[\s\S]*"ErrorCode"/.test(body)) {
     try {
       var e = JSON.parse(body);

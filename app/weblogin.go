@@ -6,9 +6,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"html"
+	"log"
 	"net"
 	"net/http"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -65,13 +67,23 @@ const samlFormHook = `(function () {
 })();`
 
 // startScript is the script run at the start of every page of a sign-in
-// window: the SAML form hook, with the app's address and the fields to add.
-func startScript(ret string, fields map[string]string) string {
+// window: the SAML form hook, with the app's address and the fields to
+// add, and the caller's probe, run once the page is there and then every
+// 300 ms. The probe cannot go through the window's ExecJS: Wails queues
+// that until its own runtime has loaded, which never happens on another
+// site's pages.
+func startScript(ret string, fields map[string]string, probe string) string {
 	f := []byte("null")
 	if len(fields) > 0 {
 		f, _ = json.Marshal(fields)
 	}
-	return "var __SHELLVANE_RETURN__ = " + ret + ";\nvar __SHELLVANE_SAML_FIELDS__ = " + string(f) + ";\n" + samlFormHook
+	s := "var __SHELLVANE_RETURN__ = " + ret + ";\nvar __SHELLVANE_SAML_FIELDS__ = " + string(f) + ";\n" + samlFormHook
+	if strings.TrimSpace(probe) != "" {
+		s += "\n(function () {\n  function probe() {\n    try {\n" + probe + "\n    } catch (e) {}\n  }\n" +
+			"  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', probe); else probe();\n" +
+			"  setInterval(probe, 300);\n})();"
+	}
+	return s
 }
 
 // signInRedirectPage is a page that only goes to startURL.
@@ -113,11 +125,15 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 		}
 		r.ParseForm()
 		values := map[string]string{}
+		var keys []string
 		for k, v := range r.Form {
 			if len(v) > 0 {
 				values[k] = v[0]
+				keys = append(keys, k)
 			}
 		}
+		sort.Strings(keys)
+		log.Printf("sign-in window %q reported: %s (names only)", title, strings.Join(keys, ", "))
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
 		if accept(values) {
@@ -152,8 +168,7 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 	defer srv.Close()
 
 	ret, _ := json.Marshal(back)
-	script := "var __SHELLVANE_RETURN__ = " + string(ret) + ";\n" + probe
-	startHook := startScript(string(ret), plugins.SAMLFields(ctx))
+	startHook := startScript(string(ret), plugins.SAMLFields(ctx), probe)
 	opts := application.WebviewWindowOptions{
 		Title:  title,
 		Width:  520,
@@ -207,9 +222,10 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 			return errs.Wrap(ctx.Err(), sshengine.ErrCancelled, nil)
 		case <-tick.C:
 			if !hooked {
-				hooked = addDocumentStartScript(win, startHook)
+				if hooked = addDocumentStartScript(win, startHook); hooked {
+					log.Printf("sign-in window %q: start script installed", title)
+				}
 			}
-			win.ExecJS(script)
 		}
 	}
 }

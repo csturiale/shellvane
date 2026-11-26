@@ -23,10 +23,11 @@ export class Cheatsheet {
     { action: 'splitDown', keys: combo('E') },
     { action: 'closePane', keys: combo('W') },
     { action: 'broadcast', keys: combo('B') },
-    { action: 'focus', keys: altKey + '+← ↑ → ↓' },
+    { action: 'focus', keys: isMac ? '⌘⌥+← ↑ → ↓' : altKey + '+← ↑ → ↓' },
     { action: 'search', keys: combo('F') },
     { action: 'maximize', keys: combo('Enter') },
     { action: 'zoom', keys: combo('= / - / 0') },
     { action: 'copyPaste', keys: isMac ? '⌘C / ⌘V' : 'Ctrl+Shift+C / V' },
+    ...(isMac ? [{ action: 'lineWord', keys: '⌥← / ⌥→ / ⌥⌫' }, { action: 'lineEnds', keys: '⌘← / ⌘→ / ⌘⌫' }] : []),
   ];
 }

@@ -1271,6 +1271,8 @@
     "maximize": "Maximize / restore the pane",
     "zoom": "Zoom the pane in / out / reset",
     "copyPaste": "Copy / paste in the terminal",
+    "lineWord": "Move by word / delete a word in the command line",
+    "lineEnds": "Start / end of the command line, delete to its start",
     "togglePanel": "Hide / show the side panel",
     "noteMac": "On macOS Shellvane uses ⌘, so Ctrl+letter still reaches the terminal."
   },

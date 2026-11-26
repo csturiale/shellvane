@@ -1271,6 +1271,8 @@
     "maximize": "Massimizza / ripristina il pannello",
     "zoom": "Ingrandisci / riduci / ripristina il pannello",
     "copyPaste": "Copia / incolla nel terminale",
+    "lineWord": "Spostati di una parola / cancella una parola nella riga di comando",
+    "lineEnds": "Inizio / fine della riga di comando, cancella fino all’inizio",
     "togglePanel": "Nascondi / mostra il pannello laterale",
     "noteMac": "Su macOS Shellvane usa ⌘, così Ctrl+lettera arriva sempre al terminale."
   },
