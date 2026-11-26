@@ -80,3 +80,20 @@ func TestStartScriptCarriesTheSAMLFields(t *testing.T) {
 		t.Fatalf("%s\n%s", with[:200], without[:200])
 	}
 }
+
+func TestPageValues(t *testing.T) {
+	tok := "YjY5NTkzNTItN2YzMy00MmE3LWJkYzEtYTYxOWY3MzU0MTkzOzQ3Q0E5RkQ1QjI0RjQ="
+	for text, want := range map[string]string{
+		tok + "\n":                      tok,
+		`"` + tok + `"`:                 tok,
+		"Welcome to the vault, sign in": "",
+		"short":                         "",
+	} {
+		if got := pageValues(text)["token"]; got != want {
+			t.Errorf("%q: %q, want %q", text, got, want)
+		}
+	}
+	if e := pageValues(`{"ErrorCode":"PASWS035E","ErrorMessage":"Authentication failure."}`); e["__pvwaError"] != "PASWS035E Authentication failure." {
+		t.Fatalf("error page = %v", e)
+	}
+}

@@ -557,6 +557,15 @@ export interface Prompt {
      * ID, Windows Hello) did not open the vault; nil when it is not set up.
      */
     "keychain"?: errs$0.Payload | null;
+
+    /**
+     * Refused names where the password the server just refused came from:
+     * "plugin" (the host's credential plugin or team login, RefusedRef),
+     * "command" (its password command), "vault" (saved), "typed"; "" for
+     * a first prompt.
+     */
+    "refused"?: string;
+    "refusedRef"?: string;
 }
 
 /**

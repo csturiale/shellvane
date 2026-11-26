@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -86,6 +87,25 @@ func startScript(ret string, fields map[string]string, probe string) string {
 	return s
 }
 
+// pageValues is what a page that is only a token, or a service's JSON error,
+// reports: {"token": …} or {"__pvwaError": "code message"}; nil for any
+// other page.
+func pageValues(text string) map[string]string {
+	t := strings.TrimSpace(text)
+	if len(t) < 8192 && tokenPage.MatchString(t) {
+		return map[string]string{"token": strings.Trim(t, `"`)}
+	}
+	if strings.HasPrefix(t, "{") && strings.Contains(t, `"ErrorCode"`) {
+		var e struct{ ErrorCode, ErrorMessage string }
+		if json.Unmarshal([]byte(t), &e) == nil && e.ErrorCode != "" {
+			return map[string]string{"__pvwaError": strings.TrimSpace(e.ErrorCode + " " + e.ErrorMessage)}
+		}
+	}
+	return nil
+}
+
+var tokenPage = regexp.MustCompile(`^"?[A-Za-z0-9+/=._-]{40,}"?$`)
+
 // signInRedirectPage is a page that only goes to startURL.
 func signInRedirectPage(startURL string) string {
 	u, _ := json.Marshal(startURL)
@@ -117,6 +137,7 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 	done := make(chan struct{})
 	var once sync.Once
 	finish := func() { once.Do(func() { close(done) }) }
+	var mu sync.Mutex // accept runs for one report at a time
 
 	srv := &http.Server{ReadHeaderTimeout: 10 * time.Second, Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != path {
@@ -136,7 +157,10 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 		log.Printf("sign-in window %q reported: %s (names only)", title, strings.Join(keys, ", "))
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
-		if accept(values) {
+		mu.Lock()
+		ok := accept(values)
+		mu.Unlock()
+		if ok {
 			w.Write([]byte(`<!doctype html><meta charset="utf-8"><title>` + html.EscapeString(title) + `</title><body style="font:15px system-ui;padding:40px">` + html.EscapeString(title) + ` ✓</body>`))
 			finish()
 			return
@@ -203,6 +227,7 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 	win.Show()
 	win.Focus()
 
+	lastPage := ""
 	tick := time.NewTicker(150 * time.Millisecond)
 	defer tick.Stop()
 	// An identity provider's page posts its SAML response as soon as it
@@ -224,6 +249,25 @@ func WebLoginWindow(ctx context.Context, title, startURL, probe string, accept f
 			if !hooked {
 				if hooked = addDocumentStartScript(win, startHook); hooked {
 					log.Printf("sign-in window %q: start script installed", title)
+				}
+			}
+			// A page that is only a token (or a service's error), read
+			// natively where possible: it does not depend on the probe.
+			select {
+			case <-closed:
+				return errs.New(sshengine.ErrCancelled, nil) // never read a closed window
+			default:
+			}
+			if _, text, ok := readPage(win); ok && text != lastPage {
+				lastPage = text
+				if values := pageValues(text); values != nil {
+					log.Printf("sign-in window %q: page read, it holds a token or an error", title)
+					mu.Lock()
+					accepted := accept(values)
+					mu.Unlock()
+					if accepted || values[plugins.WebLoginStop] != "" {
+						return nil
+					}
 				}
 			}
 		}

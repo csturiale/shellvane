@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/csturiale/shellvane/core/plugins"
 	"github.com/csturiale/shellvane/core/sshengine"
 	"github.com/csturiale/shellvane/core/store"
 	"github.com/csturiale/shellvane/core/vault"
@@ -16,6 +17,7 @@ type scripted struct {
 	svc     *SessionService
 	answers []PromptAnswer
 	kinds   []string
+	prompts []Prompt
 }
 
 func (s *scripted) emit(name string, data any) {
@@ -25,6 +27,7 @@ func (s *scripted) emit(name string, data any) {
 	}
 	s.mu.Lock()
 	s.kinds = append(s.kinds, p.Kind)
+	s.prompts = append(s.prompts, p)
 	a := PromptAnswer{Cancel: true}
 	if len(s.answers) > 0 {
 		a, s.answers = s.answers[0], s.answers[1:]
@@ -113,5 +116,21 @@ func TestCancelledUnlockFallsBackToPrompt(t *testing.T) {
 	}
 	if sc.kinds[0] != "vaultUnlock" || sc.kinds[1] != "password" {
 		t.Fatalf("prompts = %v", sc.kinds)
+	}
+}
+
+func TestPromptSaysWhichPasswordWasRefused(t *testing.T) {
+	ctx := context.Background()
+	p, vs, sc := setup(t, PromptAnswer{Value: "typed"}, PromptAnswer{Value: "again"})
+	vs.Setup(ctx, "master password")
+	p.host = resolvedHost{credentialPlugin: "team:t1:login1", brokered: &plugins.Credential{Password: "from-the-team"}}
+	if got, _ := p.Password(ctx, target, 1); got != "from-the-team" {
+		t.Fatalf("first = %q", got)
+	}
+	if got, _ := p.Password(ctx, target, 2); got != "typed" || sc.prompts[0].Refused != "plugin" || sc.prompts[0].RefusedRef != "team:t1:login1" {
+		t.Fatalf("second = %q, prompt %+v", got, sc.prompts[0])
+	}
+	if p.Password(ctx, target, 3); sc.prompts[1].Refused != "typed" || sc.prompts[1].RefusedRef != "" {
+		t.Fatalf("third prompt %+v", sc.prompts[1])
 	}
 }

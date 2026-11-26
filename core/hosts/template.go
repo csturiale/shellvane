@@ -37,6 +37,9 @@ type TemplateGroup struct {
 	// PersonalUsers: the user names are left out, each member keeps their
 	// own (set on the top group of a shared group).
 	PersonalUsers bool `json:"personalUsers,omitempty"`
+	// NoLogins: the team logins set on its hosts are left out, each member
+	// keeps their own credentials (set on the top group of a shared group).
+	NoLogins bool `json:"noLogins,omitempty"`
 }
 
 // WithoutUsers returns g with the user names of its groups and hosts

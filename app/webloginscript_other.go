@@ -9,3 +9,7 @@ import "github.com/wailsapp/wails/v3/pkg/application"
 // (Linux with GTK 3) the sign-in relies on the probe run while the page is
 // open.
 func addDocumentStartScript(*application.WebviewWindow, string) bool { return false }
+
+// readPage is not available here: the probe in the start script reports
+// what the page shows.
+func readPage(*application.WebviewWindow) (string, string, bool) { return "", "", false }

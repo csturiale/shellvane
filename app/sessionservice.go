@@ -133,6 +133,12 @@ type Prompt struct {
 	// Keychain tells a vaultUnlock prompt why the keychain unlock (Touch
 	// ID, Windows Hello) did not open the vault; nil when it is not set up.
 	Keychain *errs.Payload `json:"keychain,omitempty"`
+	// Refused names where the password the server just refused came from:
+	// "plugin" (the host's credential plugin or team login, RefusedRef),
+	// "command" (its password command), "vault" (saved), "typed"; "" for
+	// a first prompt.
+	Refused    string `json:"refused,omitempty"`
+	RefusedRef string `json:"refusedRef,omitempty"`
 }
 
 // PromptAnswer is the user's reply. Decision applies to host keys:
@@ -883,8 +889,10 @@ type prompter struct {
 	sessionID string
 	host      resolvedHost
 
-	tried   map[string]bool // scopes whose saved credential was already used
-	pending []pendingSave   // answers to save once the login succeeds
+	tried map[string]bool // scopes whose saved credential was already used
+	// last is where the password given last came from (see Prompt.Refused).
+	last    string
+	pending []pendingSave // answers to save once the login succeeds
 	tokens  []*pkcs11.Signer
 }
 
@@ -896,19 +904,30 @@ type pendingSave struct {
 func (p *prompter) Password(ctx context.Context, t sshengine.Target, attempt int) (string, error) {
 	if b := p.host.brokered; b != nil && b.Password != "" && !p.tried["broker"] {
 		p.tried["broker"] = true
+		p.last = "plugin"
 		return b.Password, nil
 	}
 	if p.host.passwordCommand != "" && !p.tried["command"] {
 		p.tried["command"] = true
 		if out, err := runCredentialCommand(ctx, p.host.passwordCommand, targetEnv(t)); err == nil && out != "" {
+			p.last = "command"
 			return out, nil
 		}
 	}
 	scope := vault.PasswordScope(t.User, t.Host, t.Port)
 	if secret, ok := p.saved(ctx, scope, t); ok {
+		p.last = "vault"
 		return string(secret), nil
 	}
-	a, err := p.svc.ask(ctx, Prompt{SessionID: p.sessionID, Kind: "password", Target: t, Attempt: attempt, CanSave: p.canSave(ctx)})
+	pr := Prompt{SessionID: p.sessionID, Kind: "password", Target: t, Attempt: attempt, CanSave: p.canSave(ctx)}
+	if attempt > 1 {
+		pr.Refused = p.last
+		if p.last == "plugin" {
+			pr.RefusedRef = p.host.credentialPlugin
+		}
+	}
+	p.last = "typed"
+	a, err := p.svc.ask(ctx, pr)
 	if err == nil && a.Save {
 		p.pending = append(p.pending, pendingSave{scope: scope, label: t.String(), secret: []byte(a.Value)})
 	}
@@ -962,15 +981,18 @@ func looksLikePassword(q string) bool {
 func (p *prompter) knownPassword(ctx context.Context, t sshengine.Target) (string, bool) {
 	if b := p.host.brokered; b != nil && b.Password != "" && !p.tried["broker"] {
 		p.tried["broker"] = true
+		p.last = "plugin"
 		return b.Password, true
 	}
 	if p.host.passwordCommand != "" && !p.tried["command"] {
 		p.tried["command"] = true
 		if out, err := runCredentialCommand(ctx, p.host.passwordCommand, targetEnv(t)); err == nil && out != "" {
+			p.last = "command"
 			return out, true
 		}
 	}
 	if secret, ok := p.saved(ctx, vault.PasswordScope(t.User, t.Host, t.Port), t); ok {
+		p.last = "vault"
 		return string(secret), true
 	}
 	return "", false

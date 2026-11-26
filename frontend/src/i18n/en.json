@@ -686,7 +686,12 @@
       "for": "Password for {{user}}@{{host}} ({{title}}).",
       "retry": "Wrong password, try again.",
       "label": "Password",
-      "submit": "Connect"
+      "submit": "Connect",
+      "refused": {
+        "plugin": "The password from “{{source}}” was refused. If it is a team login, it is the team's account, not yours: choose your own in the host's settings (Credentials), or none.",
+        "command": "The password from the host's password command was refused.",
+        "vault": "The password saved in the vault was refused: it may have changed. Type the new one and save it to replace it."
+      }
     },
     "hostKey": {
       "title": "Unknown host key",

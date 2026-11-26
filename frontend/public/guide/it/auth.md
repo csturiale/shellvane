@@ -4,7 +4,7 @@ Shellvane prova, in ordine: la chiave assegnata all'host, il tuo agent SSH, le c
 
 ## Password {#password}
 
-Quando il server chiede una password, Shellvane mostra un dialog. Con la cassaforte sbloccata, spunta **Salva nella cassaforte**: viene salvata solo dopo un login riuscito e usata in silenzio la volta successiva (se viene rifiutata, ti viene chiesta di nuovo).
+Quando il server chiede una password, Shellvane mostra un dialog. Con la cassaforte sbloccata, spunta **Salva nella cassaforte**: viene salvata solo dopo un login riuscito e usata in silenzio la volta successiva (se viene rifiutata, ti viene chiesta di nuovo). Shellvane prova prima il plugin delle credenziali o l'accesso di team dell'host, poi il suo comando password, poi la password salvata; quando il server ne rifiuta una, il dialog dice quale (ad esempio il nome dell'accesso di team), così distingui un account del team dal tuo.
 
 ## Chiavi e agent {#keys}
 

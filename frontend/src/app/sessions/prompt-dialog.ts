@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 import { toTranslatableError } from '../core/backend/errors';
+import { PluginApi } from '../core/backend/plugin-api';
+import { Sharing } from '../extensions/sharing';
 import { Modal } from '../shared/modal';
 import { VaultStore } from '../vault/vault.store';
 import { SessionsStore } from './sessions.store';
@@ -35,8 +37,21 @@ export class PromptDialog {
   protected confirm = '';
   protected readonly vaultError = signal<string | null>(null);
   private readonly transloco = inject(TranslocoService);
+  private readonly sharing = inject(Sharing);
+  private readonly pluginApi = inject(PluginApi);
+  /** The name of the credential plugin or team login whose password was refused. */
+  protected readonly refusedSource = signal('');
 
   constructor() {
+    // Which login gave the refused password: its name, as the host's
+    // settings show it.
+    effect(() => {
+      const ref = this.prompt()?.refusedRef ?? '';
+      this.refusedSource.set(ref);
+      if (ref) {
+        void this.nameOf(ref).then((name) => this.prompt()?.refusedRef === ref && this.refusedSource.set(name));
+      }
+    });
     // Opened elsewhere (Touch ID, another pane, the unlock dialog): the
     // panes still waiting for the master password go on without it.
     effect(() => {
@@ -50,6 +65,22 @@ export class PromptDialog {
         }
       }
     });
+  }
+
+  private async nameOf(ref: string): Promise<string> {
+    try {
+      const shared = (await this.sharing.credentialSources()).find((l) => l.ref === ref);
+      if (shared) {
+        return `${shared.group} · ${shared.label}`;
+      }
+      const config = (await this.pluginApi.configs()).find((c) => c.id === ref);
+      if (config) {
+        return config.name;
+      }
+    } catch {
+      // Unavailable: the reference is shown.
+    }
+    return ref;
   }
 
   protected async submitPassword(): Promise<void> {

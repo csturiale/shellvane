@@ -686,7 +686,12 @@
       "for": "Password per {{user}}@{{host}} ({{title}}).",
       "retry": "Password errata, riprova.",
       "label": "Password",
-      "submit": "Connetti"
+      "submit": "Connetti",
+      "refused": {
+        "plugin": "La password di “{{source}}” è stata rifiutata. Se è un accesso di team, è l'account del team, non il tuo: scegli il tuo nelle impostazioni dell'host (Credenziali), oppure nessuno.",
+        "command": "La password del comando password dell'host è stata rifiutata.",
+        "vault": "La password salvata nel vault è stata rifiutata: forse è cambiata. Scrivi quella nuova e salvala per sostituirla."
+      }
     },
     "hostKey": {
       "title": "Chiave host sconosciuta",

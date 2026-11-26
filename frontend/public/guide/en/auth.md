@@ -4,7 +4,7 @@ Shellvane tries, in order: the key assigned to the host, your SSH agent, the key
 
 ## Passwords {#password}
 
-When the server asks for a password, Shellvane shows a dialog. With the vault unlocked, tick **Save in vault**: it is stored only after a successful login, and used silently next time (if it is refused, you are asked again).
+When the server asks for a password, Shellvane shows a dialog. With the vault unlocked, tick **Save in vault**: it is stored only after a successful login, and used silently next time (if it is refused, you are asked again). Shellvane tries the host's credential plugin or team login first, then its password command, then the saved password; when the server refuses one, the dialog says which (for example the team login's name), so you can tell a team account from your own.
 
 ## Keys and agent {#keys}
 

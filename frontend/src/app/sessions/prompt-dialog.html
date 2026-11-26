@@ -17,6 +17,9 @@
           }
           @if (p.attempt > 1) {
             <p class="error" role="alert">{{ t('sessions.' + p.kind + '.retry') }}</p>
+            @if (p.kind === 'password' && p.refused && p.refused !== 'typed') {
+              <p class="hint">{{ t('sessions.password.refused.' + p.refused, { source: refusedSource() }) }}</p>
+            }
           }
           <label class="field">
             <span>{{ t('sessions.' + p.kind + '.label') }}</span>

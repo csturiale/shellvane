@@ -59,3 +59,7 @@ func addDocumentStartScript(win *application.WebviewWindow, source string) bool 
 	})
 	return ok
 }
+
+// readPage is not available on Linux yet: the probe in the start script
+// reports what the page shows.
+func readPage(*application.WebviewWindow) (string, string, bool) { return "", "", false }
