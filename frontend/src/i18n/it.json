@@ -256,8 +256,14 @@
       "noLoginSecret": "Questo ambiente non ha una sorgente per la password del login.",
       "loginSecretEmpty": "L'account {{user}} non ha una password nel plugin delle credenziali.",
       "clipboard": "Gli appunti non sono disponibili.",
-      "showTerminal": "Vai al suo terminale (l’ultimo usato)",
-      "kubeUnreachable": "Il terminale non raggiunge il cluster: {{detail}}"
+      "kubeUnreachable": "Il terminale non raggiunge il cluster: {{detail}}",
+      "missing": {
+        "host": "Il jump host “{{names}}” di questo ambiente non è su questo computer: importalo o crealo, oppure scegline un altro nell'ambiente.",
+        "tunnel": "Questi tunnel dell'ambiente non sono su questo computer: {{names}}. Creali (o ricevili con l'ambiente del team) oppure scegline altri nell'ambiente.",
+        "kubeTunnel": "Il tunnel da cui passa kubectl locale (“{{names}}”) non è su questo computer: crealo o scegline un altro nell'ambiente, altrimenti kubectl non raggiunge il cluster.",
+        "workspace": "Il layout “{{names}}” di questo ambiente non è su questo computer: scegline un altro nell'ambiente.",
+        "plugin": "Il plugin delle credenziali della password di login (“{{names}}”) non è configurato su questo computer: configuralo in Plugin oppure scegline un altro nell'ambiente."
+      }
     },
     "sessionlog": {
       "createFailed": "Impossibile creare {{path}}.",
@@ -1597,7 +1603,9 @@
     "fillMissingTitle": "I tuoi valori personali",
     "fillMissingHint": "Chiesti una volta, per ogni ambiente che li usa, e tenuti solo su questo computer. Lascia un campo vuoto per sentirtelo chiedere all’avvio di quell’ambiente.",
     "expiredNotice": "{{name}}: il login è scaduto, i suoi terminali non raggiungono il cluster.",
-    "relogin": "Rifai il login"
+    "relogin": "Rifai il login",
+    "showTerminal": "Vai al suo terminale (l’ultimo usato)",
+    "missingRefs": "Non presenti su questo computer (indicati dall'importazione o dal team): {{names}}. L'ambiente si ferma al passo che li richiede finché non ne scegli altri qui."
   },
   "logs": {
     "title": "Log e registrazioni",

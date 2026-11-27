@@ -4,6 +4,9 @@
       @if (sharing.note; as c) {
         <ng-container *ngComponentOutlet="c; inputs: { kind: 'environment', localId: environment()?.id }" />
       }
+      @if (missing(); as names) {
+        <p class="error" role="alert">{{ t('environments.missingRefs', { names }) }}</p>
+      }
       <label class="field">
         <span>{{ t('environments.name') }}</span>
         <input name="name" autofocus [(ngModel)]="name" placeholder="GKE prod" />

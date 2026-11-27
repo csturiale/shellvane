@@ -256,8 +256,14 @@
       "noLoginSecret": "This environment has no password source for its login.",
       "loginSecretEmpty": "The account {{user}} has no password in the credential plugin.",
       "clipboard": "The clipboard is not available.",
-      "showTerminal": "Go to its terminal (the one used last)",
-      "kubeUnreachable": "The terminal does not reach the cluster: {{detail}}"
+      "kubeUnreachable": "The terminal does not reach the cluster: {{detail}}",
+      "missing": {
+        "host": "The jump host “{{names}}” of this environment is not on this computer: import or create it, or choose another one in the environment.",
+        "tunnel": "These tunnels of the environment are not on this computer: {{names}}. Create them (or get them with the team's environment) or choose others in the environment.",
+        "kubeTunnel": "The tunnel local kubectl goes through (“{{names}}”) is not on this computer: create it or choose another in the environment, otherwise kubectl would not reach the cluster.",
+        "workspace": "The layout “{{names}}” of this environment is not on this computer: choose another in the environment.",
+        "plugin": "The credential plugin of the login password (“{{names}}”) is not set up on this computer: set it up in Plugins or choose another in the environment."
+      }
     },
     "sessionlog": {
       "createFailed": "Cannot create {{path}}.",
@@ -1597,7 +1603,9 @@
     "fillMissingTitle": "Your personal values",
     "fillMissingHint": "Asked once, for every environment that uses them, and kept on this computer only. Leave a field empty to be asked when that environment starts.",
     "expiredNotice": "{{name}}: the login has expired, its terminals cannot reach the cluster.",
-    "relogin": "Log in again"
+    "relogin": "Log in again",
+    "showTerminal": "Go to its terminal (the one used last)",
+    "missingRefs": "Not on this computer (named by the import or the team): {{names}}. The environment stops at the step that needs them until you choose others here."
   },
   "logs": {
     "title": "Logs and recordings",

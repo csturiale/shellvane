@@ -112,3 +112,37 @@ func TestPersonalVariablesAreNotExported(t *testing.T) {
 		t.Fatalf("import = %+v, %v", in.Variables, err)
 	}
 }
+
+func TestImportKeepsWhatThisComputerLacks(t *testing.T) {
+	text := "name: Shop\nremote:\n  host: jump\n  terminal: true\ntunnels:\n  - db\n  - api\nlocalKube:\n  context: shop-prd\n  tunnel: api\n  terminals: 1\n"
+	have := map[string]string{"tunnel/db": "t-db"}
+	e, err := Import(text, func(kind, name string) string { return have[kind+"/"+name] })
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []MissingRef{{MissingHost, "jump"}, {MissingTunnel, "api"}, {MissingKubeTunnel, "api"}}
+	if len(e.TunnelIDs) != 1 || e.TunnelIDs[0] != "t-db" || len(e.Missing) != 3 {
+		t.Fatalf("imported %+v, missing %+v", e.TunnelIDs, e.Missing)
+	}
+	for i, m := range want {
+		if e.Missing[i] != m {
+			t.Fatalf("missing[%d] = %+v, want %+v", i, e.Missing[i], m)
+		}
+	}
+	// Exported again, the missing ones go on by name.
+	out, _ := Export(e, func(kind, id string) string {
+		if id == "t-db" {
+			return "db"
+		}
+		return ""
+	})
+	again, _ := Import(out, func(kind, name string) string { return have[kind+"/"+name] })
+	if len(again.Missing) != 3 {
+		t.Fatalf("re-export lost them: %s", out)
+	}
+	// Choosing a host in the editor clears that one.
+	e.Remote.HostID = "h-1"
+	if n := normalize(e); len(n.Missing) != 2 {
+		t.Fatalf("after choosing the host: %+v", n.Missing)
+	}
+}

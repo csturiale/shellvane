@@ -6,6 +6,10 @@ Quando una connessione cade (cambio di rete, sospensione, riavvio del server), i
 
 Si disattiva in Impostazioni › Sessioni, o per host/gruppo in Avanzate. Il vecchio output resta sullo schermo con una riga "riconnesso alle".
 
+## La finestra {#window}
+
+Shellvane si riapre dove era all'ultimo avvio: stessa dimensione, stesso schermo, massimizzata o no. Se quello schermo non è più collegato, la finestra si apre su quello principale.
+
 ## Sessioni persistenti con tmux o screen {#tmux}
 
 Imposta **Sessione persistente** (Avanzate) su tmux o GNU screen: la shell gira in una sessione con nome sul server, così dopo una disconnessione — o un riavvio di Shellvane — ritrovi gli stessi programmi ancora in esecuzione, con il loro output. Ogni pannello ha il proprio nome di sessione. Se il multiplexer non è installato, si apre la shell normale. Un badge "tmux" contrassegna questi pannelli.

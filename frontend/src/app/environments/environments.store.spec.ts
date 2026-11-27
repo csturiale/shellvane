@@ -426,6 +426,26 @@ describe('EnvironmentsStore', () => {
     expect(store.runOf('e1')).toBeDefined(); // no terminal opened since: it stays
   }, 15000);
 
+  it('fails clearly when a tunnel or the jump host is not on this computer', async () => {
+    // Named by an import or a team, and not here: the tunnels step fails with their names.
+    await store.start(env({ tunnelIds: ['t1'], missing: [{ kind: 'tunnel', name: 'jump 1080' }] }), {});
+    let steps = store.runOf('e1')!.steps;
+    expect(steps.find((s) => s.id === 'tunnels')!.state).toBe('failed');
+    expect(steps.find((s) => s.id === 'tunnels')!.error!.key).toBe('errors.environments.missing.tunnel');
+    expect(steps.find((s) => s.id === 'tunnels')!.error!.params).toEqual({ names: 'jump 1080' });
+    expect(steps.find((s) => s.id === 'localKube')!.state).toBe('pending'); // stopped there
+
+    // A tunnel deleted since it was chosen.
+    await store.start(env({ tunnelIds: ['gone'] }), {});
+    steps = store.runOf('e1')!.steps;
+    expect(steps.find((s) => s.id === 'tunnels')!.error!.key).toBe('errors.environments.missing.tunnel');
+
+    // The jump host, before anything opens.
+    await store.start(env({ missing: [{ kind: 'host', name: 'jump' }] }), {});
+    steps = store.runOf('e1')!.steps;
+    expect(steps.find((s) => s.id === 'remote')!.error!.key).toBe('errors.environments.missing.host');
+  });
+
   it('keeps environments without terminals, or with the preference off', async () => {
     const tunnelsOnly = env({ tunnelIds: ['t1'] });
     api.list = async () => [tunnelsOnly];

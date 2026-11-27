@@ -27,6 +27,13 @@ export interface Environment {
      * Environments with the same profile share it; "" is gcloud's own.
      */
     "gcloud"?: string;
+
+    /**
+     * Missing are the references an import or a team share named and this
+     * computer has nothing for: the environment says so when it starts,
+     * instead of going on without them (and exports them again by name).
+     */
+    "missing"?: MissingRef[] | null;
 }
 
 /**
@@ -109,6 +116,20 @@ export interface LoginSecret {
      * Safe replaces the configuration's safe or folder when set.
      */
     "safe": string;
+}
+
+/**
+ * MissingRef is a host, tunnel, workspace or plugin an environment names
+ * but this computer does not have.
+ */
+export interface MissingRef {
+    /**
+     * Kind: "host" (the remote step's), "tunnel", "kubeTunnel" (the one
+     * local kubectl goes through), "workspace" or "plugin" (the login
+     * password's).
+     */
+    "kind": string;
+    "name": string;
 }
 
 /**

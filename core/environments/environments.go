@@ -116,7 +116,30 @@ type Environment struct {
 	// environments can use different Google accounts at the same time.
 	// Environments with the same profile share it; "" is gcloud's own.
 	Gcloud string `json:"gcloud,omitempty" yaml:"gcloud,omitempty"`
+	// Missing are the references an import or a team share named and this
+	// computer has nothing for: the environment says so when it starts,
+	// instead of going on without them (and exports them again by name).
+	Missing []MissingRef `json:"missing,omitempty" yaml:"-"`
 }
+
+// MissingRef is a host, tunnel, workspace or plugin an environment names
+// but this computer does not have.
+type MissingRef struct {
+	// Kind: "host" (the remote step's), "tunnel", "kubeTunnel" (the one
+	// local kubectl goes through), "workspace" or "plugin" (the login
+	// password's).
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+}
+
+// Missing kinds.
+const (
+	MissingHost       = "host"
+	MissingTunnel     = "tunnel"
+	MissingKubeTunnel = "kubeTunnel"
+	MissingWorkspace  = "workspace"
+	MissingPlugin     = "plugin"
+)
 
 var unsafeProfile = regexp.MustCompile(`[^A-Za-z0-9._-]+`)
 
@@ -228,6 +251,30 @@ func Export(e Environment, resolve func(kind, id string) string) (string, error)
 	x.LocalKube.TunnelID = resolve("tunnel", e.LocalKube.TunnelID)
 	x.WorkspaceID = resolve("workspace", e.WorkspaceID)
 	x.Login.Secret.Source = resolve("plugin", e.Login.Secret.Source)
+	// What this computer does not have goes on by name.
+	for _, m := range e.Missing {
+		switch m.Kind {
+		case MissingHost:
+			if x.Remote.HostID == "" {
+				x.Remote.HostID = m.Name
+			}
+		case MissingTunnel:
+			x.TunnelIDs = append(x.TunnelIDs, m.Name)
+		case MissingKubeTunnel:
+			if x.LocalKube.TunnelID == "" {
+				x.LocalKube.TunnelID = m.Name
+			}
+		case MissingWorkspace:
+			if x.WorkspaceID == "" {
+				x.WorkspaceID = m.Name
+			}
+		case MissingPlugin:
+			if x.Login.Secret.Source == "" {
+				x.Login.Secret.Source = m.Name
+			}
+		}
+	}
+	x.Missing = nil
 	b, err := yaml.Marshal(x)
 	return "# Shellvane environment\n" + string(b), err
 }
@@ -239,17 +286,29 @@ func Import(text string, lookup func(kind, name string) string) (Environment, er
 	if err := yaml.Unmarshal([]byte(text), &e); err != nil {
 		return Environment{}, errs.Wrap(err, ErrInvalid, nil)
 	}
-	e.Remote.HostID = lookup("host", e.Remote.HostID)
+	e.Missing = nil
+	// A name this computer has nothing for is kept as missing, not dropped.
+	find := func(kind, missingKind, name string) string {
+		if name == "" {
+			return ""
+		}
+		id := lookup(kind, name)
+		if id == "" {
+			e.Missing = append(e.Missing, MissingRef{Kind: missingKind, Name: name})
+		}
+		return id
+	}
+	e.Remote.HostID = find("host", MissingHost, e.Remote.HostID)
 	var tunnels []string
 	for _, n := range e.TunnelIDs {
-		if id := lookup("tunnel", n); id != "" {
+		if id := find("tunnel", MissingTunnel, n); id != "" {
 			tunnels = append(tunnels, id)
 		}
 	}
 	e.TunnelIDs = tunnels
-	e.LocalKube.TunnelID = lookup("tunnel", e.LocalKube.TunnelID)
-	e.WorkspaceID = lookup("workspace", e.WorkspaceID)
-	e.Login.Secret.Source = lookup("plugin", e.Login.Secret.Source)
+	e.LocalKube.TunnelID = find("tunnel", MissingKubeTunnel, e.LocalKube.TunnelID)
+	e.WorkspaceID = find("workspace", MissingWorkspace, e.WorkspaceID)
+	e.Login.Secret.Source = find("plugin", MissingPlugin, e.Login.Secret.Source)
 	e.ID = ""
 	e = normalize(e)
 	if e.Name == "" {
@@ -270,6 +329,20 @@ func normalize(e Environment) Environment {
 	if e.Remote.Script == nil {
 		e.Remote.Script = []string{}
 	}
+	// A reference chosen since (in the editor) is no longer missing.
+	var missing []MissingRef
+	for _, m := range e.Missing {
+		switch {
+		case m.Kind == MissingHost && e.Remote.HostID != "",
+			m.Kind == MissingKubeTunnel && e.LocalKube.TunnelID != "",
+			m.Kind == MissingWorkspace && e.WorkspaceID != "",
+			m.Kind == MissingPlugin && e.Login.Secret.Source != "",
+			m.Name == "":
+			continue
+		}
+		missing = append(missing, m)
+	}
+	e.Missing = missing
 	return e
 }
 

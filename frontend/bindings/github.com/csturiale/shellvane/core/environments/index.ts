@@ -6,6 +6,7 @@ export type {
     LocalKube,
     LocalLogin,
     LoginSecret,
+    MissingRef,
     Remote,
     Variable
 } from "./models.js";

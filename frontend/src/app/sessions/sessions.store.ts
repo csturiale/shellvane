@@ -59,6 +59,8 @@ export interface Pane {
   kubeOverride: KubeSelection | null;
   /** The environment that opened the pane, kept across restores. */
   env: PaneEnv | null;
+  /** Typed after login when the pane was opened (an environment's remote steps): a split to the same host types it again. */
+  script?: string[];
   /** The session is written to a log / recorded. */
   logging: boolean;
   recording: boolean;
@@ -330,7 +332,9 @@ export class SessionsStore {
   /**
    * Opens a session next to the focused pane: to the same host, or to
    * another source (a saved host, an address, a local terminal). Without
-   * a tab open it opens in a new tab.
+   * a tab open it opens in a new tab. The same host comes with what the
+   * pane was opened with: an environment's kubectl context, its steps after
+   * login and its badge (a terminal of the environment, not a plain one).
    */
   async splitWith(dir: SplitDir, other?: { source: PaneSource; title: string }): Promise<void> {
     this.usage.count('pane.split');
@@ -340,7 +344,8 @@ export class SessionsStore {
     if (!source) {
       return;
     }
-    const pane = await this.createPane(source, other?.title ?? from?.title ?? '');
+    const same = !other && from ? from : null;
+    const pane = await this.createPane(source, other?.title ?? from?.title ?? '', undefined, false, same?.kubeOverride ?? null, same?.script ?? [], same?.env ?? null);
     const current = this.active();
     if (!current || !this.pane(current.focus)) {
       this.addTab(pane.key);
@@ -782,6 +787,7 @@ export class SessionsStore {
       persist,
       kubeOverride,
       env,
+      script,
       cwd: '',
       bell: false,
       retry: null,

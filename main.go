@@ -193,10 +193,17 @@ func main() {
 	emit = func(name string, data any) { wailsApp.Event.Emit(name, data) }
 	wailsApp.HandleStream("terminal", app.TerminalStream(sessions))
 
+	// The size and screen of the last run (positioned once the screens are
+	// known, see RememberWindow).
+	windowState := filepath.Join(dataDir, "window.json")
+	width, height := 1280, 800
+	if ws, ok := app.LoadWindowState(windowState); ok {
+		width, height = max(ws.Width, 800), max(ws.Height, 500)
+	}
 	window := wailsApp.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "Shellvane",
-		Width:            1280,
-		Height:           800,
+		Width:            width,
+		Height:           height,
 		MinWidth:         800,
 		MinHeight:        500,
 		BackgroundColour: application.NewRGB(24, 24, 27),
@@ -204,6 +211,7 @@ func main() {
 		// Files dropped on elements marked data-file-drop-target are uploaded.
 		EnableFileDrop: true,
 	})
+	app.RememberWindow(wailsApp, window, windowState)
 	window.OnWindowEvent(events.Common.WindowFilesDropped, func(e *application.WindowEvent) {
 		target := ""
 		if d := e.Context().DropTargetDetails(); d != nil {

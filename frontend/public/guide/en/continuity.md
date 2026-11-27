@@ -6,6 +6,10 @@ When a connection drops (network change, sleep, server restart), the pane says *
 
 Turn it off in Settings › Sessions, or per host/group under Advanced. The old output stays on screen with a "reconnected at" line.
 
+## The window {#window}
+
+Shellvane opens where it was at the last run: same size, same screen, maximised or not. If that screen is no longer connected, the window opens on the main one.
+
 ## Persistent sessions with tmux or screen {#tmux}
 
 Set **Persistent session** (Advanced) to tmux or GNU screen: the shell then runs in a named session on the server, so after a disconnection — or a restart of Shellvane — you find the same programs still running, with their output. Each pane has its own session name. If the multiplexer is not installed, the normal shell opens. A badge "tmux" marks these panes.

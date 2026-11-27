@@ -68,6 +68,9 @@
             @if (env.description) {
               <span class="detail">{{ env.description }}</span>
             }
+            @if (env.missing?.length) {
+              <span class="detail absent">{{ t('environments.missingRefs', { names: absentRefs(env) }) }}</span>
+            }
           </div>
           <span class="actions">
             @if (sharing.button; as c) {

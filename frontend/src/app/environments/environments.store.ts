@@ -268,7 +268,10 @@ export class EnvironmentsStore {
     const autostart = new Set(this.tunnels.tunnels().filter((t) => t.profile.autostart).map((t) => t.profile.id));
     const ours = run.tunnels.filter((id) => !others.has(id) && !autostart.has(id));
     await Promise.all(ours.map((id) => this.tunnels.stop(id).catch(() => undefined)));
-    for (const key of run.panes) {
+    // Its terminals: the ones it opened and the ones opened from them
+    // (a split to the same host carries its badge).
+    const keys = new Set([...run.panes, ...this.sessions.panes().filter((p) => p.env?.id === envId).map((p) => p.key)]);
+    for (const key of keys) {
       await this.sessions.closePane(key).catch(() => undefined);
     }
   }
@@ -581,12 +584,26 @@ export class EnvironmentsStore {
     this.runs.update((list) => [...list]); // the run keeps its identity
   }
 
+  /**
+   * Fails a step whose host, tunnels, layout or plugin this computer does
+   * not have (named by an import or a team, or deleted since), with their
+   * names: the environment must not look ready without them.
+   */
+  private requirePresent(env: Environment, kind: 'host' | 'tunnel' | 'kubeTunnel' | 'workspace' | 'plugin', gone: string[] = []): void {
+    const names = [...(env.missing ?? []).filter((m) => m.kind === kind).map((m) => m.name), ...gone];
+    if (names.length > 0) {
+      throw { cause: { code: 'environments.missing.' + kind, params: { names: [...new Set(names)].join(', ') } } };
+    }
+  }
+
   /** Runs one step; false when there was nothing to do. */
   private async step(id: StepId, env: Environment, values: Record<string, string>, run: Run, opts: StartOptions): Promise<boolean> {
     switch (id) {
       case 'login':
+        this.requirePresent(env, 'plugin');
         return this.login(env, values, run);
       case 'remote': {
+        this.requirePresent(env, 'host');
         const r = env.remote;
         if (!r.hostId || !r.terminal || opts.noPanes) {
           return false;
@@ -605,10 +622,18 @@ export class EnvironmentsStore {
       }
       case 'tunnels': {
         const tunnelIds = env.tunnelIds ?? [];
+        if (tunnelIds.length > 0) {
+          await this.tunnels.load();
+        }
+        // Deleted since it was chosen: named by its ID, the name is gone.
+        this.requirePresent(
+          env,
+          'tunnel',
+          tunnelIds.filter((t) => !this.tunnels.tunnels().some((x) => x.profile.id === t)),
+        );
         if (tunnelIds.length === 0) {
           return false;
         }
-        await this.tunnels.load();
         const names = tunnelIds.map((t) => this.tunnels.tunnels().find((x) => x.profile.id === t)?.profile.name || t).join(', ');
         this.act(run, 'tunnels', 'connecting', { names });
         for (const t of tunnelIds) {
@@ -631,6 +656,12 @@ export class EnvironmentsStore {
       }
       case 'localKube': {
         const k = env.localKube;
+        if (k.terminals || k.context) {
+          if (k.tunnelId) {
+            await this.tunnels.load();
+          }
+          this.requirePresent(env, 'kubeTunnel', k.tunnelId && !this.tunnels.tunnels().some((x) => x.profile.id === k.tunnelId) ? [k.tunnelId] : []);
+        }
         if (!k.terminals || opts.noPanes) {
           return false;
         }
@@ -662,15 +693,15 @@ export class EnvironmentsStore {
         return true;
       }
       case 'workspace': {
+        this.requirePresent(env, 'workspace');
         if (!env.workspaceId || run.reuse) {
           return false;
         }
         await this.workspaces.load();
         const w = this.workspaces.list().find((x) => x.id === env.workspaceId);
-        if (w) {
-          await this.workspaces.open(w);
-        }
-        return !!w;
+        this.requirePresent(env, 'workspace', w ? [] : [env.workspaceId]);
+        await this.workspaces.open(w!);
+        return true;
       }
     }
   }

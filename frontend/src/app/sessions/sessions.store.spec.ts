@@ -189,6 +189,22 @@ describe('SessionsStore', () => {
     expect(store.active()!.focus).toBe(first);
   });
 
+  it('splits a terminal of an environment with one of the same environment', async () => {
+    const env = { id: 'e1', name: 'GKE', values: {} };
+    const kube = { context: 'shop-prd', namespace: 'web' };
+    await store.openHost('h1', 'web-1', { env, kube, script: ['sudo -i'] });
+    await store.split('row');
+
+    const [first, second] = panesOf(store.active()!.layout).map((k) => store.pane(k)!);
+    expect(second.env).toEqual(env);
+    expect(second.kubeOverride).toEqual(kube);
+    expect(second.script).toEqual(['sudo -i']);
+    expect(first.source).toEqual(second.source);
+    // Another source is a plain session.
+    await store.splitWith('row', { source: { kind: 'host', hostId: 'h2' }, title: 'db-1' });
+    expect(store.focused()!.env).toBeNull();
+  });
+
   it('splits the focused pane with a session to another host or address', async () => {
     await store.openHost('h1', 'web-1');
     await store.splitWith('row', { source: { kind: 'host', hostId: 'h2' }, title: 'db-1' });

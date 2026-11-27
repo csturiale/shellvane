@@ -173,6 +173,15 @@ export class EnvironmentDialog {
     this.terminal = false;
   }
 
+  /** The references this computer lacks, as the environment named them. */
+  protected readonly missing = computed(() => (this.environment()?.missing ?? []).map((m) => m.name).join(', '));
+
+  private missingKept(): Environment['missing'] {
+    const before = this.environment();
+    const changed = JSON.stringify([...(before?.tunnelIds ?? [])].sort()) !== JSON.stringify([...this.tunnelIds].sort());
+    return (before?.missing ?? []).filter((m) => !(m.kind === 'tunnel' && changed));
+  }
+
   protected async save(): Promise<void> {
     const e: Environment = {
       id: this.environment()?.id ?? '',
@@ -201,6 +210,9 @@ export class EnvironmentDialog {
         openLinks: this.openLinks,
       },
       gcloud: this.gcloud.trim(),
+      // What this computer lacks stays named until chosen here: the others
+      // clear when their field is set, the tunnels once the choice changes.
+      missing: this.missingKept(),
       remote: {
         hostId: this.hostId,
         terminal: this.terminal,

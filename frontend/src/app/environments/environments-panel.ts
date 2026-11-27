@@ -85,6 +85,11 @@ export class EnvironmentsPanel {
   }
 
   /** Starts, asking for the variables first when there are any. */
+  /** The hosts, tunnels, layout or plugin the environment names and this computer lacks. */
+  protected absentRefs(env: Environment): string {
+    return (env.missing ?? []).map((m) => m.name).join(', ');
+  }
+
   /** Goes to the running environment's terminal used last, or opens one when none is left. */
   protected showTerminal(env: Environment): void {
     if (!this.store.showTerminal(env.id) && this.store.isUp(env.id)) {
